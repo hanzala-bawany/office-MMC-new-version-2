@@ -72,8 +72,7 @@ const Screen1Image = ({ title }) => {
 
     formData.append("status", values.order);
     formData.append("action", !editdata ? "ADD" : "EDIT");
-    values.imageFile && formData.append("image", null);
-    values.imageFile && formData.append("images", values.imageFile[0].originFileObj);
+    values.imageFile && formData.append("image", values.imageFile[0].originFileObj);
     editdata && formData.append("id", editdata?.ID);
 
     setOnAddScreenLoading(true)
@@ -220,6 +219,7 @@ const Screen1Image = ({ title }) => {
       <h2 className="text-xl font-semibold text-gray-700 mb-4">{title}</h2>
 
       <div className="border border-gray-300 rounded-md p-4 mb-5">
+        
         {/* Upper Headline */}
         <Form form={headlinesForm} layout="vertical" onFinish={onHeadlinesSubmit}>
 
@@ -264,10 +264,12 @@ const Screen1Image = ({ title }) => {
           </div>
 
         </Form>
+
       </div>
 
 
       <div className="border border-gray-300 rounded-md p-4">
+
         <Form form={form} layout="vertical" onFinish={onFinish}>
 
           {/* Image Order */}
@@ -314,6 +316,7 @@ const Screen1Image = ({ title }) => {
             </Button>
           </div>
         </Form>
+
       </div>
 
       {/* Table */}
