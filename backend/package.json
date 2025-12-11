@@ -2,9 +2,24 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
+  
+  "bin":"index.js",
   "scripts": {
     "start": "node --watch index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+   "pkg": {
+    "scripts": "server.js",
+    "assets": [
+      "*.env",
+      "routes/**/*",
+      "controllers/**/*",
+      "models/**/*",
+      "node_modules/**/*"
+    ],
+    "targets": [
+      "node16-win-x64"
+    ]
   },
   "keywords": [],
   "author": "",
