@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
   Form, Input, Button, Select, Upload, TimePicker, Checkbox, Table, message,
+  Typography,
+  DatePicker,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -30,6 +32,7 @@ const DoctorTable = () => {
   const dispatch = useDispatch();
 
 
+
   // console.log(editingDoctor, "edit doctor data");
 
 
@@ -57,6 +60,8 @@ const DoctorTable = () => {
 
   const editHandler = (data) => {
     // full doctor object doctorData me se nikaal lo
+    // console.log(data, "edit data ");
+
 
     const selectedDoctor = doctorData?.find(
       (doc) => doc.DOCTOR_ID === data.DOCTOR_ID
@@ -84,7 +89,7 @@ const DoctorTable = () => {
       roomname: selectedDoctor?.ROOMNAME
     });
 
-    // timings ko set karna
+
     const newTimings = {};
     if (selectedDoctor?.SCHEDULE_SUMMARY) {
       const days = selectedDoctor.SCHEDULE_SUMMARY.split(", ");
@@ -97,10 +102,15 @@ const DoctorTable = () => {
       });
     }
     // console.log(newTimings , "newTimings ...........");
-
     setTimings(newTimings);
 
-    // editing state me doctor save karo
+    // SET FORM VALUES
+    Object.keys(newTimings).forEach((day) => {
+      form.setFieldValue(`${day}_from`, newTimings[day].from);
+      form.setFieldValue(`${day}_to`, newTimings[day].to);
+    });
+
+
     setEditingDoctor(selectedDoctor);
   };
 
@@ -147,6 +157,7 @@ const DoctorTable = () => {
 
   const onFinish = async (values) => {
     // console.log(values, "<<<<<<< onFinish values");
+    // console.log(timings, "<<<<<<< onFinish timings");
 
     setOnSubmitLoading(true);
 
@@ -154,6 +165,8 @@ const DoctorTable = () => {
       .filter(([_, val]) => val.from && val.to)
       .map(([day, val]) => `${day}|${val.from}|${val.to}`)
       .join(",");
+
+    // console.log(scheduleString, "<<<<<<< onFinish scheduleString");
 
 
     const formData = new FormData();
@@ -174,10 +187,10 @@ const DoctorTable = () => {
       formData.append("image", fileList[0]);
     }
     else if (selectedDoctor?.IMAGE) {
-      formData.append("image", selectedDoctor?.IMAGE);  
+      formData.append("image", selectedDoctor?.IMAGE);
     }
-    else if(!fileList[0]){
-       values?.gender == "Female" ? formData.append("image", "femaleDoctor.png") : formData.append("image", "maleDoctor.png")  ;
+    else if (!fileList[0]) {
+      values?.gender == "Female" ? formData.append("image", "femaleDoctor.png") : formData.append("image", "maleDoctor.png");
     }
 
     try {
@@ -253,14 +266,14 @@ const DoctorTable = () => {
     getDoctors()
   }, [reRendering])
 
-  
+
 
   return (
 
     <div className="p-0">
       {/* ---- Doctor Form ---- */}
       <div className="">
-        <h3 className="text-xl font-semibold text-gray-700 mb-6">
+        <h3 className="text-xl font-[700] text-gray-700 mb-6">
           Doctor Management
         </h3>
 
@@ -283,9 +296,9 @@ const DoctorTable = () => {
           <Form.Item
             name="contact"
             label="Contact No"
-            rules={[{ required: true, message: "Please enter contact no" }]}
+            rules={[{ message: "Please enter contact no" }]}
           >
-            <Input placeholder="Enter contact" size="large"    type="number"/>
+            <Input placeholder="Enter contact" size="large" type="number" />
           </Form.Item>
 
           {/* Faculty */}
@@ -303,7 +316,7 @@ const DoctorTable = () => {
 
           {/* Email */}
           <Form.Item name="email" label="Email">
-            <Input placeholder="Enter email" size="large"   type="email" />
+            <Input placeholder="Enter email" size="large" type="email" />
           </Form.Item>
 
           {/* Gender */}
@@ -327,30 +340,32 @@ const DoctorTable = () => {
           <Form.Item
             name="fees"
             label="Fees"
-            rules={[{ required: true, message: "Please enter fees" }]}
+            rules={[{ message: "Please enter fees" }]}
           >
             <Input placeholder="Enter fees" size="large" type="number" />
           </Form.Item>
 
 
           {/* Address */}
-          <Form.Item name="roomname" label="Room Name"  rules={[{ required: true, message: "Please enter Room Name" }]} >
-            <Input placeholder="Enter Room Name" size="large" rules={[{ required: true, message: "Please enter room name" }]} />
+          <Form.Item name="roomname" label="Room Name" rules={[{ message: "Please enter Room Name" }]} >
+            <Input placeholder="Enter Room Name" size="large" rules={[{ message: "Please enter room name" }]} />
           </Form.Item>
 
           {/* Description */}
-          <Form.Item name="description" label="Description" className="col-span-2" rules={[{ required: true, message: "Please enter description" }]}>
+          <Form.Item name="description" label="Description" className="col-span-2" rules={[{ message: "Please enter description" }]}>
             <Input.TextArea placeholder="Enter description" rows={3} />
           </Form.Item>
 
           {/* Timings Section */}
           <div className="col-span-full mt-6">
-            <h3 className="font-semibold text-gray-700 mb-3">Timings:</h3>
+            <h3 className="font-[700] text-gray-700 text-[20px] mb-3">Timings:</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {weekDays.map((day) => (
-                <div key={day}>
-                  <label className="block text-gray-600 mb-1">{day}</label>
-                  <div className="flex gap-2">
+                <div className="" key={day}>
+
+                  <label className="block text-gray-1000 font-[500] mb-1 text-[18px]">{day}</label>
+
+                  {/* <div className="flex gap-2">
                     <TimePicker
                       format="h:mm a"
                       placeholder="From"
@@ -367,11 +382,48 @@ const DoctorTable = () => {
                       value={timings[day]?.to ? moment(timings[day]?.to, "HH:mm") : null} // ✅ add this
                       use12Hours
                     />
+                  </div> */}
+
+                  <div className="flex  gap-4 border-gray-400">
+
+                    <Form.Item
+                      name={`${day}_from`}
+                      label="From"
+                      className="w-[40%]"
+                    >
+                      <Input
+                        type="time"
+                        style={{ width: "100%" }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          onTimeChange(day, "from", val ? moment(val, "HH:mm") : null);
+                        }}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      name={`${day}_to`}
+                      label="To"
+                      className="w-[40%]"
+                    >
+                      <Input
+                        type="time"
+                        style={{ width: "100%" }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          onTimeChange(day, "to", val ? moment(val, "HH:mm") : null);
+                        }}
+                      />
+
+                    </Form.Item>
+
                   </div>
+
                 </div>
               ))}
             </div>
           </div>
+
 
           {/* File Upload */}
           <Form.Item
