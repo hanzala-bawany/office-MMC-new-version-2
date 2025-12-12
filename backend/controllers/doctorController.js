@@ -139,7 +139,7 @@ const manageDoctor = async (req, res) => {
     if (connection) await connection.rollback().catch(() => { });
     res.status(500).json({
       success: false,
-      message: "Something went wrong.",
+      message: `Currently Unavailable working on this issue ===>>>> ${err}`,
       error: err.message,
     });
   } finally {
