@@ -6,8 +6,10 @@ const path = require("path");
 
 
 const manageDoctor = async (req, res) => {
-  const file = req.file || null;
+  const file = req?.file || null;
   const byDefault = req?.body?.image || null;
+
+  console.log(req.body, "<<<<<< req.body");
 
   const body = req.body || {};
   let {
@@ -66,9 +68,14 @@ const manageDoctor = async (req, res) => {
 
 
 
-    // Number safe conversion
-    fees = fees ? Number(fees) : null;
-    status = status ? Number(status) : null;
+    // Number safe conversio
+    fees = fees !== undefined && fees !== null && fees !== "" && fees !== "undefined" ? Number(fees) : 0;
+    status = status !== undefined && status !== null && status !== "" && status !== "undefined" ? Number(status) : null;
+    roomname = roomname !== undefined && roomname !== null && roomname !== "" && roomname !== "undefined" ? roomname : "Room not assigned yet";
+    description = description !== undefined && description !== null && description !== "" && description !== "undefined" ? description : "Consultation details will be updated soon.";
+    email = email !== undefined && email !== null && email !== "" && email !== "undefined" ? email : "abc@gmail.com";
+    address = address !== undefined && address !== null && address !== "" && address !== "undefined" ? address : "Not yet";
+
 
     const pool = await poolPromise;
     connection = await pool.getConnection();
@@ -139,7 +146,7 @@ const manageDoctor = async (req, res) => {
     if (connection) await connection.rollback().catch(() => { });
     res.status(500).json({
       success: false,
-      message: `Currently Unavailable working on this issue ===>>>> ${err}`,
+      message: `Currently Unavailable ${err}`,
       error: err.message,
     });
   } finally {
