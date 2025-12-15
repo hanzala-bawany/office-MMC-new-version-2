@@ -75,18 +75,18 @@ const DoctorTable = () => {
 
     // Form fields me data set karo
     form.setFieldsValue({
-      name: selectedDoctor.DOCTOR_NAME,
-      contact: selectedDoctor.CONTACTNO,
-      email: selectedDoctor.EMAIL,
-      gender: selectedDoctor.GENDER,
-      address: selectedDoctor.ADDRESS,
-      description: selectedDoctor.DESCRIPTION,
-      faculty: selectedDoctor.FKFACULTY_ID,
-      fees: selectedDoctor.FEES,
+      name: selectedDoctor.DOCTOR_NAME || "",
+      contact: selectedDoctor.CONTACTNO || "",
+      email: selectedDoctor.EMAIL || "",
+      gender: selectedDoctor.GENDER || "",
+      address: selectedDoctor.ADDRESS || "",
+      description: selectedDoctor.DESCRIPTION || "",
+      faculty: selectedDoctor.FKFACULTY_ID || "",
+      fees: selectedDoctor.FEES || "",
       screens: selectedDoctor?.SCREENS
         ? selectedDoctor.SCREENS.split(",") // agar comma separated hain
         : [],
-      roomname: selectedDoctor?.ROOMNAME
+      roomname: selectedDoctor?.ROOMNAME || ""
     });
 
 
@@ -186,11 +186,12 @@ const DoctorTable = () => {
     if (fileList[0]) {
       formData.append("image", fileList[0]);
     }
-    else if (selectedDoctor?.IMAGE) {
-      formData.append("image", selectedDoctor?.IMAGE);
-    }
-    else if (!fileList[0]) {
-      values?.gender == "Female" ? formData.append("image", "femaleDoctor.png") : formData.append("image", "maleDoctor.png");
+    else {
+      if (!editingDoctor) {
+        values?.gender === "Female"
+          ? formData.append("image", "femaleDoctor.png")
+          : formData.append("image", "maleDoctor.png");
+      }
     }
 
     try {
@@ -199,15 +200,17 @@ const DoctorTable = () => {
         // --- UPDATE logic ---
         formData.append("action", "EDIT");
         formData.append("id", editingDoctor.DOCTOR_ID);
-
         res = await axios.post(`${base_URL}/api/doctor/manage`, formData);
+        // console.log(res, " <<<< edit doctor");
         toast.success("Doctor updated successfully");
+
       } else {
         // --- ADD logic ---
         formData.append("action", "ADD");
-
         res = await axios.post(`${base_URL}/api/doctor/manage`, formData);
+        // console.log(res, "<<<<<< add doctor");
         toast.success("Doctor added successfully");
+
       }
 
       setEditingDoctor(null);
@@ -316,7 +319,7 @@ const DoctorTable = () => {
 
           {/* Email */}
           <Form.Item name="email" label="Email">
-            <Input placeholder="Enter email" size="large" type="email" />
+            <Input placeholder="Enter email" size="large" />
           </Form.Item>
 
           {/* Gender */}
@@ -340,7 +343,6 @@ const DoctorTable = () => {
           <Form.Item
             name="fees"
             label="Fees"
-            rules={[{ message: "Please enter fees" }]}
           >
             <Input placeholder="Enter fees" size="large" type="number" />
           </Form.Item>
@@ -429,8 +431,8 @@ const DoctorTable = () => {
           <Form.Item
             label="Doctor Image"
             className="col-span-full"
-            valuePropName="fileList"
-            getValueFromEvent={(e) => e.fileList}
+          // valuePropName="fileList"
+          // getValueFromEvent={(e) => e.fileList}
           >
             <Upload {...uploadProps}>
               <Button icon={<UploadOutlined />}>Select File</Button>
@@ -443,6 +445,7 @@ const DoctorTable = () => {
               form.resetFields();
               setTimings({});
               setEditingDoctor(null);
+              setFileList([]);
             }
             } danger size="large">
               Reset
