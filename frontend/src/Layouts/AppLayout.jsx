@@ -219,7 +219,7 @@ const AppLayout = () => {
           background: "#001529",
           color: "#fff",
           position: "relative",
-          padding: "35px 50px"
+          padding: "45px 50px"
         }}
       >
         <NavLink to="/">
@@ -227,13 +227,16 @@ const AppLayout = () => {
             src={NavImg}
             alt="logo"
             style={{ borderRadius: "50%" }}
-            className='w-15 h-12 sm:h-13 sm:w-20'
+            className='w-15 h-15 sm:h-15 sm:w-20'
           />
         </NavLink>
 
-        <h1 style={{ color: "red", margin: 0, fontSize: "25px" }} className='hidden sm:block'>
+        {/* <h1 style={{ color: "red", margin: 0, fontSize: "25px" }} className='hidden sm:block'>
           Memon Medical Complex
-        </h1>
+        </h1> */}
+<h1 className="hidden sm:block swim-text text-[28px] font-extrabold  tracking-wide">
+  Memon Medical Complex
+</h1>
 
         <div className='flex gap-x-4 items-center'>
           
