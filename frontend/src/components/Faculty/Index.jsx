@@ -9,8 +9,8 @@ import { useSelector } from "react-redux";
 const Faculty = () => {
 
   const [reRendering, setReRendering] = useState(false);
-  const [data , setData] = useState(null);
-  const [editdata , setEditdata] = useState(null);
+  const [data, setData] = useState(null);
+  const [editdata, setEditdata] = useState(null);
   const memoizedEditdata = useMemo(() => editdata, [editdata]);
 
 
@@ -29,10 +29,10 @@ const Faculty = () => {
     }
   }
 
-  
+
   const columns = [
     { title: "Id", dataIndex: "ID", key: "id" },
-    { title: "Faculty Name", dataIndex: "NAME", key: "facultyName" },
+    { title: "Consultant Name", dataIndex: "NAME", key: "consultantName" },
     {
       title: "Action",
       key: "action",
@@ -56,7 +56,7 @@ const Faculty = () => {
       }
       catch (err) {
         // console.log(err, "error in get faculty");
-          //  toast.error(err?.message)
+        //  toast.error(err?.message)
       }
     }
     foo()
@@ -64,12 +64,11 @@ const Faculty = () => {
   }, [reRendering])
 
 
-
   return (
-    
+
     <ImageUploadPage
-      title="Add Faculty"
-      inputLabel="Faculty Name"
+      title="Add Consultant"
+      inputLabel="Consultant Name"
       showUpload={false}
       columns={columns}
       data={data}

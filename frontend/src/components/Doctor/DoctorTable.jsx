@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Form, Input, Button, Select, Upload, TimePicker, Checkbox, Table, message,
   Typography,
@@ -30,6 +30,7 @@ const DoctorTable = () => {
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const dispatch = useDispatch();
+  const headingRef = useRef(null);
 
 
 
@@ -61,7 +62,6 @@ const DoctorTable = () => {
   const editHandler = (data) => {
     // full doctor object doctorData me se nikaal lo
     // console.log(data, "edit data ");
-
 
     const selectedDoctor = doctorData?.find(
       (doc) => doc.DOCTOR_ID === data.DOCTOR_ID
@@ -112,6 +112,13 @@ const DoctorTable = () => {
 
 
     setEditingDoctor(selectedDoctor);
+
+    setTimeout(() => {
+      headingRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
   };
 
   const columns = [
@@ -276,7 +283,7 @@ const DoctorTable = () => {
     <div className="p-0">
       {/* ---- Doctor Form ---- */}
       <div className="">
-        <h3 className="text-xl font-[700] text-gray-700 mb-6">
+        <h3 ref={headingRef} className="text-xl font-[700] text-gray-700 mb-6">
           Doctor Management
         </h3>
 
@@ -355,8 +362,8 @@ const DoctorTable = () => {
 
           {/* Description */}
           <Form.Item name="description" label="Description" className="col-span-2" rules={[{
-            max: 100,
-            message: "Description cannot exceed 60 characters",
+            max: 150,
+            message: "Description cannot exceed 150 characters",
           },]}>
             <Input.TextArea placeholder="Enter description" rows={3} />
           </Form.Item>

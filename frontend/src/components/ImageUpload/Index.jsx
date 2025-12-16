@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Upload, Table, Input, Form } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -11,16 +11,15 @@ const ImageUploadPage = ({ title, columns, data, showUpload = true, inputLabel, 
   // console.log(purpose, "<<< purpose");
   // console.log(editdata, "<<<<  editdata");
   // console.log(data, "<<<<  rows data");
-
   const [form] = Form.useForm();
   const [onSubmitLoading, setOnSubmitLoading] = useState(false)
+  const heading = useRef(null)
 
 
   const cancelHandler = () => {
     form.resetFields();
     setEditdata(null)
   }
-
 
   const onFinish = async (values) => {
     // console.log(values, "onfinish");
@@ -78,9 +77,18 @@ const ImageUploadPage = ({ title, columns, data, showUpload = true, inputLabel, 
 
   useEffect(() => {
     if (editdata) {
+
       form.setFieldsValue({
-        mainInput: purpose === "addFaculty" ? editdata.NAME :editdata.STATUS
+        mainInput: purpose === "addFaculty" ? editdata.NAME : editdata.STATUS
       });
+
+      setTimeout(() => {
+        heading.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100);
+
     } else {
       form.resetFields();
     }
@@ -91,7 +99,7 @@ const ImageUploadPage = ({ title, columns, data, showUpload = true, inputLabel, 
   return (
 
     <div className="">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{title}</h2>
+      <h2 ref={heading} className="text-xl font-semibold text-gray-700 mb-4">{title}</h2>
 
       <Form
         form={form}
@@ -156,7 +164,7 @@ const ImageUploadPage = ({ title, columns, data, showUpload = true, inputLabel, 
             : <TableSkeleton />
         }
       </div>
-      
+
     </div>
   );
 };

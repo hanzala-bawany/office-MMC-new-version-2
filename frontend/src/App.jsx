@@ -36,7 +36,7 @@ function App() {
             <Route path="/screen2" element={<Screen2Page />} />
             <Route path="/screen3" element={<Screen3Page />} />
             <Route path="/screen4" element={<Screen4Page />} />
-            <Route path="/faculty" element={<FacultyPage />} />
+            <Route path="/consultant" element={<FacultyPage />} />
             <Route path="/doctor" element={<DoctorPage />} />
             <Route path="/screens" element={<ScreensPage />} />
           </Route>
