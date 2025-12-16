@@ -2,6 +2,7 @@ const oracledb = require("oracledb");
 const poolPromise = require("../database.js");
 const fs = require("fs");
 const path = require("path");
+const csv = require("csv-parser");
 
 
 
@@ -156,8 +157,137 @@ const manageDoctor = async (req, res) => {
 
 
 
+const multer = require("multer");
+
+const uploadCSV = multer({
+  dest: "uploads/",
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "text/csv") cb(null, true);
+    else cb(new Error("Only CSV files allowed"));
+  },
+});
 
 
+
+const uploadDoctorsCSV = async (req, res) => {
+  const file = req.file;
+  let connection;
+
+  if (!file) {
+    return res.status(400).json({
+      success: false,
+      message: "CSV file is required",
+    });
+  }
+
+  const doctors = [];
+
+  try {
+    // 🔹 Parse CSV
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(file.path)
+        .pipe(csv())
+        .on("data", (row) => doctors.push(row))
+        .on("end", resolve)
+        .on("error", reject);
+    });
+
+    if (!doctors.length) {
+      return res.status(400).json({
+        success: false,
+        message: "CSV file is empty",
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    let successCount = 0;
+    let failed = [];
+
+    for (let i = 0; i < doctors.length; i++) {
+      const d = doctors[i];
+
+      try {
+        const defaultImage =
+          d.gender === "Female" ? "femaleDoctor.png" : "maleDoctor.png";
+
+        const imgPath = path.join(__dirname, "../assets", defaultImage);
+        const imageBlob = fs.readFileSync(imgPath);
+
+        await connection.execute(
+          `
+          BEGIN
+            manage_doctor(
+              p_action        => 'ADD',
+              p_id            => NULL,
+              p_doctor_name   => :doctor_name,
+              p_contactno     => :contactno,
+              p_email         => :email,
+              p_gender        => :gender,
+              p_address       => :address,
+              p_description   => :description,
+              p_image         => :image,
+              p_fkfaculty_id  => :fkfaculty_id,
+              p_fees          => :fees,
+              p_days          => :days,
+              p_createdby     => 'Admin',
+              p_editby        => 'Admin',
+              p_status        => :status,
+              p_roomname      => :roomname
+            );
+          END;
+          `,
+          {
+            doctor_name: d.doctor_name,
+            contactno: d.contactno || null,
+            email: d.email || "abc@gmail.com",
+            gender: d.gender,
+            address: d.address || "Not yet",
+            description: d.description || "Consultation details will be updated soon.",
+            image: { val: imageBlob, type: oracledb.BLOB },
+            fkfaculty_id: d.fkfaculty_id,
+            fees: Number(d.fees) || 0,
+            days: d.days || null,
+            status: Number(d.status) || 1,
+            roomname: d.roomname || "Room not assigned yet",
+          },
+          { autoCommit: false }
+        );
+
+        successCount++;
+      } catch (rowErr) {
+        failed.push({
+          row: i + 1,
+          doctor_name: d.doctor_name,
+          error: rowErr.message,
+        });
+      }
+    }
+
+    await connection.commit();
+
+    return res.status(200).json({
+      success: true,
+      message: "CSV processed",
+      total: doctors.length,
+      inserted: successCount,
+      failed,
+    });
+  } catch (err) {
+    if (connection) await connection.rollback();
+    console.error("CSV Upload Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to upload CSV",
+      error: err.message,
+    });
+  } finally {
+    if (connection) await connection.close().catch(() => {});
+    fs.unlinkSync(file.path); // delete uploaded CSV
+  }
+};
 
 
 
@@ -238,4 +368,4 @@ const getDoctors = async (req, res) => {
   }
 };
 
-module.exports = { manageDoctor, getDoctors };
+module.exports = { manageDoctor, getDoctors, uploadCSV, uploadDoctorsCSV };
