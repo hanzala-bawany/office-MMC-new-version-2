@@ -314,10 +314,10 @@ const DoctorTable = () => {
           {/* Faculty */}
           <Form.Item
             name="faculty"
-            label="Faculty"
-            rules={[{ required: true, message: "Please select faculty" }]}
+            label="Consultant"
+            rules={[{ required: true, message: "Please select consultant" }]}
           >
-            <Select placeholder="Select Faculty" size="large">
+            <Select placeholder="Select Consultant" size="large">
               {
                 facultyNames ? facultyNames?.map((item) => <Option key={item?.ID} value={item?.ID} > {item?.NAME} </Option>) : "No Faculty Assign"
               }
@@ -362,8 +362,8 @@ const DoctorTable = () => {
 
           {/* Description */}
           <Form.Item name="description" label="Description" className="col-span-2" rules={[{
-            max: 150,
-            message: "Description cannot exceed 150 characters",
+            max: 120,
+            message: "Description cannot exceed 120 characters",
           },]}>
             <Input.TextArea placeholder="Enter description" rows={3} />
           </Form.Item>
