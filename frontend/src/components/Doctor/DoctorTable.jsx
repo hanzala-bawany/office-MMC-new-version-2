@@ -266,7 +266,7 @@ const DoctorTable = () => {
     const getDoctors = async () => {
       try {
         const res = await axios.get(`${base_URL}/api/doctor/list`);
-        // console.log(res, "res of get Doctor");
+        console.log(res, "res of get Doctor");
         dispatch(updateDoctorsData(res.data.data));
         setDoctorData(res?.data?.data);
       }
@@ -461,6 +461,7 @@ const DoctorTable = () => {
             </Button>
           </div>
         </Form>
+
       </div>
 
       {/* ---- Table Section ---- */}
