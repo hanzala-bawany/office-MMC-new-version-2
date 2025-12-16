@@ -12,6 +12,7 @@ import moment from "moment/moment";
 import TableSkeleton from "../../utills/TableSkeleton";
 import { useDispatch, useSelector } from "react-redux";
 import { updateDoctorsData } from "../../reduxToolKit/doctorSlice";
+import CSV from "./CSV";
 
 
 const { Option } = Select;
@@ -29,6 +30,7 @@ const DoctorTable = () => {
   const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+
   const dispatch = useDispatch();
   const headingRef = useRef(null);
 
@@ -278,6 +280,8 @@ const DoctorTable = () => {
 
 
 
+
+
   return (
 
     <div className="p-0">
@@ -432,6 +436,11 @@ const DoctorTable = () => {
 
           {/* Buttons */}
           <div className="col-span-full flex justify-end gap-4 mt-4">
+     {/* <span>
+      <CSV/>
+     </span> */}
+
+
             <Button onClick={() => {
               form.resetFields();
               setTimings({});
