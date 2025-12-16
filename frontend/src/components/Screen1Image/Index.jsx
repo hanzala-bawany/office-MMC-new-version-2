@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, Upload, Table, Input, Form } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { base_URL } from "../../utills/baseUrl";
@@ -7,16 +7,17 @@ import { toast } from "react-toastify";
 import TableSkeleton from "../../utills/TableSkeleton";
 
 const Screen1Image = ({ title }) => {
+
   const [form] = Form.useForm();
   const [headlinesForm] = Form.useForm();
-
-  const [headlineData, setHeadlineData] = useState(null)
-  const [reFetchHeadlineData, setReFetchHeadlineData] = useState(false)
-  const [onAddHeadlineLoading, setOnAddHeadlineLoading] = useState(false)
-  const [onAddScreenLoading, setOnAddScreenLoading] = useState(false)
-  const [editdata, setEditdata] = useState(null)
-  const [screen1Data, setScreen1Data] = useState(null)
-  const [reFetchScreen1Data, setReFetchScreen1Data] = useState(null)
+  const [headlineData, setHeadlineData] = useState(null);
+  const [reFetchHeadlineData, setReFetchHeadlineData] = useState(false);
+  const [onAddHeadlineLoading, setOnAddHeadlineLoading] = useState(false);
+  const [onAddScreenLoading, setOnAddScreenLoading] = useState(false);
+  const [editdata, setEditdata] = useState(null);
+  const [screen1Data, setScreen1Data] = useState(null);
+  const [reFetchScreen1Data, setReFetchScreen1Data] = useState(null);
+  const heading = useRef(null);
 
   // console.log(screen1Data, "<<<<< screen1Data");
   // console.log(editdata, "......... edit data");
@@ -203,9 +204,18 @@ const Screen1Image = ({ title }) => {
 
   useEffect(() => {
     if (editdata) {
+
       form.setFieldsValue({
         order: editdata?.STATUS
       });
+
+      setTimeout(() => {
+        heading.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 100);
+
     } else {
       form.resetFields();
     }
@@ -216,10 +226,10 @@ const Screen1Image = ({ title }) => {
 
     <div className="p-6 bg-white shadow-md rounded-md">
       {/* Title */}
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">{title}</h2>
+      <h2 ref={heading} className="text-xl font-semibold text-gray-700 mb-4">{title}</h2>
 
       <div className="border border-gray-300 rounded-md p-4 mb-5">
-        
+
         {/* Upper Headline */}
         <Form form={headlinesForm} layout="vertical" onFinish={onHeadlinesSubmit}>
 
@@ -227,7 +237,10 @@ const Screen1Image = ({ title }) => {
             <Form.Item
               name="upperHeadline"
               label="Upper Headline (Top Slider)"
-              rules={[{ required: true, message: "Please enter upper headline!" }]}
+              rules={[{ required: true, message: "Please enter upper headline!" }, {
+                max: 140,
+                message: "Description cannot exceed 140 characters",
+              }]}
             >
               <Input.TextArea rows={3} placeholder="Upper Headline" />
             </Form.Item>
@@ -236,7 +249,10 @@ const Screen1Image = ({ title }) => {
             <Form.Item
               name="lowerHeadline"
               label="Lower Headline (Bottom Slider)"
-              rules={[{ required: true, message: "Please enter lower headline!" }]}
+              rules={[{ required: true, message: "Please enter lower headline!" }, {
+                max: 140,
+                message: "Description cannot exceed 140 characters",
+              }]}
             >
               <Input.TextArea rows={3} placeholder="Lower Headline" />
             </Form.Item>

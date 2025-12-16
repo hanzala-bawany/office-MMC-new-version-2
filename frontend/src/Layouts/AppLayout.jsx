@@ -46,10 +46,10 @@ const AppLayout = () => {
     {
       key: "2", icon: FaChalkboardTeacher, label:
         <NavLink
-          to={`/faculty `}
+          to={`/consultant `}
 
         >
-          Add Faculty
+          Add Consultant
         </NavLink>
     },
     {

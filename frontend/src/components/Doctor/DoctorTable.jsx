@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Form, Input, Button, Select, Upload, TimePicker, Checkbox, Table, message,
   Typography,
@@ -32,6 +32,7 @@ const DoctorTable = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   const dispatch = useDispatch();
+  const headingRef = useRef(null);
 
 
 
@@ -63,7 +64,6 @@ const DoctorTable = () => {
   const editHandler = (data) => {
     // full doctor object doctorData me se nikaal lo
     // console.log(data, "edit data ");
-
 
     const selectedDoctor = doctorData?.find(
       (doc) => doc.DOCTOR_ID === data.DOCTOR_ID
@@ -114,6 +114,13 @@ const DoctorTable = () => {
 
 
     setEditingDoctor(selectedDoctor);
+
+    setTimeout(() => {
+      headingRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
   };
 
   const columns = [
@@ -280,7 +287,7 @@ const DoctorTable = () => {
     <div className="p-0">
       {/* ---- Doctor Form ---- */}
       <div className="">
-        <h3 className="text-xl font-[700] text-gray-700 mb-6">
+        <h3 ref={headingRef} className="text-xl font-[700] text-gray-700 mb-6">
           Doctor Management
         </h3>
 
@@ -353,12 +360,15 @@ const DoctorTable = () => {
 
 
           {/* Address */}
-          <Form.Item name="roomname" label="Room Name" rules={[{ message: "Please enter Room Name" }]} >
-            <Input placeholder="Enter Room Name" size="large" rules={[{ message: "Please enter room name" }]} />
+          <Form.Item name="roomname" label="Room Name"  >
+            <Input placeholder="Enter Room Name" size="large" />
           </Form.Item>
 
           {/* Description */}
-          <Form.Item name="description" label="Description" className="col-span-2" rules={[{ message: "Please enter description" }]}>
+          <Form.Item name="description" label="Description" className="col-span-2" rules={[{
+            max: 150,
+            message: "Description cannot exceed 150 characters",
+          },]}>
             <Input.TextArea placeholder="Enter description" rows={3} />
           </Form.Item>
 
@@ -370,25 +380,6 @@ const DoctorTable = () => {
                 <div className="" key={day}>
 
                   <label className="block text-gray-1000 font-[500] mb-1 text-[18px]">{day}</label>
-
-                  {/* <div className="flex gap-2">
-                    <TimePicker
-                      format="h:mm a"
-                      placeholder="From"
-                      size="small"
-                      onChange={(time) => onTimeChange(day, "from", time)}
-                      value={timings[day]?.from ? moment(timings[day]?.from, "HH:mm") : null} // ✅ add this
-                      use12Hours
-                    />
-                    <TimePicker
-                      format="h:mm a"
-                      placeholder="To"
-                      size="small"
-                      onChange={(time) => onTimeChange(day, "to", time)}
-                      value={timings[day]?.to ? moment(timings[day]?.to, "HH:mm") : null} // ✅ add this
-                      use12Hours
-                    />
-                  </div> */}
 
                   <div className="flex  gap-4 border-gray-400">
 

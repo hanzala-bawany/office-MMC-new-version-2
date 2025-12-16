@@ -147,7 +147,7 @@ const manageDoctor = async (req, res) => {
     if (connection) await connection.rollback().catch(() => { });
     res.status(500).json({
       success: false,
-      message: `Currently Unavailable ${err}`,
+      message: `Currently Unavailable --> ${err}`,
       error: err.message,
     });
   } finally {

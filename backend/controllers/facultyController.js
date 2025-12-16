@@ -4,7 +4,7 @@ const poolPromise = require("../database.js");
  const addOrEditFaculty = async (req, res) => {
   const { id, name, user } = req.body;
   if (!name)
-    return res.status(400).json({ success: false, message: "Faculty name is required" });
+    return res.status(400).json({ success: false, message: "Consultant name is required" });
 
   let connection;
   try {
@@ -29,11 +29,11 @@ const poolPromise = require("../database.js");
       message:
         status === 1
           ? id
-            ? "Faculty updated successfully"
-            : "Faculty added successfully"
+            ? "Consultant updated successfully"
+            : "Consultant added successfully"
           : id
-          ? "Faculty not found or update failed"
-          : "Failed to add faculty",
+          ? "Consultant not found or update failed"
+          : "Consultant to add faculty",
     });
   } catch (err) {
     console.error(" addOrEditFaculty Error:", err);
