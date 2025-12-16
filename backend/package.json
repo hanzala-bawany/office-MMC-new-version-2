@@ -2,13 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-  
-  "bin":"index.js",
+  "bin": "index.js",
   "scripts": {
     "start": "node --watch index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-   "pkg": {
+  "pkg": {
     "scripts": "server.js",
     "assets": [
       "*.env",
@@ -29,6 +28,7 @@
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
