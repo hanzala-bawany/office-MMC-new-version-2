@@ -49,15 +49,12 @@ const LeftImageSlider = () => {
             {
                 imagesData[index] ?
                     <>
-                        <motion.img
-                            key={index}
+                        <img
                             src={imagesData[index]}
                             alt="MMC"
-                            className="rounded-2xl w-[85%] h-[60vh] object-cover shadow-xl border border-gray-300"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 3 }}
+                            className="slider-img rounded-2xl w-[85%] h-[60vh] object-cover shadow-xl border border-gray-300"
                         />
+
                     </>
                     :
                     <ImageLoader />

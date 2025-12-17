@@ -260,7 +260,7 @@ const DoctorTable = () => {
     }
     getFaculty()
 
-  }, [])
+  }, []);
 
   useEffect(() => {
     const getDoctors = async () => {
@@ -276,7 +276,7 @@ const DoctorTable = () => {
       }
     }
     getDoctors()
-  }, [reRendering])
+  }, [reRendering]);
 
 
 
