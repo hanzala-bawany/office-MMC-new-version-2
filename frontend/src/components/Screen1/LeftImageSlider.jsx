@@ -4,7 +4,7 @@ import { base_URL } from "../../utills/baseUrl";
 import { motion } from "framer-motion";
 import ImageLoader from "../../utills/ImageLoader";
 
-
+import image from '../../assets/niz2.jpg'
 
 const LeftImageSlider = () => {
 
@@ -47,20 +47,21 @@ const LeftImageSlider = () => {
     return (
         <div className="w-[70%]    flex justify-center items-center">
             {
-                imagesData[index] ?
+                // imagesData[index] ?
                     <>
                         <motion.img
                             key={index}
-                            src={imagesData[index]}
+                            // src={imagesData[index]}
+                            src={image}
                             alt="MMC"
-                            className="rounded-2xl w-[85%] h-[60vh] object-cover shadow-xl border border-gray-300"
+                            className="rounded-2xl w-[85%] h-[60vh] object-fill  shadow-xl border border-gray-300"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 3 }}
                         />
                     </>
-                    :
-                    <ImageLoader />
+                    // :
+                    // <ImageLoader />
             }
         </div>
     )

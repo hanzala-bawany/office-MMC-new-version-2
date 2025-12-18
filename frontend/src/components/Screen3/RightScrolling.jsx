@@ -62,15 +62,15 @@ const S3RightScrolling = () => {
             "></div>
 
             {/* Scrolling */}
-            <div className="overflow-hidden flex-1 relative">
+            <div className="overflow-hidden flex-1 relative h-[100vh]">
                 <div
-                    className="transition-transform duration-1000 ease-in-out"
+                    className="transition-transform duration-1000 ease-in-out h-full"
                     style={{ transform: `translateY(-${scrollIndex * 18}rem)` }}
                 >
                     {visibleDoctors?.map((doc, i) => (
                         <div
                             key={doc?.DOCTOR_ID + "-" + i}
-                            className="
+                            className=" h-[49%] bg-amber-400
                                 flex m-3 rounded-2xl bg-gradient-to-r 
                                 from-[#1a3658]/90 to-[#204c79]/90 
                                 border border-[#00b0ff]/20 shadow-xl overflow-hidden backdrop-blur-sm
@@ -81,16 +81,11 @@ const S3RightScrolling = () => {
 
                             {/* IMAGE */}
                             <div className="
-                                w-[40%] relative p-5 pb-0 
-                                2xl:p-6 
-                                [@media(min-width:2000px)]:p-10 
-                                [@media(min-width:3200px)]:p-14 
-                                [@media(min-width:4400px)]:p-16
-                            ">
+                                w-[40%] h-[100%] overflow-hidden   relative p-1">
                                 <img
                                     src={doc?.IMAGE}
                                     alt={doc?.DOCTOR_NAME}
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-fill"
                                 />
 
                                 <div className="
@@ -112,11 +107,10 @@ const S3RightScrolling = () => {
                                 <div>
                                     <h3 className="
                                         capitalize font-bold text-white leading-tight
-                                        text-lg 
-                                        2xl:text-2xl 
-                                        [@media(min-width:2000px)]:text-3xl
-                                        [@media(min-width:3200px)]:text-4xl
-                                        [@media(min-width:4400px)]:text-5xl
+                                        text-sm
+                                        2xl:text-2xl
+                                        
+                                       
                                     ">
                                         {doc?.DOCTOR_NAME}
                                     </h3>
@@ -127,11 +121,10 @@ const S3RightScrolling = () => {
                                                 key={idx}
                                                 className="
                                                     flex justify-between border-b border-white/10 pb-[2px]
-                                                    text-sm 
-                                                    2xl:text-lg 
-                                                    [@media(min-width:2000px)]:text-xl
-                                                    [@media(min-width:3200px)]:text-2xl
-                                                    [@media(min-width:4400px)]:text-3xl
+                                                    text-[10px]
+                                                    2xl:text-md
+                                                   [@media(min-width:3200px)]:text-3xl
+                                                  [@media(min-width:2000px)]:text-[16px]
                                                 "
                                             >
                                                 <span className="text-[#00b0ff] font-semibold">{slot.day}</span>
