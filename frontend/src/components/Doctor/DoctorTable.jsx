@@ -378,7 +378,7 @@ const DoctorTable = () => {
             max: 120,
             message: "Description cannot exceed 120 characters",
           },]}>
-            <Input.TextArea placeholder="Enter description" rows={3} />
+            <Input.TextArea showCount maxLength={150} placeholder="Enter description" rows={3} />
           </Form.Item>
 
           {/* Timings Section */}
