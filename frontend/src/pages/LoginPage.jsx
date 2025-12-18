@@ -10,6 +10,7 @@ import { base_URL } from '../utills/baseUrl';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../reduxToolKit/authSlice';
 import { jwtDecode } from "jwt-decode";
+import logo from "../assets/MMC logo.png";
 
 
 
@@ -44,7 +45,7 @@ const LoginPage = () => {
       localStorage.setItem("loginUser", JSON.stringify(token));
       dispatch(loginUser(decoded));
       setLoading(false);
-      
+
       if (decoded.role === "admin") {
         navigate("/");
       }
@@ -70,9 +71,72 @@ const LoginPage = () => {
   }
 
   return (
+
     <div className="relative h-[100vh] w-[100%] flex justify-center items-center ">
 
-      {/* <h1 className="absolute top-0 p-2 text-[50px] font-bold text-white bg-[#01A7B5]">Welcome Back</h1> */}
+      <div className="flex absolute top-4 left-4 items-center gap-4
+[@media(min-width:3200px)]:gap-8
+[@media(min-width:4400px)]:gap-12">
+
+        {/* Logo wrapper */}
+        <div className="
+    bg-[linear-gradient(135deg,#01A7B5_0%,#0b2745_100%)]
+    p-[2px]
+    rounded-full
+    shadow-lg
+  ">
+          <div className="
+      bg-white
+      backdrop-blur-md
+      p-2
+      rounded-full
+    ">
+            <img
+              src={logo}
+              alt="logo"
+              className="
+          h-6 sm:h-8 md:h-12
+          w-6 sm:w-8 md:w-12
+          min-[2000px]:h-16 min-[2000px]:w-16
+          [@media(min-width:3000px)]:h-18 [@media(min-width:3000px)]:w-18
+          [@media(min-width:4400px)]:h-30 [@media(min-width:4400px)]:w-30
+          object-contain
+        "
+            />
+          </div>
+        </div>
+
+        {/* Text */}
+        <div>
+          <h1 className="
+  text-1xl sm:text-2xl md:text-3xl  font-bold tracking-wide
+  min-[2000px]:text-5xl
+  [@media(min-width:3200px)]:text-6xl
+  [@media(min-width:4400px)]:text-7xl
+  text-[#0b2745]
+  bg-[linear-gradient(to_right,#0b2745_0%,#01A7B5_60%)]
+  bg-clip-text
+  
+">
+            Memon Medical Complex
+          </h1>
+
+
+          <p className="
+      text-sm italic
+      min-[2000px]:text-2xl
+      [@media(min-width:3000px)]:text-3xl
+      [@media(min-width:4400px)]:text-5xl
+      text-[#0b2745]/70
+    ">
+            “Serving with Excellence & Care”
+          </p>
+        </div>
+
+      </div>
+
+
+
       <h1
         className="absolute top-14 text-[40px] sm:text-[45px] md:text-[50px] font-bold bg-[linear-gradient(to_right,white_0%,white_30%,#a1e5ec_50%,#01A7B5_100%)] bg-clip-text text-transparent"
       >
@@ -83,7 +147,7 @@ const LoginPage = () => {
 
       <div className="w-[50%] h-[100%] bg-[#01A7B5] flex items-center justify-end">
 
-        <div className="flex flex-col justify-between absolute left-5 sm:static  items-start p-6 h-[50%] w-[90%] md:w-[80%] lg:w-[60%] xl:w-[50%] bg-white shadow-[6px_0_20px_black]">
+        <div className="flex flex-col justify-between absolute left-5 sm:static  items-start p-6 h-[65%] md:h-[60%] lg:h-[50%]  w-[90%] md:w-[80%] lg:w-[60%] xl:w-[50%] bg-white shadow-[6px_0_20px_black]">
 
           <div className='w-full text-center'>
             <h1 className='text-[40px] font-medium text-[#01A7B5]'>Hospital</h1>
@@ -135,7 +199,7 @@ const LoginPage = () => {
 
       <div className="w-[50%] h-[100%] bg-[#F3F3F3] flex items-center justify-start">
 
-        <div className="hidden sm:flex   justify-center items-center p-4 h-[50%] w-[95%] md:w-[80%] lg:w-[60%] xl:w-[50%] bg-[#E3FDFF] shadow-[12px_4px_20px_0_rgba(0,0,0,0.3)]">
+        <div className="hidden sm:flex   justify-center items-center p-4 h-[65%] md:h-[60%] lg:h-[50%] w-[95%] md:w-[80%] lg:w-[60%] xl:w-[50%] bg-[#E3FDFF] shadow-[12px_4px_20px_0_rgba(0,0,0,0.3)]">
           <img src={doctorImg} alt="" />
         </div>
 

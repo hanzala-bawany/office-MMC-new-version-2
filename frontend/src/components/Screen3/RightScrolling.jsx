@@ -34,12 +34,23 @@ const S3RightScrolling = () => {
         setUpdateDoctorsData(newData);
     }, [doctorsData]);
 
+    // useEffect(() => {
+    //     const scrollTimer = setInterval(() => {
+    //         setScrollIndex((prev) => (prev + 1) % udateDoctorsData?.length);
+    //     }, 3500);
+    //     return () => clearInterval(scrollTimer);
+    // }, [udateDoctorsData.length]);
+
     useEffect(() => {
+        if (!udateDoctorsData.length) return;
+
         const scrollTimer = setInterval(() => {
-            setScrollIndex((prev) => (prev + 1) % udateDoctorsData?.length);
+                setScrollIndex((prev) => (prev + 1) % udateDoctorsData?.length);
         }, 3500);
+
         return () => clearInterval(scrollTimer);
     }, [udateDoctorsData.length]);
+
 
 
     return (

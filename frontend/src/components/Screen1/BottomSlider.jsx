@@ -87,11 +87,11 @@ const BottomSlider = () => {
                                     <img
                                         src={doc.IMAGE || "/placeholder-doctor.jpg"}
                                         alt={doc.DOCTOR_NAME}
-                                        className="p-1 w-[70px] h-[70px] 
+                                        className="p-1 w-[70px] h-[70px] object-fill
                                 [@media(min-width:3200px)]:w-[90px] [@media(min-width:3200px)]:h-[90px]
                                 [@media(min-width:3200px)_and_(min-height:2000px)]:w-[100px] [@media(min-width:3200px)_and_(min-height:2000px)]:h-[100px]
                                 [@media(min-width:4200px)_and_(min-height:2600px)]:w-[120px] [@media(min-width:4200px)_and_(min-height:2600px)]:h-[120px]
-                                rounded-full border-4 border-blue-300 shadow-sm object-cover flex-shrink-0"
+                                rounded-full border-4 border-blue-300 shadow-sm  flex-shrink-0"
                                     />
 
                                     {/* Doctor Info */}
