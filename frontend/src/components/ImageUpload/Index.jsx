@@ -143,7 +143,7 @@ const ImageUploadPage = ({ title, columns, data, showUpload = true, inputLabel, 
             style={{ background: "green", borderColor: "green" }}
             loading={onSubmitLoading}
           >
-            {editdata ? "Upadate" : "Submit"}
+            {editdata ? "Update" : "Submit"}
           </Button>
         </div>
       </Form>
