@@ -260,13 +260,13 @@ const DoctorTable = () => {
     }
     getFaculty()
 
-  }, [])
+  }, []);
 
   useEffect(() => {
     const getDoctors = async () => {
       try {
         const res = await axios.get(`${base_URL}/api/doctor/list`);
-        // console.log(res, "res of get Doctor");
+        console.log(res, "res of get Doctor");
         dispatch(updateDoctorsData(res.data.data));
         setDoctorData(res?.data?.data);
       }
@@ -276,7 +276,7 @@ const DoctorTable = () => {
       }
     }
     getDoctors()
-  }, [reRendering])
+  }, [reRendering]);
 
 
 
@@ -310,7 +310,10 @@ const DoctorTable = () => {
           <Form.Item
             name="contact"
             label="Contact No"
-            rules={[{ message: "Please enter contact no" }]}
+            rules={[{
+              max: 11,
+              message: "Contact cannot exceed 11 digits",
+            }, { message: "Please enter contact no" }]}
           >
             <Input placeholder="Enter contact" size="large" type="number" />
           </Form.Item>
@@ -318,10 +321,10 @@ const DoctorTable = () => {
           {/* Faculty */}
           <Form.Item
             name="faculty"
-            label="Faculty"
-            rules={[{ required: true, message: "Please select faculty" }]}
+            label="Consultant"
+            rules={[{ required: true, message: "Please select consultant" }]}
           >
-            <Select placeholder="Select Faculty" size="large">
+            <Select placeholder="Select Consultant" size="large">
               {
                 facultyNames ? facultyNames?.map((item) => <Option key={item?.ID} value={item?.ID} > {item?.NAME} </Option>) : "No Faculty Assign"
               }
@@ -330,7 +333,7 @@ const DoctorTable = () => {
 
           {/* Email */}
           <Form.Item name="email" label="Email">
-            <Input placeholder="Enter email" size="large" />
+            <Input placeholder="Enter email" size="large" type="email" />
           </Form.Item>
 
           {/* Gender */}
@@ -346,7 +349,10 @@ const DoctorTable = () => {
           </Form.Item>
 
           {/* Address */}
-          <Form.Item name="address" label="Address">
+          <Form.Item name="address" label="Address" rules={[{
+            max: 50,
+            message: "Address cannot exceed 50 characters",
+          },]}>
             <Input placeholder="Enter address" size="large" />
           </Form.Item>
 
@@ -360,14 +366,17 @@ const DoctorTable = () => {
 
 
           {/* Address */}
-          <Form.Item name="roomname" label="Room Name"  >
+          <Form.Item name="roomname" label="Room Name" rules={[{
+            max: 30,
+            message: "Room Name cannot exceed 30 characters",
+          },]} >
             <Input placeholder="Enter Room Name" size="large" />
           </Form.Item>
 
           {/* Description */}
           <Form.Item name="description" label="Description" className="col-span-2" rules={[{
-            max: 150,
-            message: "Description cannot exceed 150 characters",
+            max: 120,
+            message: "Description cannot exceed 120 characters",
           },]}>
             <Input.TextArea showCount maxLength={150} placeholder="Enter description" rows={3} />
           </Form.Item>
@@ -436,7 +445,7 @@ const DoctorTable = () => {
 
           {/* Buttons */}
           <div className="col-span-full flex justify-end gap-4 mt-4">
-     {/* <span>
+            {/* <span>
       <CSV/>
      </span> */}
 
@@ -461,6 +470,7 @@ const DoctorTable = () => {
             </Button>
           </div>
         </Form>
+
       </div>
 
       {/* ---- Table Section ---- */}

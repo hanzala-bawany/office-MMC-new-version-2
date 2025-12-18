@@ -59,6 +59,7 @@ const LeftImageSlider = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 3 }}
                         />
+
                     </>
                     :
                     <ImageLoader />

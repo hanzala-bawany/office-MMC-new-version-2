@@ -2,43 +2,56 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import userReducer from './authSlice';       // your auth slice
-import doctorReducer from './doctorSlice';   // your doctor slice
+import userReducer from './authSlice';
+import doctorReducer from './doctorSlice';
 
-// Persist config for user slice
+// Only user should be persisted
 const userPersistConfig = {
   key: 'user',
-  version: 1,
   storage,
 };
 
-// Persist config for doctor slice
-const doctorPersistConfig = {
-  key: 'doctor',
-  version: 1,
-  storage,
-};
+const persistedUserReducer = persistReducer(
+  userPersistConfig,
+  userReducer
+);
 
-// Create persisted reducers
-const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
-const persistedDoctorReducer = persistReducer(doctorPersistConfig, doctorReducer);
-
-// Combine reducers
 const rootReducer = combineReducers({
-  authSlice: persistedUserReducer,
-  doctorSlice: persistedDoctorReducer,
+  authSlice: persistedUserReducer, // ✅ persisted
+  doctorSlice: doctorReducer,      // ❌ NOT persisted
 });
 
-// Create store
 const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // ⚠️ required for redux-persist
+      serializableCheck: false,
     }),
 });
 
-// Create persistor
-let persistor = persistStore(store);
+const persistor = persistStore(store);
 
 export { store, persistor };
+
+
+
+
+// agar auth ko persist na mar ta tp sirf itna kaam kar ta
+ 
+
+// import { configureStore, combineReducers } from '@reduxjs/toolkit';
+// import userReducer from './authSlice';
+// import doctorReducer from './doctorSlice';
+
+
+// const rootReducer = combineReducers({
+//   authSlice: userReducer, // ✅ persisted
+//   doctorSlice: doctorReducer,      // ❌ NOT persisted
+// });
+
+// const store = configureStore({
+//   reducer: rootReducer,
+// });
+
+
+// export store;
