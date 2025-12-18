@@ -47,12 +47,12 @@ const LeftImageSlider = () => {
     return (
         <div className="w-[70%]    flex justify-center items-center">
             {
-                // imagesData[index] ?
+                imagesData[index] ?
                     <>
                         <motion.img
                             key={index}
-                            // src={imagesData[index]}
-                            src={image}
+                            src={imagesData[index]}
+                            // src={image}
                             alt="MMC"
                             className="rounded-2xl w-[85%] h-[60vh] object-fill  shadow-xl border border-gray-300"
                             initial={{ opacity: 0, scale: 0.8 }}
@@ -60,8 +60,8 @@ const LeftImageSlider = () => {
                             transition={{ duration: 3 }}
                         />
                     </>
-                    // :
-                    // <ImageLoader />
+                    :
+                    <ImageLoader />
             }
         </div>
     )
