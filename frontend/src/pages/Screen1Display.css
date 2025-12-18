@@ -65,4 +65,9 @@
 }
 
 
+.slider-img {
+    transition: opacity 4s ease-in-out;
+}
+
+
 

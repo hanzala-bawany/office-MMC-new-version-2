@@ -122,15 +122,6 @@ const Screen2Display = () => {
     }, []);
 
 
-
-    if (!doctor) {
-        return (
-            <div className="flex items-center justify-center h-screen text-white text-3xl">
-                Loading...
-            </div>
-        );
-    }
-
     return (
         // <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#e28585] to-black overflow-hidden relative text-white">
         <div className="flex items-center justify-center h-screen bg-gradient-to-br from-[#001f3f] via-[#004080] to-[#000814] overflow-hidden relative text-white">
@@ -155,90 +146,95 @@ const Screen2Display = () => {
             </div>
 
             <AnimatePresence mode="wait">
-                <motion.div
-                    key={doctor?.DOCTOR_NAME}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 1 }}
-                    className="absolute flex gap-x-6 items-center justify-center w-full h-full"
-                >
-
-                    {/* top heading */}
-                    <motion.div
-                        className=" absolute top-10  text-4xl  [@media(min-width:2200px)]:text-5xl [@media(min-width:3200px)]:text-6xl [@media(min-width:4200px)]:text-8xl font-extrabold  text-transparent  bg-clip-text  bg-gradient-to-r from-[#00b4d8] via-[#90e0ef] to-white drop-shadow-[0_0_25px_#00b4d8] tracking-wide uppercase"
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1.2, delay: 0.6 }}
-                    >
-                        Today's Doctors
-                    </motion.div>
-
-
-                    {/* Doctor Image Animation */}
-                    {
-                        doctor?.IMAGE ?
-                            <>
-                                <motion.img
-                                    src={doctor?.IMAGE}
-                                    alt={doctor?.DOCTOR_NAME}
-                                    className="rounded-2xl p-2 motion-img shadow-2xl absolute w-[250px] [@media(min-width:2200px)]:w-[290px] [@media(min-width:3200px)_and_(min-height:1000px)]:w-[340px] [@media(min-width:3200px)_and_(min-height:1550px)]:w-[420px] [@media(min-width:4200px)]:w-[540px] 
-                         h-[300px] [@media(min-width:2200px)]:h-[380px] [@media(min-width:3200px)_and_(min-height:1000px)]:h-[420px] [@media(min-width:3200px)_and_(min-height:1550px)]:h-[520px] [@media(min-width:4200px)]:h-[680px] object-cover border-2 border-[#00b4d8]"
-                                    initial={{ y: size.h >= 1800 ? -300 : -150, scale: 0.9, x: 0 }}
-                                    animate={{
-                                        y: 0,
-                                        scale: [2.5, 1.8],
-                                        x: [-10, size.w >= 3200 ? -440 : -280],
-                                    }}
-                                    transition={{
-                                        y: { duration: size.h >= 1800 ? 2 : 1 },
-                                        scale: { duration: 3, times: [0, 1], ease: "easeInOut" },
-                                        x: { delay: 2, duration: 1, ease: "easeInOut" },
-                                    }}
-                                />
-                            </>
-                            :
-                            // Loading Animation
-                            <ImageLoader />
-
-                    }
-
-                    {/* Doctor Details */}
-                    {showDetails && doctor && (
+                {
+                    !doctor ?
+                        <ImageLoader />
+                        :
                         <motion.div
-                            initial={{ opacity: 0, x: 100 }}
-                            animate={{ opacity: 1, x: size.w >= 3200 ? -30 : -10 }}
-                            transition={{ duration: 1.2 }}
-                            className="absolute flex flex-col  [@media(min-width:3200px)]:gap-3  [@media(min-width:4200px)]:gap-5 left-[55%] top-1/2 transform -translate-y-1/2 w-[35%]  bg-[#0d1b2a]/70  p-6 [@media(min-width:300px)]:p-8 [@media(min-width:4200px)]:p-10 rounded-2xl shadow-lg backdrop-blur-md border border-[#0077b6]"
+                            key={doctor?.DOCTOR_NAME}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1 }}
+                            className="absolute flex gap-x-6 items-center justify-center w-full h-full"
                         >
-                            <h2 className="text-5xl [@media(min-width:2200px)]:text-6xl [@media(min-width:3200px)]:text-7xl [@media(min-width:4200px)]:text-8xl  font-semibold text-[#00b4d8]">
-                                {doctor?.DOCTOR_NAME}
-                            </h2>
-                            <p className="text-2xl [@media(min-width:2200px)]:text-3xl [@media(min-width:4200px)]:text-4xl mt-1 text-gray-200 italic">
-                                {doctor?.FACULTY_NAME}
-                            </p>
-                            <p className="text-gray-300 mt-4 leading-relaxed text-lg [@media(min-width:2200px)]:text-2xl [@media(min-width:3200px)]:text-3xl [@media(min-width:4200px)]:text-4xl ">
-                                {doctor?.DESCRIPTION}
-                            </p>
 
-                            <div className="mt-6 space-y-2 text-[#caf0f8] text-lg [@media(min-width:2200px)]:text-[22px] [@media(min-width:3200px)]:text-[26px] [@media(min-width:4200px)]:text-[32px] ">
-                                <p>
-                                    <strong className="text-[#90e0ef]">🏥 Room :</strong>{" "}
-                                    {doctor?.ROOMNAME}
-                                </p>
-                                <p>
-                                    <strong className="text-[#90e0ef]">⏰ Timing :</strong>{" "}
-                                    {updatedTiming}
-                                </p>
-                                <p>
-                                    <strong className="text-[#90e0ef]">📅 Days :</strong>{" "}
-                                    {updatedDays}
-                                </p>
-                            </div>
+                            {/* top heading */}
+                            <motion.div
+                                className=" absolute top-10  text-4xl  [@media(min-width:2200px)]:text-5xl [@media(min-width:3200px)]:text-6xl [@media(min-width:4200px)]:text-8xl font-extrabold  text-transparent  bg-clip-text  bg-gradient-to-r from-[#00b4d8] via-[#90e0ef] to-white drop-shadow-[0_0_25px_#00b4d8] tracking-wide uppercase"
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 1.2, delay: 0.6 }}
+                            >
+                                Today's Doctors
+                            </motion.div>
+
+
+                            {/* Doctor Image Animation */}
+                            {
+                                doctor?.IMAGE ?
+                                    <>
+                                        <motion.img
+                                            src={doctor?.IMAGE}
+                                            alt={doctor?.DOCTOR_NAME}
+                                            className="rounded-2xl p-2 motion-img shadow-2xl absolute w-[250px] [@media(min-width:2200px)]:w-[290px] [@media(min-width:3200px)_and_(min-height:1000px)]:w-[340px] [@media(min-width:3200px)_and_(min-height:1550px)]:w-[420px] [@media(min-width:4200px)]:w-[540px] 
+                         h-[300px] [@media(min-width:2200px)]:h-[380px] [@media(min-width:3200px)_and_(min-height:1000px)]:h-[420px] [@media(min-width:3200px)_and_(min-height:1550px)]:h-[520px] [@media(min-width:4200px)]:h-[680px] object-cover border-2 border-[#00b4d8]"
+                                            initial={{ y: size.h >= 1800 ? -300 : -150, scale: 0.9, x: 0 }}
+                                            animate={{
+                                                y: 0,
+                                                scale: [2.5, 1.8],
+                                                x: [-10, size.w >= 3200 ? -440 : -280],
+                                            }}
+                                            transition={{
+                                                y: { duration: size.h >= 1800 ? 2 : 1 },
+                                                scale: { duration: 3, times: [0, 1], ease: "easeInOut" },
+                                                x: { delay: 2, duration: 1, ease: "easeInOut" },
+                                            }}
+                                        />
+                                    </>
+                                    :
+                                    // Loading Animation
+                                    <ImageLoader />
+
+                            }
+
+                            {/* Doctor Details */}
+                            {showDetails && doctor && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 100 }}
+                                    animate={{ opacity: 1, x: size.w >= 3200 ? -30 : -10 }}
+                                    transition={{ duration: 1.2 }}
+                                    className="absolute flex flex-col  [@media(min-width:3200px)]:gap-3  [@media(min-width:4200px)]:gap-5 left-[55%] top-1/2 transform -translate-y-1/2 w-[35%]  bg-[#0d1b2a]/70  p-6 [@media(min-width:300px)]:p-8 [@media(min-width:4200px)]:p-10 rounded-2xl shadow-lg backdrop-blur-md border border-[#0077b6]"
+                                >
+                                    <h2 className="text-5xl [@media(min-width:2200px)]:text-6xl [@media(min-width:3200px)]:text-7xl [@media(min-width:4200px)]:text-8xl  font-semibold text-[#00b4d8]">
+                                        {doctor?.DOCTOR_NAME}
+                                    </h2>
+                                    <p className="text-2xl [@media(min-width:2200px)]:text-3xl [@media(min-width:4200px)]:text-4xl mt-1 text-gray-200 italic">
+                                        {doctor?.FACULTY_NAME}
+                                    </p>
+                                    <p className="text-gray-300 mt-4 leading-relaxed text-lg [@media(min-width:2200px)]:text-2xl [@media(min-width:3200px)]:text-3xl [@media(min-width:4200px)]:text-4xl ">
+                                        {doctor?.DESCRIPTION}
+                                    </p>
+
+                                    <div className="mt-6 space-y-2 text-[#caf0f8] text-lg [@media(min-width:2200px)]:text-[22px] [@media(min-width:3200px)]:text-[26px] [@media(min-width:4200px)]:text-[32px] ">
+                                        <p>
+                                            <strong className="text-[#90e0ef]">🏥 Room :</strong>{" "}
+                                            {doctor?.ROOMNAME}
+                                        </p>
+                                        <p>
+                                            <strong className="text-[#90e0ef]">⏰ Timing :</strong>{" "}
+                                            {updatedTiming}
+                                        </p>
+                                        <p>
+                                            <strong className="text-[#90e0ef]">📅 Days :</strong>{" "}
+                                            {updatedDays}
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            )}
+
                         </motion.div>
-                    )}
-
-                </motion.div>
+                }
             </AnimatePresence>
 
             {/* === Control Buttons === */}
