@@ -1,8 +1,8 @@
 
 
-//  export const base_URL = "http://localhost:3000";  
+ export const base_URL = "http://localhost:3000";  
 // export const base_URL = "http://192.168.100.13:3000";
-export const base_URL = "http://192.168.100.57:3000";
+// export const base_URL = "http://192.168.100.57:3000";
 
 
 

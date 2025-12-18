@@ -219,7 +219,8 @@ const AppLayout = () => {
           background: "#001529",
           color: "#fff",
           position: "relative",
-          padding: "45px 50px"
+          padding: "45px 50px",
+          height:"12vh"
         }}
       >
         <NavLink to="/">
@@ -234,12 +235,12 @@ const AppLayout = () => {
         {/* <h1 style={{ color: "red", margin: 0, fontSize: "25px" }} className='hidden sm:block'>
           Memon Medical Complex
         </h1> */}
-<h1 className="hidden sm:block swim-text text-[28px] font-extrabold  tracking-wide">
-  Memon Medical Complex
-</h1>
+        <h1 className="hidden sm:block swim-text text-[28px] font-extrabold  tracking-wide">
+          Memon Medical Complex
+        </h1>
 
         <div className='flex gap-x-4 items-center'>
-          
+
           <Time />
 
           <div className="flex gap-x-2 text-[18px] sm:text-[20px]">
@@ -255,16 +256,16 @@ const AppLayout = () => {
         {/* SIDEBAR */}
         <Sider
           // width={240}
-          style={{ background: colorBgContainer, padding: "50px 0px 50px 0px", borderRadius: "10px" }}
-          className={`2xl:!min-w-[240px] 2xl:!max-w-[240px]  transition-all duration-300 ease-in-out z-50 
+          style={{ background: colorBgContainer,   height:"88vh", overflow:"hidden"  }}
+          className={`2xl:!min-w-[240px] 2xl:!max-w-[240px]   transition-all duration-300 ease-in-out z-50 
           ${isSiderOpen
               ? " !absolute left-0 ml-0 !h-[calc(100vh-70px)] shadow-lg"
               : "-ml-[200px] h-0"}
-          md:ml-0  md:static md:h-full bg-white `}
+          md:ml-0  md:static md:h-full  bg-white `}
         >
           <Menu
-            mode="inline"
-            style={{ height: "100%", borderInlineEnd: 0, display: "flex", flexDirection: "column" }}
+           
+            style={{ height: "100%", width:"100%" , paddingTop:"40px", borderInlineEnd: 0, display: "flex", flexDirection: "column" }}
             items={items2}
           />
         </Sider>
