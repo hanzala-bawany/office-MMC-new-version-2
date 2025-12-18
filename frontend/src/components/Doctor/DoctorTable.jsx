@@ -310,7 +310,10 @@ const DoctorTable = () => {
           <Form.Item
             name="contact"
             label="Contact No"
-            rules={[{ message: "Please enter contact no" }]}
+            rules={[{
+              max: 11,
+              message: "Contact cannot exceed 11 digits",
+            }, { message: "Please enter contact no" }]}
           >
             <Input placeholder="Enter contact" size="large" type="number" />
           </Form.Item>
@@ -330,7 +333,7 @@ const DoctorTable = () => {
 
           {/* Email */}
           <Form.Item name="email" label="Email">
-            <Input placeholder="Enter email" size="large" />
+            <Input placeholder="Enter email" size="large" type="email" />
           </Form.Item>
 
           {/* Gender */}
@@ -346,7 +349,10 @@ const DoctorTable = () => {
           </Form.Item>
 
           {/* Address */}
-          <Form.Item name="address" label="Address">
+          <Form.Item name="address" label="Address" rules={[{
+            max: 50,
+            message: "Address cannot exceed 50 characters",
+          },]}>
             <Input placeholder="Enter address" size="large" />
           </Form.Item>
 
@@ -360,7 +366,10 @@ const DoctorTable = () => {
 
 
           {/* Address */}
-          <Form.Item name="roomname" label="Room Name"  >
+          <Form.Item name="roomname" label="Room Name" rules={[{
+            max: 30,
+            message: "Room Name cannot exceed 30 characters",
+          },]} >
             <Input placeholder="Enter Room Name" size="large" />
           </Form.Item>
 
@@ -436,7 +445,7 @@ const DoctorTable = () => {
 
           {/* Buttons */}
           <div className="col-span-full flex justify-end gap-4 mt-4">
-     {/* <span>
+            {/* <span>
       <CSV/>
      </span> */}
 
