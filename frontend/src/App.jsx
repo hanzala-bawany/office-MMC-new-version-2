@@ -14,6 +14,7 @@ import Screen1Display from './pages/Screen1Display'
 import Screen4Display from './pages/Screen4Display'
 import Screen3Display from './pages/Screen3Display'
 import Screen2Display from './pages/Screen2Display'
+import ReceptionPage from './pages/ReceptionPage'
 import NotFoundPage from './pages/NotFoundPage'
 import LoginPage from './pages/LoginPage'
 import AdminDisplayParent from './routes/AdminDisplayParent'
@@ -27,7 +28,7 @@ function App() {
   return (
     <>
       <Routes>
-        
+
         {/* AppLayout wale routes */}
         <Route element={<AdminDisplayParent />}>
           <Route element={<AppLayout />}>
@@ -39,13 +40,14 @@ function App() {
             <Route path="/consultant" element={<FacultyPage />} />
             <Route path="/doctor" element={<DoctorPage />} />
             <Route path="/screens" element={<ScreensPage />} />
+            <Route path="/reception" element={<ReceptionPage />} />
           </Route>
-        </Route> 
+        </Route>
 
         {/* Screen Displays */}
         <Route element={<ScreenDisplayParent />}>
           {/* <Route element={<ScreenLayout />}> */}
-            <Route path="/screen1display" element={<Screen1Display />} />
+          <Route path="/screen1display" element={<Screen1Display />} />
           {/* </Route> */}
           <Route path="/screen2display" element={<Screen2Display />} />
           <Route path="/screen3display" element={<Screen3Display />} />
