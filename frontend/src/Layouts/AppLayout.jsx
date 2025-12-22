@@ -7,12 +7,10 @@ import { FaChalkboardTeacher, FaTextWidth } from 'react-icons/fa';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlineMenu } from "react-icons/ai";
 import { AiFillCloseCircle } from 'react-icons/ai';
-import moment from 'moment';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '../reduxToolKit/authSlice';
 import "./AppLayout.css"
-import { span } from 'framer-motion/client';
 import Time from '../components/Applayout/Time';
 import axios from 'axios';
 import { base_URL } from '../utills/baseUrl';
@@ -169,16 +167,20 @@ const AppLayout = () => {
         </span>)
     },
     {
-      key: "9",
-      label:
-        <button onClick={() => {
-          dispatch(logoutUser())
-          toast.success("Logout Scuccessful")
-          navigate("/login")
-        }} >
+      key: "8",
+      label: (
+        <button
+          onClick={() => {
+            dispatch(logoutUser());
+            toast.success("Logout Successful");
+            navigate("/login");
+          }}
+        >
           Logout
         </button>
-    },
+      ),
+    }
+
   ];
 
   const items2 = menuData.map((item, i) => ({
@@ -220,7 +222,7 @@ const AppLayout = () => {
           color: "#fff",
           position: "relative",
           padding: "45px 50px",
-          height:"12vh"
+          height: "8vh"
         }}
       >
         <NavLink to="/">
@@ -256,7 +258,7 @@ const AppLayout = () => {
         {/* SIDEBAR */}
         <Sider
           // width={240}
-          style={{ background: colorBgContainer,   height:"88vh", overflow:"hidden"  }}
+          style={{ background: colorBgContainer, height: "88vh", overflow: "hidden" }}
           className={`2xl:!min-w-[240px] 2xl:!max-w-[240px]   transition-all duration-300 ease-in-out z-50 
           ${isSiderOpen
               ? " !absolute left-0 ml-0 !h-[calc(100vh-70px)] shadow-lg"
@@ -264,8 +266,7 @@ const AppLayout = () => {
           md:ml-0  md:static md:h-full  bg-white `}
         >
           <Menu
-           
-            style={{ height: "100%", width:"100%" , paddingTop:"40px", borderInlineEnd: 0, display: "flex", flexDirection: "column" }}
+            style={{ height: "100%", width: "100%", paddingTop: "40px" , borderInlineEnd: 0, display: "flex", flexDirection: "column" }}
             items={items2}
           />
         </Sider>
@@ -301,7 +302,7 @@ const AppLayout = () => {
         </Layout>
 
       </Layout>
-      
+
     </Layout>
   );
 };
