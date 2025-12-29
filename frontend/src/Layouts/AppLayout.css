@@ -7,7 +7,6 @@
   color: white;
   border: none;
   width: 100%;
-  padding: 4px 0;
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -17,7 +16,6 @@
 .ant-menu-item:last-child button:hover {
   background-color: #d9363e;   
 }
-
 
 
 
