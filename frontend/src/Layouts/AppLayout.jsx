@@ -151,7 +151,23 @@ const AppLayout = () => {
       ],
     },
     {
-      key: "7", icon: FaTextWidth, label: (
+      key: "7",
+      icon: LaptopOutlined,
+      label: "Screen 5",
+      children: [
+ 
+        {
+          key: "5-2", label:
+            <NavLink
+              to={`/screen5display`}
+            >
+              TV Screen
+            </NavLink>
+        },
+      ],
+    },
+    {
+      key: "8", icon: FaTextWidth, label: (
         <span style={{
           pointerEvents: "none",
           opacity: 0.4,
