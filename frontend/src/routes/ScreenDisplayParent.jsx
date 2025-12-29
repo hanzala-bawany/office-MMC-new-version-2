@@ -13,6 +13,7 @@ const ScreenDisplayParent = () => {
         "002Screen2": "/screen2display",
         "003Screen3": "/screen3display",
         "004Screen4": "/screen4display",
+        "005Screen5": "/screen5display",
     };
     const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
     const location = useLocation();
@@ -32,7 +33,6 @@ const ScreenDisplayParent = () => {
     }, []);
 
     // console.log(loginUserData, "logoin use data");
-
 
     if (!loginUserData) {
         return <Navigate to="/login" replace />;

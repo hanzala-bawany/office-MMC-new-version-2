@@ -20,6 +20,9 @@ import LoginPage from './pages/LoginPage'
 import AdminDisplayParent from './routes/AdminDisplayParent'
 import AuthParent from './routes/AuthParent'
 import ScreenDisplayParent from './routes/ScreenDisplayParent'
+import Screen5Display from './pages/Screen5Display'
+import Screen6Display from './pages/Screen6Display'
+import Screen7Display from './pages/Screen7Display'
 
 
 function App() {
@@ -46,12 +49,13 @@ function App() {
 
         {/* Screen Displays */}
         <Route element={<ScreenDisplayParent />}>
-          {/* <Route element={<ScreenLayout />}> */}
           <Route path="/screen1display" element={<Screen1Display />} />
-          {/* </Route> */}
           <Route path="/screen2display" element={<Screen2Display />} />
           <Route path="/screen3display" element={<Screen3Display />} />
           <Route path="/screen4display" element={<Screen4Display />} />
+          <Route path="/screen5display" element={<Screen5Display />} />
+          <Route path="/screen6display" element={<Screen6Display />} />
+          <Route path="/screen7display" element={<Screen7Display />} />
         </Route>
 
         {/* Auth Routes */}
