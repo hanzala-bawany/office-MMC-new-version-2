@@ -135,8 +135,8 @@ const DoctorTable = () => {
       dataIndex: "IMAGE",
       key: "image",
       width: 120,
-      render: (src) => src ? (
-        <img src={src} alt="doctor" className="h-12 w-12 sm:h-16 sm:w-16 object-cover" />
+      render: (_,row) => row?.DOCTOR_ID ? (
+        <img src={`${base_URL}/api/doctor/list2/${row?.DOCTOR_ID}`} alt="doctor" className="h-12 w-12 sm:h-16 sm:w-16 object-cover" />
       ) : (
         <span className="text-gray-400">-</span>
       ),
@@ -262,20 +262,23 @@ const DoctorTable = () => {
 
   }, []);
 
+
   useEffect(() => {
-    const getDoctors = async () => {
+
+    const getDoctorsInfo = async () => {
       try {
-        const res = await axios.get(`${base_URL}/api/doctor/list`);
-        // console.log(res, "res of get Doctor");
-        dispatch(updateDoctorsData(res.data.data));
+        const res = await axios.get(`${base_URL}/api/doctor/list1`);
+        // console.log(res, "res of get Doctor info");
         setDoctorData(res?.data?.data);
+        // editingDoctor && dispatch(updateDoctorsData(res.data.data));
       }
       catch (err) {
-        // console.log(err, "error in get faculty");
+        // console.log(err, "error in get Doctor info");
         // toast.error(err?.message)
       }
     }
-    getDoctors()
+    getDoctorsInfo()
+
   }, [reRendering]);
 
 

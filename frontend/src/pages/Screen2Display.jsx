@@ -38,6 +38,7 @@ const Screen2Display = () => {
     const dispatch = useDispatch()
     // console.log(index , "index . ..");
     // console.log(filterDoctorsData , "filterDoctorsData");
+    // console.log(doctorsData , "doctorsData");
     // console.log(doctor , "doctor");
 
 

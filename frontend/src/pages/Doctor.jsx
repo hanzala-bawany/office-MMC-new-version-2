@@ -1,4 +1,3 @@
-import React from 'react'
 import { Doctor } from '../components/Index'
 
 const DoctorPage = () => {
