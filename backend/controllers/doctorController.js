@@ -368,4 +368,141 @@ const getDoctors = async (req, res) => {
   }
 };
 
-module.exports = { manageDoctor, getDoctors, uploadCSV, uploadDoctorsCSV };
+// ------- GET DOCTORS (WITHOUT IMAGE) --------
+const getDoctors1 = async (req, res) => {
+  const { id, status = "1", faculty_id } = req.query;
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `
+      DECLARE
+        v_cursor SYS_REFCURSOR;
+      BEGIN
+        get_doctors1(
+          p_id         => :id,
+          p_status     => :status,
+          p_faculty_id => :faculty_id,
+          p_result     => v_cursor
+        );
+        :cursor := v_cursor;
+      END;
+      `,
+      {
+        id: id || null,
+        status: status || null,
+        faculty_id: faculty_id || null,
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    );
+
+    const resultSet = result.outBinds.cursor;
+    const rows = [];
+    let fetchRows;
+
+    do {
+      fetchRows = await resultSet.getRows(100);
+      rows.push(...fetchRows);
+    } while (fetchRows.length === 100);
+
+    await resultSet.close();
+
+    res.status(200).json({
+      success: true,
+      message: "Doctors fetched successfully",
+      count: rows.length,
+      data: rows
+    });
+
+  } catch (err) {
+    console.error("❌ getDoctors error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch doctors",
+      error: err.message
+    });
+  } finally {
+    if (connection) await connection.close().catch(() => {});
+  }
+};
+
+
+// ------- GET DOCTOR IMAGE (BLOB) --------
+const getDoctorImage = async (req, res) => {
+  const { id } = req.params;
+  let connection;
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Doctor id is required"
+    });
+  }
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `
+      DECLARE
+        v_image BLOB;
+      BEGIN
+        get_doctor_image(
+          p_doc_id => :id,
+          p_image  => v_image
+        );
+        :image := v_image;
+      END;
+      `,
+      {
+        id,
+        image: { dir: oracledb.BIND_OUT, type: oracledb.BLOB }
+      }
+    );
+
+    const lob = result.outBinds.image;
+
+    if (!lob) {
+      await connection.close();
+      return res.status(404).end();
+    }
+
+    res.setHeader("Content-Type", "image/png");
+
+    // ✅ CLOSE CONNECTION ONLY AFTER STREAM FINISH
+    lob.on("end", async () => {
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Close error:", e);
+      }
+    });
+
+    lob.on("error", async err => {
+      console.error("LOB error:", err);
+      try {
+        await connection.close();
+      } catch {}
+      res.end();
+    });
+
+    lob.pipe(res);
+
+  } catch (err) {
+    if (connection) await connection.close().catch(() => {});
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
+
+
+
+
+module.exports = { manageDoctor, getDoctors,getDoctors1,getDoctorImage, uploadCSV, uploadDoctorsCSV };
