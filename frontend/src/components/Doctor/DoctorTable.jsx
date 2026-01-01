@@ -268,7 +268,7 @@ const DoctorTable = () => {
     const getDoctorsInfo = async () => {
       try {
         const res = await axios.get(`${base_URL}/api/doctor/list`);
-        console.log(res, "res of get Doctor info");
+        // console.log(res, "res of get Doctor info");
         setDoctorData(res?.data?.data);
         // editingDoctor && dispatch(updateDoctorsData(res.data.data));
       }
