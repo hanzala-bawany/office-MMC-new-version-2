@@ -4,14 +4,21 @@ import { Button } from "antd";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { base_URL } from "../../utills/baseUrl";
+import { useDispatch, useSelector } from "react-redux";
+import { setScreenData } from "../../reduxToolKit/screensSlice";
 
 const Screen3 = () => {
 
   const [reRendering, setReRendering] = useState(false);
-  const [data, setData] = useState(null);
+  // const [data, setData] = useState(null);
   const [editdata, setEditdata] = useState(null);
   const memoizedEditdata = useMemo(() => editdata, [editdata]);
   const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch();
+  const data = useSelector((state) => state?.screensSlice?.screen3);
+
+  // console.log(data , "screen 3 data");
+  
 
   const deleteHandler = async (data) => {
     // console.log(data , "row data in delete handler");
@@ -62,7 +69,8 @@ const Screen3 = () => {
       try {
         const res = await axios.get(`${base_URL}/api/screen3images/manage`);
         // console.log(res, "res of get screen 3");
-        setData(res?.data?.data);
+        // setData(res?.data?.data);
+        dispatch(setScreenData({ screen: "screen3", data: res.data.data }));
       }
       catch (err) {
         // console.log(err, "error in get screen 3");

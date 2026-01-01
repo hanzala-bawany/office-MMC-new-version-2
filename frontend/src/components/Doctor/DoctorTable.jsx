@@ -126,17 +126,17 @@ const DoctorTable = () => {
   const columns = [
     { title: "Id", dataIndex: "DOCTOR_ID", key: "id", width: 80 },
     { title: "Name", dataIndex: "DOCTOR_NAME", key: "name", width: 150 },
-    { title: "Faculty", dataIndex: "FACULTY_NAME", key: "faculty", width: 150 },
+    { title: "Faculty", dataIndex: "FACULTY_NAME", key: "faculty", width: 180 },
     { title: "Fees", dataIndex: "FEES", key: "fees", width: 100 },
     { title: "Gender", dataIndex: "GENDER", key: "gender", width: 100 },
-    { title: "Description", dataIndex: "DESCRIPTION", key: "description", width: 200 },
+    { title: "Description", dataIndex: "DESCRIPTION", key: "description", width: 350 },
     {
       title: "Image",
       dataIndex: "IMAGE",
       key: "image",
       width: 120,
-      render: (_,row) => row?.DOCTOR_ID ? (
-        <img src={`${base_URL}/api/doctor/list2/${row?.DOCTOR_ID}`} alt="doctor" className="h-12 w-12 sm:h-16 sm:w-16 object-cover" />
+      render: (_, row) => row?.IMAGE_URL ? (
+        <img src={`${base_URL}${row?.IMAGE_URL}`} alt="doctor" className="h-12 w-12 sm:h-16 sm:w-16 object-cover" />
       ) : (
         <span className="text-gray-400">-</span>
       ),
@@ -146,7 +146,7 @@ const DoctorTable = () => {
       key: "action",
       width: 150,
       render: (cellValue, rowData, rowIndex) => (
-        <div className="flex gap-2">
+        <div className="flex justify-center gap-2">
           <Button onClick={() => editHandler(rowData)} type="primary">Edit</Button>
           <Button onClick={() => deleteHandler(rowData)} loading={deleteLoading === rowData?.DOCTOR_ID} danger>Delete</Button>
         </div>
@@ -267,7 +267,7 @@ const DoctorTable = () => {
 
     const getDoctorsInfo = async () => {
       try {
-        const res = await axios.get(`${base_URL}/api/doctor/list1`);
+        const res = await axios.get(`${base_URL}/api/doctor/list`);
         // console.log(res, "res of get Doctor info");
         setDoctorData(res?.data?.data);
         // editingDoctor && dispatch(updateDoctorsData(res.data.data));

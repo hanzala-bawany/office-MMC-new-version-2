@@ -19,4 +19,4 @@ const doctorSlice = createSlice({
 
 export const { updateDoctorsData } = doctorSlice.actions
 
-export default doctorSlice.reducer
+export default doctorSlice.reducer;

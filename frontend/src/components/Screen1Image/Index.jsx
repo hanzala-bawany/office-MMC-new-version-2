@@ -5,6 +5,9 @@ import { base_URL } from "../../utills/baseUrl";
 import axios from "axios";
 import { toast } from "react-toastify";
 import TableSkeleton from "../../utills/TableSkeleton";
+import { useDispatch, useSelector } from "react-redux";
+import { setScreenData } from "../../reduxToolKit/screensSlice";
+
 
 const Screen1Image = ({ title }) => {
 
@@ -15,9 +18,13 @@ const Screen1Image = ({ title }) => {
   const [onAddHeadlineLoading, setOnAddHeadlineLoading] = useState(false);
   const [onAddScreenLoading, setOnAddScreenLoading] = useState(false);
   const [editdata, setEditdata] = useState(null);
-  const [screen1Data, setScreen1Data] = useState(null);
+  // const [screen1Data, setScreen1Data] = useState(null);
   const [reFetchScreen1Data, setReFetchScreen1Data] = useState(null);
   const heading = useRef(null);
+  const dispatch = useDispatch();
+  const screen1Data = useSelector((state) =>  state?.screensSlice?.screen1);
+
+
 
   // console.log(screen1Data, "<<<<< screen1Data");
   // console.log(editdata, "......... edit data");
@@ -191,7 +198,8 @@ const Screen1Image = ({ title }) => {
       try {
         const res = await axios.get(`${base_URL}/api/screen1images/manage`);
         // console.log(res, "res of get screen1Data");
-        setScreen1Data(res.data.data);
+        // setScreen1Data(res.data.data);
+        dispatch(setScreenData({ screen: "screen1", data: res.data.data }));
       }
       catch (err) {
         // console.log(err, "error in get screen1Data");

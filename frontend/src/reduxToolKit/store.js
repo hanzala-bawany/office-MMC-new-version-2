@@ -4,6 +4,7 @@ import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import userReducer from './authSlice';
 import doctorReducer from './doctorSlice';
+import screensReducer from './screensSlice';
 
 // Only user should be persisted
 const userPersistConfig = {
@@ -19,6 +20,7 @@ const persistedUserReducer = persistReducer(
 const rootReducer = combineReducers({
   authSlice: persistedUserReducer, // ✅ persisted
   doctorSlice: doctorReducer,      // ❌ NOT persisted
+  screensSlice: screensReducer,      // ❌ NOT persisted
 });
 
 const store = configureStore({
@@ -36,7 +38,7 @@ export { store, persistor };
 
 
 
-// agar auth ko persist na mar ta tp sirf itna kaam kar ta
+// agar auth ko persist na kar ta tp sirf itna kaam kar ta
  
 
 // import { configureStore, combineReducers } from '@reduxjs/toolkit';

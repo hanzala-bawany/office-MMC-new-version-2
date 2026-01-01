@@ -55,6 +55,7 @@ const LoginPage = () => {
           "002Screen2": "/screen2display",
           "003Screen3": "/screen3display",
           "004Screen4": "/screen4display",
+          "005Screen5": "/screen5display",
         };
 
         navigate(screenAccessMap[decoded.username] || "/login");
