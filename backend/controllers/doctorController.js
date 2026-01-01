@@ -212,7 +212,7 @@ const getDoctors = async (req, res) => {
     do {
       fetchRows = await resultSet.getRows(fetchSize);
       for (let row of fetchRows) {
-        row.IMAGE_URL = row.IMAGE_PATH
+        row.IMAGE = row.IMAGE_PATH
           ? `/assets/${row.IMAGE_PATH}`
           : `/assets/default.png`;
       }
