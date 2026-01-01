@@ -2,6 +2,7 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import InfoLoader from "../../utills/InfoLoader";
+import { base_URL } from "../../utills/baseUrl";
 
 const S3RightScrolling = () => {
 
@@ -94,7 +95,7 @@ const S3RightScrolling = () => {
                                 <div className="
                                 w-[40%] h-[100%] overflow-hidden   relative p-1">
                                     <img
-                                        src={doc?.IMAGE}
+                                        src={`${base_URL}${doc?.IMAGE}`}
                                         alt={doc?.DOCTOR_NAME}
                                         className="h-full w-full object-fill"
                                     />

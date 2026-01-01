@@ -2,6 +2,7 @@ import moment from "moment";
 import { memo, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import DoctorCardSkeleton from "../../utills/CardSkaleton";
+import { base_URL } from "../../utills/baseUrl";
 
 
 
@@ -85,7 +86,7 @@ const BottomSlider = () => {
                                 >
                                     {/* Doctor Image */}
                                     <img
-                                        src={doc.IMAGE || "/placeholder-doctor.jpg"}
+                                        src={`${base_URL}${doc?.IMAGE}` || "/placeholder-doctor.jpg"}                               
                                         alt={doc.DOCTOR_NAME}
                                         className="p-1 w-[70px] h-[70px] object-fill
                                 [@media(min-width:3200px)]:w-[90px] [@media(min-width:3200px)]:h-[90px]

@@ -135,8 +135,8 @@ const DoctorTable = () => {
       dataIndex: "IMAGE",
       key: "image",
       width: 120,
-      render: (_, row) => row?.IMAGE_URL ? (
-        <img src={`${base_URL}${row?.IMAGE_URL}`} alt="doctor" className="h-12 w-12 sm:h-16 sm:w-16 object-cover" />
+      render: (_, row) => row?.IMAGE ? (
+        <img src={`${base_URL}${row?.IMAGE}`} alt="doctor" className="h-12 w-12 sm:h-16 sm:w-16 object-cover" />
       ) : (
         <span className="text-gray-400">-</span>
       ),
@@ -198,7 +198,7 @@ const DoctorTable = () => {
     else {
       if (!editingDoctor) {
         values?.gender === "Female"
-          ? formData.append("image", "femaleDoctor.png")
+          ? formData.append("image", `femaleDoctor.png`)
           : formData.append("image", "maleDoctor.png");
       }
     }
@@ -268,7 +268,7 @@ const DoctorTable = () => {
     const getDoctorsInfo = async () => {
       try {
         const res = await axios.get(`${base_URL}/api/doctor/list`);
-        // console.log(res, "res of get Doctor info");
+        console.log(res, "res of get Doctor info");
         setDoctorData(res?.data?.data);
         // editingDoctor && dispatch(updateDoctorsData(res.data.data));
       }

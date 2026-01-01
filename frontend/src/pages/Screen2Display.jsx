@@ -9,6 +9,7 @@ import { logoutUser } from "../reduxToolKit/authSlice";
 import { toast } from "react-toastify";
 import NubitLogo from ".././assets/nubit logo png.png";
 import logo from "../assets/MMC logo.png";
+import { base_URL } from "./../utills/baseUrl";
 
 
 
@@ -176,7 +177,7 @@ const Screen2Display = () => {
                                 doctor?.IMAGE ?
                                     <>
                                         <motion.img
-                                            src={doctor?.IMAGE}
+                                            src={`${base_URL}${doctor?.IMAGE}`}
                                             alt={doctor?.DOCTOR_NAME}
                                             className="rounded-2xl p-2 motion-img shadow-2xl absolute w-[250px] [@media(min-width:2200px)]:w-[290px] [@media(min-width:3200px)_and_(min-height:1000px)]:w-[340px] [@media(min-width:3200px)_and_(min-height:1550px)]:w-[420px] [@media(min-width:4200px)]:w-[540px] 
                          h-[300px] [@media(min-width:2200px)]:h-[380px] [@media(min-width:3200px)_and_(min-height:1000px)]:h-[420px] [@media(min-width:3200px)_and_(min-height:1550px)]:h-[520px] [@media(min-width:4200px)]:h-[680px] object-cover border-2 border-[#00b4d8]"
