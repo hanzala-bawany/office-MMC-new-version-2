@@ -378,10 +378,10 @@ const DoctorTable = () => {
 
           {/* Description */}
           <Form.Item name="description" label="Description" className="col-span-2" rules={[{
-            max: 120,
+            max: 500,
             message: "Description cannot exceed 120 characters",
           },]}>
-            <Input.TextArea showCount maxLength={150} placeholder="Enter description" rows={3} />
+            <Input.TextArea showCount maxLength={500} placeholder="Enter description" rows={3} />
           </Form.Item>
 
           {/* Timings Section */}

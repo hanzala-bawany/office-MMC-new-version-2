@@ -1,6 +1,7 @@
 const express = require("express");
 require("./database.js");
 const cors = require("cors");
+const path = require("path");
 
 const authRoutes = require("./routes/authRoutes.js");
 const facultyRoutes = require("./routes/facultyRoutes.js");
@@ -31,6 +32,7 @@ app.get("/", (req, res) => {
 });
 
 // Routes
+app.use("/assets", express.static(path.join(__dirname, "assets")));
 app.use("/api/auth", authRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/screen2images", screen2ImagesRoutes);
