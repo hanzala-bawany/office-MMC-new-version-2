@@ -23,6 +23,8 @@ const getDoctorImageById = async (connection, doctorId) => {
 const manageDoctor = async (req, res) => {
   const file = req?.file || null;
   const body = req.body || {};
+  const defaultImageName = !file && body.image && typeof body.image === "string" ? body.image : null;
+
 
   let {
     action, id, doctor_name, contactno, email, gender, address,
@@ -54,41 +56,78 @@ const manageDoctor = async (req, res) => {
     }
 
     // ---------------- IMAGE HANDLING ----------------
-    if (file && (finalAction === "ADD" || finalAction === "EDIT")) {
-      const ext = path.extname(file.originalname);
-      let filename;
+    // if (file && (finalAction === "ADD" || finalAction === "EDIT")) {
+    //   const ext = path.extname(file.originalname);
+    //   let filename;
 
-      if (finalAction === "ADD") {
-        // ADD → unique file
-        filename = `doctor_${Date.now()}${ext}`;
-      } else {
-        // EDIT → overwrite old file (same filename)
-        if (oldImagePath) {
-          const oldFullPath = path.join(doctorAssetDir, path.basename(oldImagePath));
-          if (fs.existsSync(oldFullPath)) fs.unlinkSync(oldFullPath);
+    //   if (finalAction === "ADD") {
+    //     // ADD → unique file
+    //     filename = `doctor_${Date.now()}${ext}`;
+    //   } else {
+    //     // EDIT → overwrite old file (same filename)
+    //     if (oldImagePath) {
+    //       const oldFullPath = path.join(doctorAssetDir, path.basename(oldImagePath));
+    //       if (fs.existsSync(oldFullPath)) fs.unlinkSync(oldFullPath);
 
-          filename = path.basename(oldImagePath); // same name
-        } else {
-          // EDIT but no previous image → create based on ID
-          filename = `doctor_${id}${ext}`;
+    //       filename = path.basename(oldImagePath); // same name
+    //     } else {
+    //       // EDIT but no previous image → create based on ID
+    //       filename = `doctor_${id}${ext}`;
+    //     }
+    //   }
+
+    //   const savePath = path.join(doctorAssetDir, filename);
+    //   fs.writeFileSync(savePath, file.buffer); // overwrite if EDIT
+
+    //   imagePath = `doctor/${filename}`; // DB path fixed
+    // }
+
+    // ---------------- IMAGE HANDLING ----------------
+    if (finalAction === "ADD" || finalAction === "EDIT") {
+
+      // ✅ CASE 1: User uploaded image
+      if (file) {
+        const ext = path.extname(file.originalname);
+        const filename =
+          finalAction === "ADD"
+            ? `doctor_${Date.now()}${ext}`
+            : oldImagePath
+              ? path.basename(oldImagePath)
+              : `doctor_${id}${ext}`;
+
+        const savePath = path.join(doctorAssetDir, filename);
+        fs.writeFileSync(savePath, file.buffer);
+
+        imagePath = `doctor/${filename}`;
+      }
+
+      // ✅ CASE 2: NO upload → use DEFAULT image
+      else if (defaultImageName) {
+        const defaultPath = path.join(__dirname, "../assets", defaultImageName);
+
+        if (fs.existsSync(defaultPath)) {
+          const ext = path.extname(defaultImageName);
+          const filename =
+            finalAction === "ADD"
+              ? `doctor_${Date.now()}${ext}`
+              : oldImagePath
+                ? path.basename(oldImagePath)
+                : `doctor_${id}${ext}`;
+
+          const savePath = path.join(doctorAssetDir, filename);
+          fs.copyFileSync(defaultPath, savePath);
+
+          imagePath = `doctor/${filename}`;
         }
       }
 
-      const savePath = path.join(doctorAssetDir, filename);
-      fs.writeFileSync(savePath, file.buffer); // overwrite if EDIT
-
-      imagePath = `doctor/${filename}`; // DB path fixed
+      // ❗ CASE 3: EDIT without image → keep old
+      else {
+        imagePath = oldImagePath;
+      }
     }
 
-    // ---------------- DEFAULT VALUES ----------------
-    // fees = fees ? Number(fees) : 0;
-    // status = status ? Number(status) : 1;
-    // roomname = roomname || "Room not assigned yet";
-    // description = description || "Consultation details will be updated soon.";
-    // email = email || "abc@gmail.com";
-    // address = address || "Not yet";
-    // createdby = createdby || "Admin";
-    // editby = editby || "Admin";
+
 
     fees = fees !== undefined && fees !== null && fees !== "" && fees !== "undefined" ? Number(fees) : 0;
     status = status !== undefined && status !== null && status !== "" && status !== "undefined" ? Number(status) : null;
@@ -157,16 +196,16 @@ const manageDoctor = async (req, res) => {
         finalAction === "ADD"
           ? "Doctor added successfully"
           : finalAction === "EDIT"
-          ? "Doctor updated successfully"
-          : "Doctor deleted successfully"
+            ? "Doctor updated successfully"
+            : "Doctor deleted successfully"
     });
 
   } catch (err) {
     console.error("Error in manageDoctor:", err);
-    if (connection) await connection.rollback().catch(() => {});
+    if (connection) await connection.rollback().catch(() => { });
     res.status(500).json({ success: false, message: err.message });
   } finally {
-    if (connection) await connection.close().catch(() => {});
+    if (connection) await connection.close().catch(() => { });
   }
 };
 
@@ -232,7 +271,7 @@ const getDoctors = async (req, res) => {
     console.error("Error in getDoctors:", err);
     res.status(500).json({ success: false, message: err.message });
   } finally {
-    if (connection) await connection.close().catch(() => {});
+    if (connection) await connection.close().catch(() => { });
   }
 };
 
