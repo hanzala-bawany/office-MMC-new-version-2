@@ -35,7 +35,6 @@ const DoctorTable = () => {
   const headingRef = useRef(null);
 
 
-
   // console.log(editingDoctor, "edit doctor data");
 
 
@@ -64,6 +63,11 @@ const DoctorTable = () => {
   const editHandler = (data) => {
     // full doctor object doctorData me se nikaal lo
     // console.log(data, "edit data ");
+
+    form.resetFields();
+    setTimings({});
+    setEditingDoctor(null);
+    setFileList([]);
 
     const selectedDoctor = doctorData?.find(
       (doc) => doc.DOCTOR_ID === data.DOCTOR_ID
@@ -136,7 +140,7 @@ const DoctorTable = () => {
       key: "image",
       width: 120,
       render: (_, row) => row?.IMAGE ? (
-        <img src={`${base_URL}${row?.IMAGE}`} alt="doctor" className="h-12 w-12 sm:h-16 sm:w-16 object-cover" />
+        <img src={`${base_URL}${row?.IMAGE}?t=${Date.now()}`} alt="doctor" className="h-12 w-12 sm:h-16 sm:w-16 object-cover" />
       ) : (
         <span className="text-gray-400">-</span>
       ),

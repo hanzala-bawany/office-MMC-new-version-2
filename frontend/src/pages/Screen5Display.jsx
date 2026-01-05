@@ -1,10 +1,9 @@
-import logo from "../assets/MMC logo.png"
-import PatientCard from "../components/screen5/PatientCard";
-import NubitLogo from ".././assets/nubit logo png.png";
-import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { logoutUser } from "../reduxToolKit/authSlice";
+import { useState, useEffect } from 'react';
+import logo from "../assets/MMC logo.png"; // ← Apna logo path yahan set kar lo
+import NubitLogo from "../assets/nubit logo png.png"; // ← Apna Nubit logo
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import PatientCard from '../components/screen5/PatientCard';
 
 
 
@@ -13,61 +12,25 @@ const Screen5Display = () => {
 
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const doctors = [
-    {
-      doctorId: 1,
-      doctorName: "Dr. Ahmed",
-      patients: [
-        { id: 1, token: "A-12", name: "Ali Khan", current: 1, age: 35 },
-        { id: 2, token: "A-13", name: "Sara Ali", current: 0, age: 29 },
-        { id: 3, token: "A-14", name: "Bilal Shah", current: 0, age: 42 },
-      ],
-    },
-    {
-      doctorId: 2,
-      doctorName: "Dr. Sana",
-      patients: [
-        { id: 4, token: "B-07", name: "Ayesha Malik", current: 1, age: 28 },
-        { id: 5, token: "B-08", name: "Hina Raza", current: 0, age: 33 },
-        { id: 6, token: "B-09", name: "Ali Abbas", current: 0, age: 40 },
-      ],
-    },
-    {
-      doctorId: 3,
-      doctorName: "Dr. Usman",
-      patients: [
-        { id: 7, token: "C-03", name: "Hassan Raza", current: 1, age: 41 },
-        { id: 8, token: "C-04", name: "Nida Khan", current: 0, age: 36 },
-        { id: 9, token: "C-05", name: "Asad Ali", current: 0, age: 45 },
-      ],
-    },
-    {
-      doctorId: 4,
-      doctorName: "Dr. Hina",
-      patients: [
-        { id: 10, token: "D-09", name: "Fatima Noor", current: 1, age: 32 },
-        { id: 11, token: "D-10", name: "Sara Noor", current: 0, age: 27 },
-        { id: 12, token: "D-11", name: "Hassan Tariq", current: 0, age: 38 },
-      ],
-    },
-    {
-      doctorId: 5,
-      doctorName: "Dr. Bilal",
-      patients: [
-        { id: 13, token: "E-02", name: "Zain Ahmed", current: 1, age: 22 },
-        { id: 14, token: "E-03", name: "Hira Khan", current: 0, age: 25 },
-        { id: 15, token: "E-04", name: "Omar Farooq", current: 0, age: 30 },
-      ],
-    },
-    {
-      doctorId: 6,
-      doctorName: "Dr. Farooq",
-      patients: [
-        { id: 16, token: "F-15", name: "Imran Sheikh", current: 1, age: 50 },
-        { id: 17, token: "F-16", name: "Naveed Malik", current: 0, age: 44 },
-        { id: 18, token: "F-17", name: "Amina Riaz", current: 0, age: 39 },
-      ],
-    },
+  const [i, setI] = useState(0)
+
+
+  const vipDoctors = [
+    { id: 1, token: "VIP-01", name: "Mr. Rahman Ali", current: 1, age: 52, doctorName: "Dr. Ahmed Khan" },
+    { id: 4, token: "VIP-04", name: "Mrs. Ayesha Siddiqui", current: 1, age: 39, doctorName: "Dr. Sana Iqbal" },
+    { id: 7, token: "VIP-07", name: "Mr. Bilal Ahmed", current: 1, age: 58, doctorName: "Dr. Usman Raza" },
+    { id: 2, token: "VIP-02", name: "Mrs. Fatima Zahra", current: 1, age: 48, doctorName: "Dr. Ahmed Khan" },
+    { id: 3, token: "VIP-03", name: "Mr. Khalid Mehmood", current: 1, age: 61, doctorName: "Dr. Ahmed Khan" },
+    { id: 5, token: "VIP-05", name: "Mr. Imran Hassan", current: 1, age: 45, doctorName: "Dr. Sana Iqbal" },
+  ];
+
+  const slideshowImages = [
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80",
+    "https://img.freepik.com/premium-photo/brightly-coloured-orange-purple-yellow-large-headed-wildflower-close-up-low-level-macro-view_1048944-7567634.jpg?semt=ais_hybrid&w=740&q=80",
+    "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1920&q=80",
+    "https://img.freepik.com/free-photo/cosmos-flowers_1373-83.jpg?semt=ais_hybrid&w=740",
+    "https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?w=1920&q=80",
+    "https://images.unsplash.com/photo-1552083375-1447ce886485?w=1920&q=80",
   ];
 
   const logoutHandler = () => {
@@ -77,10 +40,34 @@ const Screen5Display = () => {
   }
 
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setI( (prev) => prev >= slideshowImages.length - 1 ? 0 : prev + 1);
+    }, 3000);
+
+    return () => clearInterval(interval); // cleanup
+  }, []);
+
+
 
   return (
 
     <div className="h-[100vh] w-full flex flex-col bg-gradient-to-br from-[#e0f7fa] to-[#fff]">
+
+      <div
+        className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='%2300aaff'/%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* <div className="absolute inset-0 flex justify-center items-center">
+        <img
+          src={logo} // <-- yahan apna bg image path set karo
+          alt="Hospital Background"
+          className="w-[50%] h-[50%] object-cover opacity-20" // opacity kam rakha
+        />
+      </div> */}
 
       <div className="flex absolute top-4 [@media(min-width:4200px)]:top-8 left-4 [@media(min-width:4200px)]:left-8 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
         <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-[#00b0ff]/30">
@@ -102,10 +89,18 @@ const Screen5Display = () => {
 
       </div>
 
-      <div className="flex-13 grid grid-cols-3 gap-8 p-6 pt-0">
-        {
-          doctors?.map((doc) => <PatientCard key={doc.doctorId} doc={doc} />)
-        }
+      <div className='flex-13 flex '>
+
+        <div className="w-[70%] h-full grid grid-cols-2 gap-8 px-6">
+          {
+            vipDoctors.map((doc) => <PatientCard key={doc.id} doc={doc} />)
+          }
+        </div>
+
+        <div className='w-[30%] h-full px-6 overflow-hidden '>
+          <img src={slideshowImages[i]} alt="" className='h-full w-full rounded-2xl object-cover ' />
+        </div>
+
       </div>
 
       <div onClick={logoutHandler} className=" text-cyan-600 flex-1 flex justify-center items-center gap-2 cursor-pointer z-50 [@media(min-width:4200px)]:right-10 bottom-5 [@media(min-width:4200px)]:bottom-8 [@media(min-width:1520px)]:text-2xl [@media(min-width:2200px)]:text-3xl [@media(min-width:3200px)]:text-4xl  [@media(min-width:4200px)]:text-6xl">
@@ -113,22 +108,10 @@ const Screen5Display = () => {
       </div>
 
     </div>
+  );
+};
 
-  )
-}
-
-export default Screen5Display
-
-
-
-
-
-
-
-
-
-
-
+export default Screen5Display;
 
 
 
