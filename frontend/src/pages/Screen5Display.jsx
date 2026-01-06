@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import logo from "../assets/MMC logo.png"; // ← Apna logo path yahan set kar lo
 import NubitLogo from "../assets/nubit logo png.png"; // ← Apna Nubit logo
+import fish from "../assets/fish.mp4"; // ← Apna Nubit logo
+import fish1 from "../assets/fish1.mp4"; // ← Apna Nubit logo
+import fish2 from "../assets/fish2.mp4"; // ← Apna Nubit logo
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import PatientCard from '../components/screen5/PatientCard';
+import { useRef } from "react";
 
 
 
@@ -13,8 +17,8 @@ const Screen5Display = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [i, setI] = useState(0)
-
-
+  const videoRef = useRef(null);
+  const handledRef = useRef(false);
   const vipDoctors = [
     { id: 1, token: "VIP-01", name: "Mr. Rahman Ali", current: 1, age: 52, doctorName: "Dr. Ahmed Khan" },
     { id: 4, token: "VIP-04", name: "Mrs. Ayesha Siddiqui", current: 1, age: 39, doctorName: "Dr. Sana Iqbal" },
@@ -23,15 +27,20 @@ const Screen5Display = () => {
     { id: 3, token: "VIP-03", name: "Mr. Khalid Mehmood", current: 1, age: 61, doctorName: "Dr. Ahmed Khan" },
     { id: 5, token: "VIP-05", name: "Mr. Imran Hassan", current: 1, age: 45, doctorName: "Dr. Sana Iqbal" },
   ];
-
+  // const slideshowImages = [
+  //   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80",
+  //   "https://img.freepik.com/premium-photo/brightly-coloured-orange-purple-yellow-large-headed-wildflower-close-up-low-level-macro-view_1048944-7567634.jpg?semt=ais_hybrid&w=740&q=80",
+  //   "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1920&q=80",
+  //   "https://img.freepik.com/free-photo/cosmos-flowers_1373-83.jpg?semt=ais_hybrid&w=740",
+  //   "https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?w=1920&q=80",
+  //   "https://images.unsplash.com/photo-1552083375-1447ce886485?w=1920&q=80",
+  // ];
   const slideshowImages = [
-    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80",
-    "https://img.freepik.com/premium-photo/brightly-coloured-orange-purple-yellow-large-headed-wildflower-close-up-low-level-macro-view_1048944-7567634.jpg?semt=ais_hybrid&w=740&q=80",
-    "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1920&q=80",
-    "https://img.freepik.com/free-photo/cosmos-flowers_1373-83.jpg?semt=ais_hybrid&w=740",
-    "https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?w=1920&q=80",
-    "https://images.unsplash.com/photo-1552083375-1447ce886485?w=1920&q=80",
+    fish2,
+    fish,
+    fish1,
   ];
+
 
   const logoutHandler = () => {
     dispatch(logoutUser())
@@ -39,14 +48,34 @@ const Screen5Display = () => {
     navigate("/login")
   }
 
+  const nextVideo = () => {
+    setI(prev =>
+      prev >= slideshowImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (!handledRef.current && video.duration - video.currentTime <= 1) {
+      handledRef.current = true;
+      nextVideo();
+    }
+  };
+
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setI( (prev) => prev >= slideshowImages.length - 1 ? 0 : prev + 1);
-    }, 3000);
+    handledRef.current = false;
+  }, [i]);
 
-    return () => clearInterval(interval); // cleanup
-  }, []);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setI((prev) => prev >= slideshowImages.length - 1 ? 0 : prev + 1);
+  //   }, 3000);
+
+  //   return () => clearInterval(interval); // cleanup
+  // }, []);
 
 
 
@@ -91,15 +120,32 @@ const Screen5Display = () => {
 
       <div className='flex-13 flex '>
 
-        <div className="w-[70%] h-full grid grid-cols-2 gap-8 px-6">
+        <div className={`${vipDoctors.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${vipDoctors.length <= 6 ? "2" : "3"} gap-8 px-6`}>
           {
             vipDoctors.map((doc) => <PatientCard key={doc.id} doc={doc} />)
           }
         </div>
+        {/* {
+          vipDoctors.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
+            <img src={slideshowImages[i]} alt="" className='h-full w-full rounded-2xl object-cover ' />
+          </div>
+        } */}
+        {
+          vipDoctors.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
+            <video
+              className="h-full w-full object-cover rounded-2xl bg-amber-500"
+              autoPlay
+              loop
+              muted
+              playsInline
+              src={slideshowImages[i]}
+              onTimeUpdate={handleTimeUpdate}
+              ref={videoRef}>
 
-        <div className='w-[30%] h-full px-6 overflow-hidden '>
-          <img src={slideshowImages[i]} alt="" className='h-full w-full rounded-2xl object-cover ' />
-        </div>
+            </video>
+          </div>
+        }
+
 
       </div>
 
