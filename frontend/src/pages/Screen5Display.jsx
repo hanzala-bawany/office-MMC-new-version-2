@@ -98,7 +98,7 @@ const Screen5Display = () => {
         />
       </div> */}
 
-      <div className="flex absolute top-4 [@media(min-width:4200px)]:top-8 left-4 [@media(min-width:4200px)]:left-8 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
+      <div className="flex absolute top-4 4xl:top-8 [@media(min-width:3200px)]:top-12 left-4 4xl:left-8 [@media(min-width:4200px)]:left-12 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
         <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-[#00b0ff]/30">
           <img src={logo} alt="logo" className="h-12 min-[2000px]:h-16 [@media(min-width:3000px)]:h-18  [@media(min-width:4400px)]:h-30 w-12 min-[2000px]:w-16 [@media(min-width:3000px)]:w-18 [@media(min-width:4400px)]:w-30 object-contain" />
         </div>
@@ -112,7 +112,7 @@ const Screen5Display = () => {
         </div>
       </div>
 
-      <div className="flex justify-center flex-2 pt-10 text-5xl  text-cyan-800 font-[700]">
+      <div className="flex justify-center flex-2 pt-10 4xl:pt-14 5xl:pt-20  text-5xl 4xl:text-6xl 5xl:text-7xl  text-cyan-800  font-[700]">
 
         <h1>Current Patient Queue Display</h1>
 
@@ -120,7 +120,7 @@ const Screen5Display = () => {
 
       <div className='flex-13 flex '>
 
-        <div className={`${vipDoctors.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${vipDoctors.length <= 6 ? "2" : "3"} gap-8 px-6`}>
+        <div className={`${vipDoctors.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${vipDoctors.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
           {
             vipDoctors.map((doc) => <PatientCard key={doc.id} doc={doc} />)
           }
