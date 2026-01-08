@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 
 // ----------------- ASSETS FOLDER -----------------
-const doctorAssetDir = path.join(__dirname, "../assets/doctor");
+const doctorAssetDir = path.join(process.cwd(), "assets", "doctor");
 if (!fs.existsSync(doctorAssetDir)) {
   fs.mkdirSync(doctorAssetDir, { recursive: true });
 }
@@ -18,6 +18,7 @@ const getDoctorImageById = async (connection, doctorId) => {
   );
   return result.rows.length ? result.rows[0].IMAGE_PATH : null;
 };
+
 
 // ----------------- MANAGE DOCTOR -----------------
 const manageDoctor = async (req, res) => {
@@ -208,7 +209,6 @@ const manageDoctor = async (req, res) => {
     if (connection) await connection.close().catch(() => { });
   }
 };
-
 
 
 // ----------------- GET DOCTORS -----------------

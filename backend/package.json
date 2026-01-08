@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "pkg": {
-    "scripts": "server.js",
+    "scripts": "index.js",
     "assets": [
       "*.env",
       "routes/**/*",

@@ -32,7 +32,8 @@ app.get("/", (req, res) => {
 });
 
 // Routes
-app.use("/assets", express.static(path.join(__dirname, "assets")));
+// index.js
+app.use("/assets", express.static(path.join(process.cwd(), "assets")));
 app.use("/api/auth", authRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/screen2images", screen2ImagesRoutes);
