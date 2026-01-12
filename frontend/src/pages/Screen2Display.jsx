@@ -142,9 +142,8 @@ const Screen2Display = () => {
                 </div>
             </div>
 
-            <div onClick={logoutHandler} className="mt-1 flex items-center gap-2 cursor-pointer z-50 absolute right-5 [@media(min-width:4200px)]:right-10 bottom-5 [@media(min-width:4200px)]:bottom-8 text-white/60 [@media(min-width:1520px)]:text-xl [@media(min-width:2200px)]:text-3xl [@media(min-width:3200px)]:text-4xl  [@media(min-width:4200px)]:text-5xl">
-                {/* Powered by <span className="text-[#00b0ff] font-bold">nubit</span> */}
-                Powered by <img className="w-[50px] [@media(min-width:2200px)]:w-[70px] [@media(min-width:3200px)]:w-[80px]" src={NubitLogo} alt="" />
+            <div onClick={logoutHandler} className="mt-1 flex items-center gap-2 cursor-pointer z-50 absolute right-5 [@media(min-width:4200px)]:right-10 bottom-5 [@media(min-width:4200px)]:bottom-8 text-white/60 [@media(min-width:1520px)]:text-xl [@media(min-width:2200px)]:text-3xl [@media(min-width:3200px)]:text-4xl  [@media(min-width:4200px)]:text-5xl"> 
+               <span className='flex justify-center items-center gap-2'> Powered by <img className="w-[50px] [@media(min-width:2200px)]:w-[70px] [@media(min-width:3200px)]:w-[80px]" src={NubitLogo} alt="" />  </span>
             </div>
 
             <AnimatePresence mode="wait">

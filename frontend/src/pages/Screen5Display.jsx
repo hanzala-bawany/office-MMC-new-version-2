@@ -1,32 +1,31 @@
 import { useState, useEffect } from 'react';
 import logo from "../assets/MMC logo.png"; // ← Apna logo path yahan set kar lo
 import NubitLogo from "../assets/nubit logo png.png"; // ← Apna Nubit logo
-import fish from "../assets/fish.mp4"; // ← Apna Nubit logo
-import fish1 from "../assets/fish1.mp4"; // ← Apna Nubit logo
-import fish2 from "../assets/fish2.mp4"; // ← Apna Nubit logo
+import fish from "../assets/fish.mp4";
+import fish1 from "../assets/fish1.mp4";
+import fish2 from "../assets/fish2.mp4";
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import PatientCard from '../components/screen5/PatientCard';
 import { useRef } from "react";
+import { base_URL } from '../utills/baseUrl';
+import axios from 'axios';
+import { logoutUser } from "../reduxToolKit/authSlice";
+import { toast } from "react-toastify";
+import { updatePatinetnDocotrsData } from '../reduxToolKit/doctorSlice';
+import ImageLoader from '../utills/ImageLoader';
+
 
 
 
 const Screen5Display = () => {
 
 
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const [i, setI] = useState(0)
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [i, setI] = useState(0);
   const videoRef = useRef(null);
   const handledRef = useRef(false);
-  const vipDoctors = [
-    { id: 1, token: "VIP-01", name: "Mr. Rahman Ali", current: 1, age: 52, doctorName: "Dr. Ahmed Khan" },
-    { id: 4, token: "VIP-04", name: "Mrs. Ayesha Siddiqui", current: 1, age: 39, doctorName: "Dr. Sana Iqbal" },
-    { id: 7, token: "VIP-07", name: "Mr. Bilal Ahmed", current: 1, age: 58, doctorName: "Dr. Usman Raza" },
-    { id: 2, token: "VIP-02", name: "Mrs. Fatima Zahra", current: 1, age: 48, doctorName: "Dr. Ahmed Khan" },
-    { id: 3, token: "VIP-03", name: "Mr. Khalid Mehmood", current: 1, age: 61, doctorName: "Dr. Ahmed Khan" },
-    { id: 5, token: "VIP-05", name: "Mr. Imran Hassan", current: 1, age: 45, doctorName: "Dr. Sana Iqbal" },
-  ];
   // const slideshowImages = [
   //   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80",
   //   "https://img.freepik.com/premium-photo/brightly-coloured-orange-purple-yellow-large-headed-wildflower-close-up-low-level-macro-view_1048944-7567634.jpg?semt=ais_hybrid&w=740&q=80",
@@ -40,6 +39,10 @@ const Screen5Display = () => {
     fish,
     fish1,
   ];
+  const patinetnDocotrsData = useSelector((state) => state?.doctorSlice?.patinetnDocotrData);
+  // const patinetnDocotrsData = [];
+  // console.log(patinetnDocotrsData, "<<<<<<<<<<");
+
 
 
   const logoutHandler = () => {
@@ -77,6 +80,23 @@ const Screen5Display = () => {
   //   return () => clearInterval(interval); // cleanup
   // }, []);
 
+
+  useEffect(() => {
+
+    const getPatientnDoctorInfo = async () => {
+      try {
+        const res = await axios.get(`${base_URL}/api/opd/patients`);
+        // console.log(res, "res of get Patient Doctor Info");
+        dispatch(updatePatinetnDocotrsData(res?.data?.data));
+      }
+      catch (err) {
+        // console.log(err, "error in get Doctor info");
+        // toast.error(err?.message)
+      }
+    }
+    getPatientnDoctorInfo()
+
+  }, []);
 
 
   return (
@@ -120,18 +140,24 @@ const Screen5Display = () => {
 
       <div className='flex-13 flex '>
 
-        <div className={`${vipDoctors.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${vipDoctors.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
-          {
-            vipDoctors.map((doc) => <PatientCard key={doc.id} doc={doc} />)
-          }
-        </div>
+        {
+          patinetnDocotrsData.length ?
+            <div className={`${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${patinetnDocotrsData.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
+              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} />)}
+            </div>
+            :
+            <div className='flex justify-center w-[70%]'>
+              <ImageLoader />
+            </div>
+        }
+
         {/* {
           vipDoctors.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
             <img src={slideshowImages[i]} alt="" className='h-full w-full rounded-2xl object-cover ' />
           </div>
         } */}
         {
-          vipDoctors.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
+          patinetnDocotrsData.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
             <video
               className="h-full w-full object-cover rounded-2xl bg-amber-500"
               autoPlay
@@ -149,8 +175,8 @@ const Screen5Display = () => {
 
       </div>
 
-      <div onClick={logoutHandler} className=" text-cyan-600 flex-1 flex justify-center items-center gap-2 cursor-pointer z-50 [@media(min-width:4200px)]:right-10 bottom-5 [@media(min-width:4200px)]:bottom-8 [@media(min-width:1520px)]:text-2xl [@media(min-width:2200px)]:text-3xl [@media(min-width:3200px)]:text-4xl  [@media(min-width:4200px)]:text-6xl">
-        Powered by <img className="w-[50px] [@media(min-width:2200px)]:w-[70px] [@media(min-width:3200px)]:w-[80px]" src={NubitLogo} alt="" />
+      <div className=" text-cyan-600 flex-1 flex justify-center items-center z-50 [@media(min-width:4200px)]:right-10 bottom-5 [@media(min-width:4200px)]:bottom-8 [@media(min-width:1520px)]:text-2xl [@media(min-width:2200px)]:text-3xl [@media(min-width:3200px)]:text-4xl  [@media(min-width:4200px)]:text-6xl">
+        <span className='flex justify-center items-center gap-2 cursor-pointer' onClick={logoutHandler}> Powered by <img className="w-[50px] [@media(min-width:2200px)]:w-[70px] [@media(min-width:3200px)]:w-[80px]" src={NubitLogo} alt="" /> </span>
       </div>
 
     </div>

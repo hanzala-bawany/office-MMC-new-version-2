@@ -93,8 +93,8 @@ const S4LeftSideImages = () => {
             }
 
             {/* ---- POWERED BY NUBIT ---- */}
-            <div onClick={handleLogout} className=" text-white/60   bottom-2 w-full  cursor-pointer flex items-center justify-center gap-2 [@media(min-width:1920px)]:text-3xl  [@media(min-width:3000px)]:text-4xl [@media(min-width:4000px)]:text-5xl  min-[1520px]:text-[18px] ">
-                Powered by <img className="w-[60px] [@media(min-width:2200px)]:w-[80px] [@media(min-width:3200px)]:w-[90px] [@media(min-width:4000px)]:w-[120px]" src={NubitLogo} alt="" />
+            <div  className=" text-white/60   bottom-2 w-full  flex items-center justify-center gap-2 [@media(min-width:1920px)]:text-3xl  [@media(min-width:3000px)]:text-4xl [@media(min-width:4000px)]:text-5xl  min-[1520px]:text-[18px] ">
+              <span className='flex justify-center items-center gap-2 cursor-pointer' onClick={handleLogout}>   Powered by <img className="w-[60px] [@media(min-width:2200px)]:w-[80px] [@media(min-width:3200px)]:w-[90px] [@media(min-width:4000px)]:w-[120px]" src={NubitLogo} alt="" />  </span>
             </div>
 
         </div>
