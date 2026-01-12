@@ -59,12 +59,8 @@ const Screen3Display = () => {
       {/* FOOTER */}
       <div className="bg-[#0b2745]/95 flex-1 text-center py-2 border-t flex justify-center items-center  border-[#00b0ff]/30 text-sm">
 
-        <div onClick={handleLogout} className=" text-white/60 cursor-pointer flex items-center gap-2 [@media(min-width:1920px)]:text-2xl  [@media(min-width:3000px)]:text-3xl [@media(min-width:4400px)]:text-5xl  min-[1520px]:text-[18px] ">
-          {/* Powered by <span className="text-[#00b0ff] font-bold">nubit</span> */}
-          Powered by <img className="w-[60px] [@media(min-width:2200px)]:w-[80px] [@media(min-width:3200px)]:w-[90px]" src={NubitLogo} alt="" />
-          {
-            //[@media(min-width:1920px)]:text-2xl  min-[1520px]:text-[18px]   this both are methgos to give custome responsive sizes in tailwind
-          }
+        <div  className=" text-white/60 cursor-pointer flex items-center gap-2 [@media(min-width:1920px)]:text-2xl  [@media(min-width:3000px)]:text-3xl [@media(min-width:4400px)]:text-5xl  min-[1520px]:text-[18px] ">
+            <span className='flex justify-center items-center gap-2 cursor-pointer'  onClick={handleLogout} >  Powered by <img className="w-[60px] [@media(min-width:2200px)]:w-[80px] [@media(min-width:3200px)]:w-[90px]" src={NubitLogo} alt="" />  </span>
         </div>
       </div>
 
