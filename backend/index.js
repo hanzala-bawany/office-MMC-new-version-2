@@ -12,6 +12,7 @@ const screen1ImagesRoutes = require("./routes/screen1ImagesRoutes.js");
 const doctorRoutes = require("./routes/doctorRoutes.js");
 const screenRoutes = require("./routes/screenRoutes.js");
 const headlineRoutes = require("./routes/headlinesRoutes.js");
+const opdRoutes = require("./routes/opd.Routes.js")
 
 
 const app = express();
@@ -43,6 +44,7 @@ app.use("/api/screen1images", screen1ImagesRoutes);
 app.use("/api/doctor", doctorRoutes);
 app.use("/api/screen", screenRoutes);
 app.use("/api/headline", headlineRoutes);
+app.use("/api/opd", opdRoutes)
 
 
 if(process.env.MODE == "DEVELOPMENT") {
