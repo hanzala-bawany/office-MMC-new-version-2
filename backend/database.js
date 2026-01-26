@@ -2,7 +2,7 @@ const oracledb = require("oracledb");
 require("dotenv").config();
 
 oracledb.initOracleClient({
-  libDir: "./Oracle/instantclient_21_3",
+  libDir: "./Oracle/instantclient_21_20",
 });
 
 async function initPool() {
