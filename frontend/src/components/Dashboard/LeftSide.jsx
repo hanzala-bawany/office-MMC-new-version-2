@@ -93,58 +93,66 @@ const LeftSide = () => {
 
     ];
 
+    const piData = [
+        { name: 'Page A', uv: 590, fill: "#8884d8" },
+        { name: 'Page B', uv: 590, fill: "yellow" },
+        { name: 'Page C', uv: 868, fill: "brown" },
+        { name: 'Page d', uv: 168, fill: "gray" },
+    ]
 
-    return (
-        <div className=" flex-7 flex flex-col gap-5  ">
 
-            <div className="themeBoxShadow  flex flex-col text-center  sm:flex-row justify-between bg-white items-center gap-5 lg:gap-2  w-full p-5 ">
-                <img className='w-[120px]' src={heartImg} alt="" />
 
-                <div className='text-center lg:text-start flex-5'>
-                    <h2 className='font-bold text-[20px]'>Today - 20% Discount on Lung Examinations</h2>
-                    <p className='text-[16px] mt-2 lg:mt-0'>The Package price includes: consultoin of a pulmonolgist, spirogrphy, cardiogram</p>
-                </div>
+return (
+    <div className=" flex-7 flex flex-col gap-5  ">
 
-                <div className='dashBtn'>Know More</div>
+        <div className="themeBoxShadow  flex flex-col text-center  sm:flex-row justify-between bg-white items-center gap-5 lg:gap-2  w-full p-5 ">
+            <img className='w-[120px]' src={heartImg} alt="" />
+
+            <div className='text-center lg:text-start flex-5'>
+                <h2 className='font-bold text-[20px]'>Today - 20% Discount on Lung Examinations</h2>
+                <p className='text-[16px] mt-2 lg:mt-0'>The Package price includes: consultoin of a pulmonolgist, spirogrphy, cardiogram</p>
             </div>
 
-            <div className='flex flex-col  sm:flex-row md:flex-col [@media(min-width:900px)]:flex-row   justify-between w-full  gap-5'>
+            <div className='dashBtn'>Know More</div>
+        </div>
 
-                <TotalCard img={TS1} digit="1245" text="Total Patient" />
-                <TotalCard img={TS2} digit="1245" text="Total Patient" />
-                <TotalCard img={TS3} digit="5000" text="Total Patient" />
+        <div className='flex flex-col  sm:flex-row md:flex-col [@media(min-width:900px)]:flex-row   justify-between w-full  gap-5'>
 
-            </div>
+            <TotalCard img={TS1} digit="1245" text="Total Patient" />
+            <TotalCard img={TS2} digit="1245" text="Total Patient" />
+            <TotalCard img={TS3} digit="5000" text="Total Patient" />
 
-            <div className='flex flex-col  md:flex-row [@media(min-width:900px)]:flex-row justify-between gap-5 w-full h-[550px] md:h-[400px]'>
+        </div>
 
-                <div className='themeBoxShadow border-none outline-none flex-1 md:flex-1 '>
-                    <div className='flex items-center border-b border-gray-300 text-[18px] text-gray-500 p-3 h-[20%] font-medium'>
-                        Patient Type
-                    </div>
+        <div className='flex flex-col  md:flex-row [@media(min-width:900px)]:flex-row justify-between gap-5 w-full h-[550px] md:h-[400px]'>
 
-                    <MyCircleChart />
+            <div className='themeBoxShadow border-none outline-none flex-1 md:flex-1 '>
+                <div className='flex items-center border-b border-gray-300 text-[18px] text-gray-500 p-3 h-[20%] font-medium'>
+                    Patient Type
                 </div>
 
-                <div className='themeBoxShadow  border-none outline-none flex-1 md:flex-2'>
-                    <div className='flex items-center border-b border-gray-300 text-[18px] text-gray-500 p-3 h-[20%] font-medium'>
-                        Faculty Attendence
-                    </div>
-
-                    <ColumnChart />
-                </div>
-
+                <MyCircleChart piData={piData} />
             </div>
 
-            <div className='themeBoxShadow custom-scrollbar overflow-y-scroll h-[60vh] xl:h-auto'>
-                <Table
-                    dataSource={dataSource}
-                    columns={columns}
-                />
+            <div className='themeBoxShadow  border-none outline-none flex-1 md:flex-2'>
+                <div className='flex items-center border-b border-gray-300 text-[18px] text-gray-500 p-3 h-[20%] font-medium'>
+                    Faculty Attendence
+                </div>
+
+                <ColumnChart />
             </div>
 
         </div>
-    )
+
+        <div className='themeBoxShadow custom-scrollbar overflow-y-scroll h-[60vh] xl:h-auto'>
+            <Table
+                dataSource={dataSource}
+                columns={columns}
+            />
+        </div>
+
+    </div>
+)
 }
 
 export default LeftSide

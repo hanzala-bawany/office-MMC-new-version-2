@@ -1,24 +1,20 @@
 import { memo } from 'react';
 import { Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
-const MyCircleChart = () => {
+const MyCircleChart = ({ piData }) => {
 
 
     return (
 
-        <ResponsiveContainer width="100%" height="80%" >
+        <ResponsiveContainer width="100%" height="100%" >
             <PieChart >
                 <Pie
                     activeShape={{
                         fill: '#d3d3d3',
                     }}
-                    data={[
-                        { name: 'Page A', uv: 590, fill: "#8884d8" },
-                        { name: 'Page B', uv: 590, fill: "yellow" },
-                        { name: 'Page C', uv: 868, fill: "brown" },
-                        { name: 'Page d', uv: 168, fill: "gray" },
-                    ]}
+                    data={piData}
                     dataKey="uv"
+                    innerRadius={35}
                 />
                 <Tooltip />
             </PieChart>
