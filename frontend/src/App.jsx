@@ -23,6 +23,8 @@ import ScreenDisplayParent from './routes/ScreenDisplayParent'
 import Screen5Display from './pages/Screen5Display'
 import Screen6Display from './pages/Screen6Display'
 import Screen7Display from './pages/Screen7Display'
+import DoctorDashboard from './pages/DoctorDashboard'
+import DoctorDashboard1 from './pages/DoctorDashboard1'
 
 
 function App() {
@@ -57,6 +59,9 @@ function App() {
           <Route path="/screen6display" element={<Screen6Display />} />
           <Route path="/screen7display" element={<Screen7Display />} />
         </Route>
+
+        <Route path="/doctorDashboard" element={<DoctorDashboard />} />
+        <Route path="/doctorDashboard1" element={<DoctorDashboard1 />} />
 
         {/* Auth Routes */}
         <Route element={<AuthParent />}>
