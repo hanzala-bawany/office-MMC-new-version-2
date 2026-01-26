@@ -131,7 +131,7 @@ return (
                     Patient Type
                 </div>
 
-                <MyCircleChart piData={piData} />
+                <MyCircleChart piData={piData} active="home" />
             </div>
 
             <div className='themeBoxShadow  border-none outline-none flex-1 md:flex-2'>
