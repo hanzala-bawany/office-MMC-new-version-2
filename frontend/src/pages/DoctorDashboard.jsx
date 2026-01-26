@@ -57,20 +57,31 @@ const DoctorDashboard = () => {
   return (
 
 
-    <div className="min-h-screen bg-[#F5F8FF] p-4 md:p-8">
+    // <div className="min-h-screen bg-[#F5F8FF] p-4 md:p-8">
+    // <div className="min-h-screen bg-gradient-to-br from-[#e0f7fa] to-[#fff] p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#e3f1ff] via-[#e3efff] to-[#FFFFFF] p-4 md:p-8 relative overflow-hidden">
+
+      <div
+        className="absolute inset-0 opacity-10 pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='%2300aaff'/%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      />
+
+
 
       {/* Header */}
       <div className="flex  justify-between items-center gap-4 mb-8 ">
 
-        <div className="backdrop-blur-md py-2 px-2 sm:px-4 rounded-full border flex gap-4 justify-center items-center border-[#00b0ff] bg-white">
+        <div className="backdrop-blur-md py-2 px-2 sm:px-4 rounded-full border flex gap-4 justify-center items-center border-[#00b0ff] bg-white z-10">
           <img src={logo} alt="logo" className="h-12 min-[2000px]:h-16 [@media(min-width:3000px)]:h-18  [@media(min-width:4400px)]:h-30 w-12 min-[2000px]:w-16 [@media(min-width:3000px)]:w-18 [@media(min-width:4400px)]:w-30 object-contain" />
 
-          <h1 className="text-2xl text-[#00b0ff] font-bold hidden sm:block  tracking-wide drop-shadow">
+          <h1 className="text-xl  lg:text-2xl   text-[#00b0ff] font-bold hidden sm:block  tracking-wide drop-shadow">
             Memon Medical Complex
           </h1>
         </div>
 
-        <div className="flex items-center gap-3 bg-white border border-[#00b0ff]  px-4 py-2 rounded-full">
+        <div className="flex items-center gap-3 bg-white border border-[#00b0ff]  px-4 py-2 rounded-full z-10">
           <span className="font-semibold text-[#00b0ff]">Dr. Hanzala Bawany</span>
         </div>
 
@@ -80,7 +91,7 @@ const DoctorDashboard = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {stats?.map((s, i) => (
-          <div key={s?.value} className="p-1 rounded-[10px] bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+          <div key={s?.value} className="p-1 z-10 rounded-[10px] bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
             <Card key={i} className={card}>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 flex items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 font-bold">
@@ -98,31 +109,31 @@ const DoctorDashboard = () => {
 
       {/* Middle Section */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 h-[40vh] sm:h-auto ">
-
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 h-auto ">
 
         {/* Pie Chart */}
-        <div className="themeBoxShadow border-none outline-none rounded-[10px] bg-white flex flex-col justify-between">
+        <div className="themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex flex-col justify-between h-[35vh] sm:h-[40vh] lg:h-auto">
 
-          <div className="flex-1 p-4  flex justify-between items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
+          <div className="flex-1 p-2 px-4 sm:p-4 flex justify-between gap-4 sm:gap-8 items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
 
             <span> Patient Progress </span>
-            <div className="flex justify-center gap-3 sm:gap-6 text-sm">
-              <span className="text-[#60A5FA]">● Patients Remaining</span>
-              <span className="text-[#A855F7]">● Patients Checked</span>
+            <div className="flex flex-col sm:flex-row  justify-center gap-1 sm:gap-6 text-sm ">
+              <span className="text-[#60A5FA] ">● Patients Remaining </span>
+              <span className="text-[#A855F7] ">● Patients Checked</span>
             </div>
 
           </div>
 
           <div className="flex-7 p-6">
-            <MyCircleChart piData={pieData} />
+            <MyCircleChart piData={pieData} active="dd" />
           </div>
 
 
         </div>
 
+
         {/* Current Patient */}
-        <div className="themeBoxShadow rounded-[10px] bg-white h-full flex flex-col justify-between">
+        <div className="z-10 themeBoxShadow rounded-[10px] bg-white h-full flex flex-col justify-between">
 
           <div className="flex-1 p-4  flex items-center justify-between border-b border-gray-200 text-[18px] text-gray-500 font-semibold">
             Patient Data
@@ -158,22 +169,39 @@ const DoctorDashboard = () => {
         </div>
 
         {/* Add Patient Detail */}
-        <div className="themeBoxShadow border-none outline-none rounded-[10px] bg-white h-full flex flex-col justify-between">
+        <div className="z-10 themeBoxShadow border-none outline-none rounded-[10px] bg-white h-full flex flex-col justify-between">
 
           <div className="flex-1 flex items-center border-b border-gray-300 text-[18px] text-gray-500 p-4 font-medium">
             Add Patient Detail
           </div>
 
           <div className="flex-6 flex flex-col gap-4 p-4 ">
-            <Select placeholder="Diagnosis">
-              <Option value="flu">Flu</Option>
-              <Option value="cold">Cold</Option>
-              <Option value="infection">Infection</Option>
-            </Select>
+            <Select
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              style={{ width: "100%" }}
+              placeholder="Search to Select Disease"
+              filterSort={(optionA, optionB) =>
+                optionA.label.toLowerCase().localeCompare(optionB.label.toLowerCase())
+              }
+              options={[
+                { value: 'diabetes', label: 'Diabetes' },
+                { value: 'blood pressure', label: 'Blood Pressure' },
+                { value: 'heart disease', label: 'Heart Disease' },
+                { value: 'asthma', label: 'Asthma' },
+                { value: 'flu', label: 'Flu' },
+                { value: 'migraine', label: 'Migraine' },
+              ]}
+
+            />
+
 
             <Select placeholder="Status">
               <Option value="checked">Checked</Option>
               <Option value="pending">Pending</Option>
+              <Option value="skip">Skip</Option>
+              <Option value="inprocess">Inprocess</Option>
             </Select>
 
             <Input.TextArea rows={3} placeholder="Comments..." />
@@ -188,7 +216,6 @@ const DoctorDashboard = () => {
           </div>
 
         </div>
-
 
       </div>
 

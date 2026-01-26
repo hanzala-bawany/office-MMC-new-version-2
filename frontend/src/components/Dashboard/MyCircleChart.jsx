@@ -1,12 +1,16 @@
+import { Grid } from 'antd';
 import { memo } from 'react';
 import { Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
-const MyCircleChart = ({ piData }) => {
+const MyCircleChart = ({ piData , active }) => {
 
+    const { useBreakpoint } = Grid;
+    const { sm } = useBreakpoint();
+    const innerRadius = sm ? 35 : 25;
 
     return (
 
-        <ResponsiveContainer width="100%" height="100%" >
+        <ResponsiveContainer width="100%" height={active == "dd" ? "100%" : "80%"} >
             <PieChart >
                 <Pie
                     activeShape={{
@@ -14,7 +18,7 @@ const MyCircleChart = ({ piData }) => {
                     }}
                     data={piData}
                     dataKey="uv"
-                    innerRadius={35}
+                    innerRadius={active == "dd" && innerRadius}
                 />
                 <Tooltip />
             </PieChart>
