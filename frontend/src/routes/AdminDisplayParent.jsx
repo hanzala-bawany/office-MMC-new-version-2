@@ -30,6 +30,10 @@ const AdminDisplayParent = () => {
     return <Outlet />;
   }
 
+  if (loginUserData.role == "doctor") {
+    toast.error("Only Admin Can Access");
+    return <Navigate to="/doctorDashboard" replace />;
+  }
 
   if (allowedPath) {
     toast.error("Only Admin Can Access");

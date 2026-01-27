@@ -25,7 +25,10 @@ const LoginPage = () => {
 
   const inputHandler = (e) => {
     setInputs({ ...inputs, [e.target.id]: e.target.value })
+    // console.log(inputs , "<<<<<<<<<<<<");
   }
+
+
 
   const loginHandler = async () => {
 
@@ -37,9 +40,11 @@ const LoginPage = () => {
     try {
       setLoading(true);
       const res = await axios.post(`${base_URL}/api/auth/login`, inputs);
-      // console.log(res, "res <<<<<<<<<<<");
+      console.log(res, "res <<<<<<<<<<<");
       const token = res.data.token;
       const decoded = jwtDecode(token);
+      console.log(decoded , "decoded <<<<<<");
+      
 
       localStorage.setItem("loginUserData", JSON.stringify(decoded))
       localStorage.setItem("loginUser", JSON.stringify(token));
@@ -48,6 +53,9 @@ const LoginPage = () => {
 
       if (decoded.role === "admin") {
         navigate("/");
+      }
+      else if(decoded.role === "doctor") {
+        navigate("/doctorDashboard");
       }
       else {
         const screenAccessMap = {
@@ -75,20 +83,11 @@ const LoginPage = () => {
 
     <div className="relative h-[100vh] w-[100%] flex justify-center items-center ">
 
-      <div className="flex absolute top-4 left-4 items-center gap-4
-[@media(min-width:3200px)]:gap-8
-[@media(min-width:4400px)]:gap-12">
+      <div className="flex absolute top-4 left-4 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
 
         {/* Logo wrapper */}
-        <div className="
-    bg-[linear-gradient(135deg,#01A7B5_0%,#0b2745_100%)]
-    p-[2px]
-    rounded-full
-    shadow-lg
-  ">
-          <div className="
-      bg-white
-      backdrop-blur-md
+        <div className="bg-[linear-gradient(135deg,#01A7B5_0%,#0b2745_100%)] p-[2px] rounded-full shadow-lg">
+          <div className=" bg-white backdrop-blur-md
       p-2
       rounded-full
     ">

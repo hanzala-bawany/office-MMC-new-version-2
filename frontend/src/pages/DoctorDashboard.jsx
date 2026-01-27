@@ -4,6 +4,18 @@ import logo from "../assets/MMC logo.png";
 import { useEffect, useState } from "react";
 import { base_URL } from "../../src/utills/baseUrl.js";
 import axios from "axios";
+import {
+  FaFileMedical,
+  FaNotesMedical,
+  FaFlask,
+  FaXRay,
+  FaFolderOpen
+} from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logoutUser } from "../reduxToolKit/authSlice.js";
+import { toast } from "react-toastify";
+
 
 
 const { Option } = Select;
@@ -11,13 +23,20 @@ const { Option } = Select;
 const DoctorDashboard = () => {
 
   const [openReport, setOpenReport] = useState(false);
+  const [openProfile, setOpenProfile] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const card = "rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 themeBoxShadow";
+   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
+   console.log(loginUserData , "<<<<<<<");
+   
+
 
   const stats = [
-    { title: "Today Appointments", value: "200" , half : true },
+    { title: "Today Appointments", value: "200", half: true },
     { title: "Patients Checked", value: "60" },
     { title: "Patients Remaining", value: "140", full: true },
   ];
-
 
   const pieData = [
     { name: "Patients Remaining", uv: 140, fill: "#60A5FA" },   // blue-400
@@ -25,12 +44,11 @@ const DoctorDashboard = () => {
     // { name: "Today Appointments", uv: 200, fill: "#EC4899" }, // pink-500
   ];
 
-
   const historyColumns = [
     { title: "Date", dataIndex: "date" },
     { title: "Patient", dataIndex: "name" },
-    { title: "Disease", dataIndex: "disease" },
-    { title: "Discription", dataIndex: "comment",},
+    { title: "Primery Diagnosis", dataIndex: "disease" },
+    { title: "Primery Complain", dataIndex: "comment", },
     {
       title: "Report",
       render: (text, row) => (
@@ -39,12 +57,11 @@ const DoctorDashboard = () => {
           size="small"
           onClick={() => setOpenReport(true)}
         >
-          View Reports
+          View
         </Button>
       ),
     },
   ];
-
 
   const historyData = [
     {
@@ -64,15 +81,19 @@ const DoctorDashboard = () => {
   ];
 
 
-  const card = "rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 themeBoxShadow";
+  const logoutHandler = () => {
+        dispatch(logoutUser())
+        toast.success("Logout Scuccessful")
+        navigate("/login")
+  }
 
 
   useEffect(() => {
 
     const foo = async () => {
       try {
-        const res = await axios.get(`${base_URL}/api/opd/doctor-patients/341`);
-        // console.log(res, "res of get DocotrDetail by id");
+        const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
+        console.log(res, "res of get DocotrDetail by id");
         // setData(res.data.data);
       }
       catch (err) {
@@ -87,7 +108,6 @@ const DoctorDashboard = () => {
 
 
   return (
-
 
 
     <div className="flex flex-col min-h-screen xl:h-screen  bg-gradient-to-br from-[#e3f1ff] via-[#e3efff] to-[#FFFFFF] p-4 md:p-8 relative ">
@@ -107,37 +127,79 @@ const DoctorDashboard = () => {
         centered
         width={600}
       >
+
+        <div className="flex justify-between items-center mb-4  mr-6">
+          <h2 className="text-lg font-semibold text-gray-700">
+            Patient Reports
+          </h2>
+
+          <div className="flex gap-4 text-md ">
+            <span className="cursor-pointer text-blue-500">📄</span>
+            <span className="cursor-pointer text-green-500">🧪</span>
+            <span className="cursor-pointer text-purple-500">📊</span>
+          </div>
+        </div>
+
         <Card className="rounded-xl shadow-lg">
 
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-700">
-              Patient Reports
-            </h2>
+          <div className="space-y-3 space-x-3  grid  grid-cols-1 sm:grid-cols-2   text-gray-600 ">
+            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition" >
+              <FaFileMedical className="text-blue-500" />
+              Previous Discharge Summary
+            </p>
 
-            <div className="flex gap-4 text-xl">
-              <span className="cursor-pointer text-blue-500">📄</span>
-              <span className="cursor-pointer text-green-500">🧪</span>
-              <span className="cursor-pointer text-purple-500">📊</span>
-            </div>
+            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition">
+              <FaNotesMedical className="text-green-500" />
+              Previous OPD Records
+            </p>
+
+            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition">
+              <FaFlask className="text-purple-500" />
+              Lab Reports
+            </p>
+
+            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition">
+              <FaXRay className="text-orange-500" />
+              Radiology Reports
+            </p>
+
+            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition">
+              <FaFolderOpen className="text-gray-500" />
+              Others
+            </p>
           </div>
-
-          <div className="space-y-3 text-gray-600">
-            <p>🩺 Diagnosis Report</p>
-            <p>🧾 Prescription</p>
-            <p>🧪 Lab Results</p>
-          </div>
-
-          <Button
-            className="mt-6"
-            type="primary"
-            block
-            onClick={() => setOpenReport(false)}
-          >
-            Close
-          </Button>
 
         </Card>
       </Modal>
+
+
+      <Modal
+        open={openProfile}
+        onCancel={() => setOpenProfile(false)}
+        footer={null}
+        centered
+        width={400}
+      >
+        <div className="flex flex-col items-center gap-6 py-6 px-2">
+
+          <h2 className="text-lg font-semibold text-gray-700">
+            Dr. Hanzala Bawany
+          </h2>
+
+          <Button
+            danger
+            type="primary"
+            block
+            onClick={logoutHandler}
+          >
+            Logout
+          </Button>
+
+        </div>
+      </Modal>
+
+
+
 
 
       {/* Header */}
@@ -153,7 +215,7 @@ const DoctorDashboard = () => {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 bg-white border border-[#00b0ff]  px-4 py-2 rounded-full z-10">
+          <div onClick={() => setOpenProfile(true)} className="flex items-center gap-3 bg-white border border-[#00b0ff]  px-4 py-2 rounded-full z-10 cursor-pointer">
             <span className="font-semibold text-[#00b0ff]">Dr. Hanzala Bawany</span>
           </div>
 
@@ -162,7 +224,7 @@ const DoctorDashboard = () => {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  gap-6 mb-8">
           {stats?.map((s, i) => (
-            <div key={s?.value}     className={`p-1 z-10 rounded-[10px] bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 ${s.full ? "sm:col-span-2 lg:col-span-1" : ""} `}>
+            <div key={s?.value} className={`p-1 z-10 rounded-[10px] bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 ${s.full ? "sm:col-span-2 lg:col-span-1" : ""} `}>
               <Card key={i} className={card}>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 flex items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 font-bold">
@@ -183,7 +245,6 @@ const DoctorDashboard = () => {
 
 
       {/* Middle Section */}
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 h-auto ">
 
         {/* Pie Chart */}
@@ -206,7 +267,7 @@ const DoctorDashboard = () => {
 
         </div>
 
-        {/* Current Patient */}
+        {/* Patient Data */}
         <div className="z-10 themeBoxShadow rounded-[10px] bg-white h-full flex flex-col justify-between ">
 
           <div className="flex-1 p-4  flex items-center justify-between border-b border-gray-200 text-[18px] text-gray-500 font-semibold">
@@ -256,7 +317,7 @@ const DoctorDashboard = () => {
               showSearch
               optionFilterProp="label"
               style={{ width: "100%" }}
-              placeholder="Search to Select Disease"
+              placeholder="Search to Select Primery Diagnosis"
               filterSort={(optionA, optionB) =>
                 optionA.label.toLowerCase().localeCompare(optionB.label.toLowerCase())
               }
@@ -279,15 +340,15 @@ const DoctorDashboard = () => {
               <Option value="inprocess">Inprocess</Option>
             </Select>
 
-            <Input.TextArea rows={3} placeholder="Comments..." />
+            <Input.TextArea rows={4} placeholder="Primery Complain ..." />
 
           </div>
 
-          <div className="flex-1 p-4 border-t border-gray-200 ">
+          <div className="flex-1 p-4  border-gray-200 ">
 
-            <Button type="primary" block>
+            {/* <Button type="primary" className="" block>
               Save
-            </Button>
+            </Button> */}
           </div>
 
         </div>
