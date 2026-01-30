@@ -8,6 +8,7 @@ const DocotorParent = () => {
     const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
 
 
+    const isAllow = loginUserData?.role == "doctor" 
 
     useEffect(() => {
         if (!isUserLogin) {
@@ -20,7 +21,7 @@ const DocotorParent = () => {
     return (
         <>
             {
-                loginUserData?.role == "doctor" ? <Outlet /> : <Navigate to={"/"} />
+                isAllow ? <Outlet /> : <Navigate to={"/"} />
             }
         </>
     )

@@ -86,7 +86,7 @@ const Screen5Display = () => {
     const getPatientnDoctorInfo = async () => {
       try {
         const res = await axios.get(`${base_URL}/api/opd/patients`);
-        // console.log(res, "res of get Patient Doctor Info");
+        console.log(res, "res of get Patient Doctor Info");
         dispatch(updatePatinetnDocotrsData(res?.data?.data));
       }
       catch (err) {
@@ -110,13 +110,6 @@ const Screen5Display = () => {
         }}
       />
 
-      {/* <div className="absolute inset-0 flex justify-center items-center">
-        <img
-          src={logo} // <-- yahan apna bg image path set karo
-          alt="Hospital Background"
-          className="w-[50%] h-[50%] object-cover opacity-20" // opacity kam rakha
-        />
-      </div> */}
 
       <div className="flex absolute top-4 4xl:top-8 [@media(min-width:3200px)]:top-12 left-4 4xl:left-8 [@media(min-width:4200px)]:left-12 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
         <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-[#00b0ff]/30">
@@ -132,10 +125,15 @@ const Screen5Display = () => {
         </div>
       </div>
 
-      <div className="flex justify-center flex-2 pt-10 4xl:pt-14 5xl:pt-20  text-5xl 4xl:text-6xl 5xl:text-7xl  text-cyan-800  font-[700]">
+      <div className="flex justify-center items-center pt-3  relative flex-2">
+        <h1 className="text-cyan-800 font-extrabold tracking-wide text-5xl 4xl:text-6xl 5xl:text-7xl relative">
 
-        <h1>Current Patient Queue Display</h1>
+          <span className="bg-clip-text text-transparent  bg-gradient-to-r from-cyan-600 to-blue-500">
+            Live Patient Queue
+          </span>
 
+          <span className="absolute -bottom-4 left-1/2 -translate-x-1/2  w-40 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" />
+        </h1>
       </div>
 
       <div className='flex-13 flex '>

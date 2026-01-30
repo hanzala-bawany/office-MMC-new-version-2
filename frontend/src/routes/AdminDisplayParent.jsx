@@ -11,6 +11,7 @@ const AdminDisplayParent = () => {
     "002Screen2": "/screen2display",
     "003Screen3": "/screen3display",
     "004Screen4": "/screen4display",
+    "005Screen5": "/screen5display",
   };
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
   const allowedPath = screenAccessMap[loginUserData?.username];
@@ -25,24 +26,22 @@ const AdminDisplayParent = () => {
   if (!loginUserData) {
     return <Navigate to="/login" replace />;
   }
-
-  if (loginUserData.role === "admin") {
+  else if (loginUserData.role === "admin") {
     return <Outlet />;
   }
-
-  if (loginUserData.role == "doctor") {
+  else if (loginUserData.role == "doctor") {
     toast.error("Only Admin Can Access");
     return <Navigate to="/doctorDashboard" replace />;
   }
-
-  if (allowedPath) {
+  else if (allowedPath) {
     toast.error("Only Admin Can Access");
     return <Navigate to={allowedPath} replace />;
   }
-
-  // ✅ Unknown user
-  setToastMessage("Unauthorized user");
-  return <Navigate to="/login" replace />;
+  else {
+    setToastMessage("Unauthorized user");
+    return <Navigate to="/login" replace />;
+  }
+  
 };
 
 export default AdminDisplayParent;
