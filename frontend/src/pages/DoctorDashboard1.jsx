@@ -9,14 +9,11 @@ import HistoryTable from "../components/doctorDashboard/HistoryTable.jsx";
 
 
 
-
-const DoctorDashboard = () => {
+const DoctorDashboard1 = () => {
 
 
   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
   console.log(loginUserData, "<<<<<<< loginUserData");
-
-
 
 
 
@@ -68,7 +65,7 @@ const DoctorDashboard = () => {
   );
 };
 
-export default DoctorDashboard;
+export default DoctorDashboard1;
 
 
 

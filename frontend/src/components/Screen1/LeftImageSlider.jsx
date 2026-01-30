@@ -4,7 +4,6 @@ import { base_URL } from "../../utills/baseUrl";
 import { motion } from "framer-motion";
 import ImageLoader from "../../utills/ImageLoader";
 
-import image from '../../assets/niz2.jpg'
 
 const LeftImageSlider = () => {
 
