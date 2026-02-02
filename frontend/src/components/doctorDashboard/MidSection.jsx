@@ -2,13 +2,15 @@ import { Select, Input, Button, Tag, } from "antd";
 const { Option } = Select;
 import MyCircleChart from "../Dashboard/MyCircleChart"
 
-const MidSection = () => {
+const MidSection = ({ patientsData, setIsNextBtnClick }) => {
+
+    // console.log(patientsData, "<<<<<<<<<");
+
 
 
     const pieData = [
-        { name: "Patients Remaining", uv: 125, fill: "#60A5FA" },   // blue-400
-        { name: "Patients Checked", uv: 75, fill: "#A855F7" }, // purple-500
-        // { name: "Today Appointments", uv: 200, fill: "#EC4899" }, // pink-500
+        { name: "Patients Remaining", uv: patientsData?.patientsRemaining, fill: "#60A5FA" },   // blue-400
+        { name: "Patients Checked", uv: patientsData?.patientsChecked, fill: "#A855F7" }, // purple-500
     ];
 
     const patientData = {
@@ -24,13 +26,17 @@ const MidSection = () => {
         opdId: "A - 20",
     };
 
+    const nextHandler = () => {
+        setIsNextBtnClick((pre) => !pre)
+    }
+
 
 
 
     return (
 
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 mb-8 h-auto ">
- 
+
             {/* Pie Chart */}
             <div className="themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex flex-col justify-between h-[35vh] sm:h-[40vh] lg:h-auto">
 
@@ -45,7 +51,30 @@ const MidSection = () => {
                 </div>
 
                 <div className="flex-7 p-6">
-                    <MyCircleChart piData={pieData} active="dd" />
+                    {
+                        (patientsData?.patientsRemaining || patientsData?.patientsChecked) ?
+                            <MyCircleChart piData={pieData} active="dd" /> :
+                            (
+                                <div className=" flex flex-col items-center justify-center  h-full  rounded-xl border-2 border-dashed border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 text-center transition-all">
+
+                                    <div className=" w-16 h-16 rounded-full  bg-blue-100 flex items-center justify-center mb-3">
+                                        <span className="text-3xl">📊</span>
+                                    </div>
+
+                                    <h3 className="text-base sm:text-lg font-semibold text-blue-700">
+                                        No Patients Checked Today
+                                    </h3>
+
+                                    <p className="text-sm text-blue-500 mt-1 max-w-[220px]">
+                                        Patient visit data will appear here once appointments are scheduled
+                                    </p>
+
+                                    <div className=" mt-3 px-4 py-1 rounded-full text-xs font-medium  bg-blue-100 text-blue-600">
+                                        Waiting for OPD entries
+                                    </div>
+                                </div>
+                            )
+                    }
                 </div>
 
 
@@ -61,7 +90,7 @@ const MidSection = () => {
                     </h2>
                     {/* <Tag className="font-semibold px-3 py-1 text-sm sm:text-base" color="blue">
                         {patientData.opdId}
-                    </Tag> */} 
+                    </Tag> */}
                     <div className="flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
                         {patientData.opdId}
                     </div>
@@ -129,6 +158,7 @@ const MidSection = () => {
                     <Button
                         type="primary"
                         block
+                        onClick={nextHandler}
                     >
                         Next Patient
                     </Button>
@@ -229,6 +259,7 @@ const MidSection = () => {
                     <Button
                         type="primary"
                         block
+                        onClick={nextHandler}
                     >
                         Next Patient
                     </Button>

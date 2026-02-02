@@ -26,21 +26,12 @@ const Screen5Display = () => {
   const [i, setI] = useState(0);
   const videoRef = useRef(null);
   const handledRef = useRef(false);
-  // const slideshowImages = [
-  //   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80",
-  //   "https://img.freepik.com/premium-photo/brightly-coloured-orange-purple-yellow-large-headed-wildflower-close-up-low-level-macro-view_1048944-7567634.jpg?semt=ais_hybrid&w=740&q=80",
-  //   "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1920&q=80",
-  //   "https://img.freepik.com/free-photo/cosmos-flowers_1373-83.jpg?semt=ais_hybrid&w=740",
-  //   "https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?w=1920&q=80",
-  //   "https://images.unsplash.com/photo-1552083375-1447ce886485?w=1920&q=80",
-  // ];
   const slideshowImages = [
     fish2,
     fish,
     fish1,
   ];
   const patinetnDocotrsData = useSelector((state) => state?.doctorSlice?.patinetnDocotrData);
-  // const patinetnDocotrsData = [];
   // console.log(patinetnDocotrsData, "<<<<<<<<<<");
 
 
@@ -51,34 +42,34 @@ const Screen5Display = () => {
     navigate("/login")
   }
 
-  const nextVideo = () => {
-    setI(prev =>
-      prev >= slideshowImages.length - 1 ? 0 : prev + 1
-    );
-  };
+  // const nextVideo = () => {
+  //   setI(prev =>
+  //     prev >= slideshowImages.length - 1 ? 0 : prev + 1
+  //   );
+  // };
 
-  const handleTimeUpdate = () => {
-    const video = videoRef.current;
-    if (!video) return;
+  // const handleTimeUpdate = () => {
+  //   const video = videoRef.current;
+  //   if (!video) return;
 
-    if (!handledRef.current && video.duration - video.currentTime <= 1) {
-      handledRef.current = true;
-      nextVideo();
-    }
-  };
+  //   if (!handledRef.current && video.duration - video.currentTime <= 1) {
+  //     handledRef.current = true;
+  //     nextVideo();
+  //   }
+  // };
 
-
-  useEffect(() => {
-    handledRef.current = false;
-  }, [i]);
 
   // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setI((prev) => prev >= slideshowImages.length - 1 ? 0 : prev + 1);
-  //   }, 3000);
+  //   handledRef.current = false;
+  // }, [i]);
 
-  //   return () => clearInterval(interval); // cleanup
-  // }, []);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setI((prev) => prev >= slideshowImages?.length - 1 ? 0 : prev + 1);
+    }, 1000 * 20);
+
+    return () => clearInterval(interval); // cleanup
+  }, []);
 
 
   useEffect(() => {
@@ -86,8 +77,11 @@ const Screen5Display = () => {
     const getPatientnDoctorInfo = async () => {
       try {
         const res = await axios.get(`${base_URL}/api/opd/patients`);
-        console.log(res, "res of get Patient Doctor Info");
-        dispatch(updatePatinetnDocotrsData(res?.data?.data));
+        console.log(res, "res of get Patient for screen");
+        const data = res?.data?.data?.filter((i) => i?.PATIENT_STATUS_ID == 2);
+        // const data = res?.data?.data
+        // console.log(data , ",,,,,,,,,,,");
+        dispatch(updatePatinetnDocotrsData(data));
       }
       catch (err) {
         // console.log(err, "error in get Doctor info");
@@ -125,7 +119,7 @@ const Screen5Display = () => {
         </div>
       </div>
 
-      <div className="flex justify-center items-center pt-3  relative flex-2">
+      <div className="flex justify-center items-center pt-3  relative flex-2 invisible">
         <h1 className="text-cyan-800 font-extrabold tracking-wide text-5xl 4xl:text-6xl 5xl:text-7xl relative">
 
           <span className="bg-clip-text text-transparent  bg-gradient-to-r from-cyan-600 to-blue-500">
@@ -141,7 +135,7 @@ const Screen5Display = () => {
         {
           patinetnDocotrsData.length ?
             <div className={`${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${patinetnDocotrsData.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
-              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} />)}
+              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} />)}
             </div>
             :
             <div className='flex justify-center w-[70%]'>
@@ -149,11 +143,6 @@ const Screen5Display = () => {
             </div>
         }
 
-        {/* {
-          vipDoctors.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
-            <img src={slideshowImages[i]} alt="" className='h-full w-full rounded-2xl object-cover ' />
-          </div>
-        } */}
         {
           patinetnDocotrsData.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
             <video
@@ -163,7 +152,7 @@ const Screen5Display = () => {
               muted
               playsInline
               src={slideshowImages[i]}
-              onTimeUpdate={handleTimeUpdate}
+              // onTimeUpdate={handleTimeUpdate}
               ref={videoRef}>
 
             </video>
