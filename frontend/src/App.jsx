@@ -61,7 +61,6 @@ function App() {
         </Route>
 
         <Route element={<DocotorParent />}>
-        
           <Route path="/doctorDashboard" element={<DoctorDashboard />} />
         </Route>
 

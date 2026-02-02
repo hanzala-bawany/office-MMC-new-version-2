@@ -8,40 +8,36 @@ import HistoryTable from "../components/doctorDashboard/HistoryTable.jsx";
 
 
 
-
-
 const DoctorDashboard = () => {
 
 
+  const [patientsData, setPatientsData] = useState([]);
+  const [isNextBtnClick, setIsNextBtnClick] = useState(false);
   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
-  console.log(loginUserData, "<<<<<<< loginUserData");
+  // console.log(loginUserData, "<<<<<<< loginUserData");
+  console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
 
 
+  useEffect(() => {
 
+    const foo = async () => {
+      try {
+        const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
+        console.log(res, "res of get DocotrDetail by id");
+        setPatientsData(res.data.data);
+      }
+      catch (err) {
+        // console.log(err, "error in get faculty");
+        toast.error(err?.message)
+      }
+    }
+    foo()
 
-
-  // useEffect(() => {
-
-  //   const foo = async () => {
-  //     try {
-  //       const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
-  //       console.log(res, "res of get DocotrDetail by id");
-  //       // setData(res.data.data);
-  //     }
-  //     catch (err) {
-  //       // console.log(err, "error in get faculty");
-  //       //  toast.error(err?.message)
-  //     }
-  //   }
-  //   foo()
-
-  // }, [])
+  }, [isNextBtnClick])
 
 
   return (
 
-
-    // <div className="flex flex-col min-h-screen xl:h-screen  bg-gradient-to-br from-[#738da7] via-[#e3efff] to-[#adcffa] p-4 md:p-8 relative ">
     <div className="flex flex-col min-h-screen  bg-gradient-to-br from-[#e3f1ff] via-[#e3efff] to-[#FFFFFF] p-4 md:p-8 relative ">
 
 
@@ -56,10 +52,10 @@ const DoctorDashboard = () => {
 
 
       {/* Header */}
-      <Header />
+      <Header doctorData={loginUserData} patientsData={patientsData} />
 
       {/* Middle Section */}
-      <MidSection />
+      <MidSection patientsData={patientsData} setIsNextBtnClick={setIsNextBtnClick} />
 
       {/* History */}
       <HistoryTable />
