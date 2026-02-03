@@ -2,6 +2,8 @@ const express = require("express");
 require("./database.js");
 const cors = require("cors");
 const path = require("path");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const authRoutes = require("./routes/authRoutes.js");
 const facultyRoutes = require("./routes/facultyRoutes.js");
@@ -17,6 +19,24 @@ const opdRoutes = require("./routes/opd.Routes.js")
 
 const app = express();
 const PORT = 3000;
+
+// 👇 HTTP server
+const server = http.createServer(app);
+
+// 👇 Socket server
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+io.on("connection", (socket) => {
+  console.log("🟢 Socket connected:", socket.id);
+  socket.on("disconnect", () => {
+    console.log("🔴 Socket disconnected");
+  });
+});
+
+// 👇 make io available in APIs
+app.set("io", io);
 
 // Middleware
 app.use(express.json());
@@ -47,12 +67,9 @@ app.use("/api/headline", headlineRoutes);
 app.use("/api/opd", opdRoutes)
 
 
-if(process.env.MODE == "DEVELOPMENT") {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(` Server is running on http://localhost:${PORT}`);
-  });
-}
-else{
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running http://localhost:${PORT}`);
+});
   module.exports = app;
-}
+
   
