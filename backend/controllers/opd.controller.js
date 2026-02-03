@@ -1,6 +1,8 @@
 const oracledb = require("oracledb");
 const poolPromise = require("../database.js");
 
+//-------Queue Display Screen--------------------
+
 const getTodayDoctorPatients = async (req, res) => {
   let connection;
 
@@ -118,12 +120,20 @@ const getDoctorPatientsWithStats = async (req, res) => {
 };
 
 
-
+//-------next patient api------------------
 
 const getDoctorNextPatient = async (req, res) => {
   let connection;
   try {
-    const { doctorId, receiptNo, remarks } = req.body;
+    let { doctorId, receiptNo, remarks, primaryDiagnosis, medicalTests, treatment } = req.body;
+
+    // Normalize empty strings to null
+    const normalize = val => val && val.trim() !== "" ? val : null;
+    receiptNo = normalize(receiptNo);
+    remarks = normalize(remarks);
+    primaryDiagnosis = normalize(primaryDiagnosis);
+    medicalTests = normalize(medicalTests);
+    treatment = normalize(treatment);
 
     const pool = await poolPromise;
     connection = await pool.getConnection();
@@ -132,38 +142,52 @@ const getDoctorNextPatient = async (req, res) => {
       `
       BEGIN
         get_doctor_next_patient(
-          :doc_id,
-          :receiptno,
-          :remarks,
-          :cursor
+          p_doc_id        => :doc_id,
+          p_receiptno     => :receiptno,
+          p_remarks       => :remarks,
+          p_primary_diag  => :primary_diag,
+          p_medical_tests => :medical_tests,
+          p_treatment     => :treatment,
+          retval          => :cursor
         );
       END;
       `,
       {
         doc_id: doctorId,
-        receiptno: receiptNo || null,
-        remarks: remarks || null,
+        receiptno: receiptNo,
+        remarks: remarks,
+        primary_diag: primaryDiagnosis,
+        medical_tests: medicalTests,
+        treatment: treatment,
         cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
       },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      { outFormat: oracledb.OUT_FORMAT_OBJECT, autoCommit: true }
     );
 
     const rs = result.outBinds.cursor;
     const rows = await rs.getRows();
     await rs.close();
 
-    res.json({
-      success: true,
-      nextPatient: rows
+    //  SOCKET EMIT
+    const io = req.app.get("io");
+    io.emit("QUEUE_UPDATED", {
+      type: "NEXT_PATIENT",
+      doctorId,
+      patient: rows
     });
 
+    res.json({ success: true, nextPatient: rows });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, error: err.message });
+    console.error("getDoctorNextPatient error:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch next patient", error: err.message });
   } finally {
     if (connection) await connection.close();
   }
 };
+
+
+
 
 module.exports = {
   getTodayDoctorPatients,getDoctorNextPatient,getDoctorPatientsWithStats

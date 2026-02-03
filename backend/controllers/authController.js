@@ -93,7 +93,8 @@ const unifiedLogin = async (req, res) => {
         {
           doctorId: doctor.ID,
           name: doctor.NAME,
-          role: "doctor"
+          role: "doctor",
+          faculty: doctor.FACULTY,
         },
         process.env.JWT_SECRET,
         { expiresIn: "1d" }
@@ -105,6 +106,7 @@ const unifiedLogin = async (req, res) => {
         role: "doctor",
         doctorId: doctor.ID,
         doctorName: doctor.NAME,
+        faculty: doctor.FACULTY,
         token
       });
     }
