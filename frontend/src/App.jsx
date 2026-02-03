@@ -60,9 +60,9 @@ function App() {
           <Route path="/screen6display" element={<Screen6Display />} />
         </Route>
 
-        <Route element={<DocotorParent />}>
+        {/* <Route element={<DocotorParent />}> */}
           <Route path="/doctorDashboard" element={<DoctorDashboard />} />
-        </Route>
+        {/* </Route> */}
 
         <Route path="/doctorDashboard1" element={<DoctorDashboard1 />} />
         <Route path="/doctorDashboard2" element={<DoctorDashboard2 />} />
