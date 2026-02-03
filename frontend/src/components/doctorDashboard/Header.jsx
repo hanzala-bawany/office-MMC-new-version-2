@@ -34,7 +34,7 @@ const Header = ({ doctorData, patientsData }) => {
 
             <Modal open={openProfile} onCancel={() => setOpenProfile(false)} footer={null} centered width={400} >
                 <div className="flex flex-col items-center text-center py-4">
-                    <h2 className="text-xl font-bold text-slate-800">   {doctorData?.name} </h2>
+                    <h2 className="text-xl font-bold text-slate-800">   {doctorData?.name || "Doctor Name"} </h2>
                     <p className="text-slate-400 mb-8 font-medium italic underline underline-offset-4 decoration-blue-200 text-sm">   {doctorData?.consultant || "Consultant"} </p>
                     <Button
                         danger
@@ -78,7 +78,7 @@ const Header = ({ doctorData, patientsData }) => {
                     {/* Info */}
                     <div className="flex flex-col leading-tight">
                         <span className="text-md font-bold text-slate-800">
-                            {doctorData?.name}
+                            {doctorData?.name || "Doctor Name"}
                         </span>
                     </div>
                 </div>
@@ -96,8 +96,8 @@ const Header = ({ doctorData, patientsData }) => {
                                     👤
                                 </div>
                                 <div>
-                                    <p className="text-gray-500 text-lg">{s?.title}</p>
-                                    <p className="text-2xl font-bold text-gray-800">{s?.value}</p>
+                                    <p className="text-gray-500 text-lg">{s?.title || "Not yet"}</p>
+                                    <p className="text-2xl font-bold text-gray-800">{s?.value || "0"}</p>
                                 </div>
                             </div>
                         </Card>

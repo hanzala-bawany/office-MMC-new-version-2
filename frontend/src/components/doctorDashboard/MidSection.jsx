@@ -1,11 +1,17 @@
 import { Select, Input, Button, Tag, } from "antd";
 const { Option } = Select;
 import MyCircleChart from "../Dashboard/MyCircleChart"
+import axios from "axios";
+import { base_URL } from "../../utills/baseUrl";
+import { useState } from "react";
 
-const MidSection = ({ patientsData, setIsNextBtnClick }) => {
+const MidSection = ({ patientsData, docPatientData ,setIsNextBtnClick }) => {
 
+    const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
+    const currentPatientsData = patientsData?.patients?.find((p) => p?.PATIENT_STATUS_ID == 2);
     // console.log(patientsData, "<<<<<<<<<");
-
+    // console.log(loginUserData, "<<<<<<<  loginUserData  "); 
+    // console.log(currentPatientsData, "<<<<<<<  currentPatientsData  ");
 
 
     const pieData = [
@@ -26,10 +32,28 @@ const MidSection = ({ patientsData, setIsNextBtnClick }) => {
         opdId: "A - 20",
     };
 
-    const nextHandler = () => {
-        setIsNextBtnClick((pre) => !pre)
-    }
 
+    const nextHandler = async () => {
+
+        try {
+            const res = await axios.post(`${base_URL}/api/opd/doctor/next-patient`, {
+                doctorId: loginUserData?.doctorId,
+                receiptNo: currentPatientsData?.RECEIPTNO || null,
+                remarks: "Patient stable, mild fever",
+                primaryDiagnosis: "Viral Infection",
+                medicalTests: "CBC, Dengue Test",
+                treatment: "Paracetamol + fluids"
+            });
+            // console.log(res, "res of next Handler by id");
+            // setIsNextBtnClick((pre) => !pre)
+            docPatientData()
+        }
+        catch (err) {
+            // console.log(err, "error in next Handler");
+            toast.error(err?.message)
+        }
+
+    }
 
 
 
@@ -38,7 +62,7 @@ const MidSection = ({ patientsData, setIsNextBtnClick }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 mb-8 h-auto ">
 
             {/* Pie Chart */}
-            <div className="themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex flex-col justify-between h-[35vh] sm:h-[40vh] lg:h-auto">
+            <div className="themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex flex-col justify-between min-h-[35vh] sm:min-h-[40vh] lg:h-auto">
 
                 <div className="flex-1 p-2 px-4 sm:p-4 flex justify-between gap-4 sm:gap-8 items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
                     {/* text-slate-700 */}
@@ -50,7 +74,7 @@ const MidSection = ({ patientsData, setIsNextBtnClick }) => {
 
                 </div>
 
-                <div className="flex-7 p-6">
+                <div className={`flex-7 ${!(patientsData?.patientsRemaining || patientsData?.patientsChecked) && "p-6"}`}>
                     {
                         (patientsData?.patientsRemaining || patientsData?.patientsChecked) ?
                             <MyCircleChart piData={pieData} active="dd" /> :
@@ -88,11 +112,9 @@ const MidSection = ({ patientsData, setIsNextBtnClick }) => {
                     <h2 className="text-lg sm:text-xl font-semibold text-black">
                         Patient Vitals
                     </h2>
-                    {/* <Tag className="font-semibold px-3 py-1 text-sm sm:text-base" color="blue">
-                        {patientData.opdId}
-                    </Tag> */}
+
                     <div className="flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
-                        {patientData.opdId}
+                        {currentPatientsData?.TOKENNO || "Not Yet"}
                     </div>
                 </div>
 
@@ -100,13 +122,13 @@ const MidSection = ({ patientsData, setIsNextBtnClick }) => {
 
                     <div className="font-semibold  py-1 flex justify-between text-gray-500" >
                         <p>
-                            <span className="font-semibold text-gray-800">Name:</span> {patientData.name}
+                            <span className="font-semibold text-gray-800">Name :</span> {currentPatientsData?.PATIENTNAME || "Not Yet"}
                         </p>
                         <p>
-                            <span className="font-semibold text-gray-800">Age:</span> {patientData.age} yrs
+                            <span className="font-semibold text-gray-800">Age :</span> {currentPatientsData?.age || "Not Yet"}
                         </p>
                         <p>
-                            <span className="font-semibold text-gray-800">Gender:</span> {patientData.gender}
+                            <span className="font-semibold text-gray-800">Gender :</span> {currentPatientsData?.GENDER || "Not Yet"}
                         </p>
                     </div>
 
@@ -266,57 +288,6 @@ const MidSection = ({ patientsData, setIsNextBtnClick }) => {
                 </div>
 
             </div>
-
-            {/* <div className="z-10 themeBoxShadow border-none outline-none rounded-[10px] bg-white h-full flex flex-col justify-between">
-
-                <div className="flex-1 flex items-center border-b border-gray-300 text-[18px] text-gray-500 p-4 font-medium">
-                    <h2 className="text-lg sm:text-xl font-semibold text-black"> Add Patient Detail</h2>  
-                </div>
-
-                <div className="flex-7 flex flex-col gap-4 p-4 ">
-                    <Select
-                        allowClear
-                        showSearch
-                        optionFilterProp="label"
-                        style={{ width: "100%" }}
-                        placeholder="Search to Select Primery Diagnosis"
-                        filterSort={(optionA, optionB) =>
-                            optionA.label.toLowerCase().localeCompare(optionB.label.toLowerCase())
-                        }
-                        options={[
-                            { value: 'diabetes', label: 'Diabetes' },
-                            { value: 'blood pressure', label: 'Blood Pressure' },
-                            { value: 'heart disease', label: 'Heart Disease' },
-                            { value: 'asthma', label: 'Asthma' },
-                            { value: 'flu', label: 'Flu' },
-                            { value: 'migraine', label: 'Migraine' },
-                        ]}
-
-                    />
-
-                    <Select
-                        mode="multiple"
-                        allowClear
-                        placeholder="Select Medical Tests"
-                        style={{ width: "100%" }}
-                        options={[
-                            { value: "cbc", label: "CBC" },
-                            { value: "blood_sugar", label: "Blood Sugar" },
-                            { value: "xray", label: "X-Ray" },
-                            { value: "ecg", label: "ECG" },
-                            { value: "mri", label: "MRI" },
-                            { value: "urine", label: "Urine Test" },
-                        ]}
-                    />
-
-                    <Input.TextArea rows={2} placeholder="Add Treatment" />
-
-                    <Input.TextArea rows={4} placeholder="Primery Complain ..." />
-
-                </div>
-
-
-            </div> */}
 
         </div >
     )

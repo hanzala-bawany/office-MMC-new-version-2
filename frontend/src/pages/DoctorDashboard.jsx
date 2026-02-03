@@ -15,25 +15,25 @@ const DoctorDashboard = () => {
   const [isNextBtnClick, setIsNextBtnClick] = useState(false);
   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
   // console.log(loginUserData, "<<<<<<< loginUserData");
-  console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
+  // console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
 
 
+  const foo = async () => {
+    try {
+      const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
+      // console.log(res, "res of get DocotrDetail by id");
+      setPatientsData(res?.data?.data);
+    }
+    catch (err) {
+      // console.log(err, "error in get faculty");
+      toast.error(err?.message)
+    }
+  }
   useEffect(() => {
 
-    const foo = async () => {
-      try {
-        const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
-        console.log(res, "res of get DocotrDetail by id");
-        setPatientsData(res.data.data);
-      }
-      catch (err) {
-        // console.log(err, "error in get faculty");
-        toast.error(err?.message)
-      }
-    }
     foo()
 
-  }, [isNextBtnClick])
+  }, [])
 
 
   return (
@@ -55,7 +55,7 @@ const DoctorDashboard = () => {
       <Header doctorData={loginUserData} patientsData={patientsData} />
 
       {/* Middle Section */}
-      <MidSection patientsData={patientsData} setIsNextBtnClick={setIsNextBtnClick} />
+      <MidSection patientsData={patientsData} docPatientData={foo} setIsNextBtnClick={setIsNextBtnClick} />
 
       {/* History */}
       <HistoryTable />

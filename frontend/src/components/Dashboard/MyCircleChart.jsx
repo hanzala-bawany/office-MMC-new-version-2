@@ -40,11 +40,13 @@ const MyCircleChart = ({ piData, active }) => {
 
     const { useBreakpoint } = Grid;
     const { sm } = useBreakpoint();
-    const innerRadius = sm ? 35 : 25;
+    
+    const innerRadius = sm ? 30 : 25;
+
 
     // 🔹 Percentage Label Renderer
-    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-       
+    const renderCustomizedLabel = ({ cx, cy ,innerRadius, outerRadius, midAngle, percent }) => {
+
         const RADIAN = Math.PI / 180;
         const radius = innerRadius + (outerRadius - innerRadius) * 0.45;
 
@@ -68,11 +70,8 @@ const MyCircleChart = ({ piData, active }) => {
 
 
     return (
-        <ResponsiveContainer
-            width="100%"
-            height={active === "dd" ? "100%" : "80%"}
-        >
-            <PieChart>
+        <ResponsiveContainer width="100%"  height={active === "dd" ? "100%" : "80%"} >
+            <PieChart >
                 <Pie
                     data={piData}
                     dataKey="uv"
@@ -88,5 +87,9 @@ const MyCircleChart = ({ piData, active }) => {
 };
 
 export default memo(MyCircleChart);
+
+
+
+
 
 
