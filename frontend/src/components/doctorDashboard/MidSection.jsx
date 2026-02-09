@@ -3,15 +3,18 @@ const { Option } = Select;
 import MyCircleChart from "../Dashboard/MyCircleChart"
 import axios from "axios";
 import { base_URL } from "../../utills/baseUrl";
-import { useState } from "react";
+import { memo, useState } from "react";
+import { toast } from "react-toastify";
 
-const MidSection = ({ patientsData, docPatientData ,setIsNextBtnClick }) => {
+const MidSection = ({ patientsData, docPatientData }) => {
 
     const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
-    const currentPatientsData = patientsData?.patients?.find((p) => p?.PATIENT_STATUS_ID == 2);
+    const currentPatientsData = patientsData?.patients?.[0];
+    const [isNextLoading, setIsNextLoading] = useState(false);
+    let isAllPatientsChecked = false
     // console.log(patientsData, "<<<<<<<<<");
+    console.log(currentPatientsData, "<<<<<<<  currentPatientsData  ");
     // console.log(loginUserData, "<<<<<<<  loginUserData  "); 
-    // console.log(currentPatientsData, "<<<<<<<  currentPatientsData  ");
 
 
     const pieData = [
@@ -35,7 +38,10 @@ const MidSection = ({ patientsData, docPatientData ,setIsNextBtnClick }) => {
 
     const nextHandler = async () => {
 
+        // if (!currentPatientsData) return;
+
         try {
+            setIsNextLoading(true)
             const res = await axios.post(`${base_URL}/api/opd/doctor/next-patient`, {
                 doctorId: loginUserData?.doctorId,
                 receiptNo: currentPatientsData?.RECEIPTNO || null,
@@ -44,16 +50,23 @@ const MidSection = ({ patientsData, docPatientData ,setIsNextBtnClick }) => {
                 medicalTests: "CBC, Dengue Test",
                 treatment: "Paracetamol + fluids"
             });
-            // console.log(res, "res of next Handler by id");
-            // setIsNextBtnClick((pre) => !pre)
-            docPatientData()
+            console.log(res, "res of next Handler by id");
+            await docPatientData()
         }
         catch (err) {
-            // console.log(err, "error in next Handler");
+            console.log(err, "error in next Handler");
             toast.error(err?.message)
+        }
+        finally {
+            setIsNextLoading(false);
         }
 
     }
+
+    if (patientsData?.todayAppointments > 0 && patientsData?.patientsChecked > 0) {
+        isAllPatientsChecked = patientsData?.todayAppointments == patientsData?.patientsChecked
+    }
+
 
 
 
@@ -125,7 +138,7 @@ const MidSection = ({ patientsData, docPatientData ,setIsNextBtnClick }) => {
                             <span className="font-semibold text-gray-800">Name :</span> {currentPatientsData?.PATIENTNAME || "Not Yet"}
                         </p>
                         <p>
-                            <span className="font-semibold text-gray-800">Age :</span> {currentPatientsData?.age || "Not Yet"}
+                            <span className="font-semibold text-gray-800">Age :</span> {currentPatientsData?.AGE || "Not Yet"}
                         </p>
                         <p>
                             <span className="font-semibold text-gray-800">Gender :</span> {currentPatientsData?.GENDER || "Not Yet"}
@@ -181,8 +194,10 @@ const MidSection = ({ patientsData, docPatientData ,setIsNextBtnClick }) => {
                         type="primary"
                         block
                         onClick={nextHandler}
+                        loading={isNextLoading}
+                        disabled={isNextLoading || isAllPatientsChecked}
                     >
-                        Next Patient
+                     {   currentPatientsData?.RECEIPTNO? "Next Patient" : "START"   }
                     </Button>
                 </div>
 
@@ -282,8 +297,10 @@ const MidSection = ({ patientsData, docPatientData ,setIsNextBtnClick }) => {
                         type="primary"
                         block
                         onClick={nextHandler}
+                        loading={isNextLoading}
+                        disabled={isNextLoading || isAllPatientsChecked}
                     >
-                        Next Patient
+                         {   currentPatientsData?.RECEIPTNO? "Next Patient" : "START"   }
                     </Button>
                 </div>
 
@@ -293,4 +310,4 @@ const MidSection = ({ patientsData, docPatientData ,setIsNextBtnClick }) => {
     )
 }
 
-export default MidSection
+export default memo(MidSection)

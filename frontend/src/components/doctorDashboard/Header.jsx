@@ -1,5 +1,5 @@
 import { Avatar, Button, Card, Modal } from "antd";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -14,10 +14,12 @@ const Header = ({ doctorData, patientsData }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const stats = [
-        { title: "Today Appointments", value: patientsData?.todayAppointments, id: 1, half: true },
-        { title: "Patients Checked", value: patientsData?.patientsChecked, id: 2 },
-        { title: "Patients Remaining", value: patientsData?.patientsRemaining, id: 3, full: true },
+        { title: "Today Appointments", value: patientsData?.todayAppointments, id: 1, half: true, icon: "📅" },
+        { title: "Patients Checked", value: patientsData?.patientsChecked, id: 2, icon: "✅" },
+        { title: "Patients Remaining", value: patientsData?.patientsRemaining, id: 3, full: true, icon: "⏳" },
     ];
+
+
     const card = "rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 themeBoxShadow";
 
 
@@ -88,25 +90,39 @@ const Header = ({ doctorData, patientsData }) => {
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  gap-6 mb-8">
-                {stats?.map((s, i) => (
-                    <div key={s?.id} className={`p-1 z-10 rounded-[10px] bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 ${s.full ? "sm:col-span-2 lg:col-span-1" : ""} `}>
-                        <Card key={i} className={card}>
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 flex items-center justify-center rounded-full border-2 border-blue-600 text-blue-600 font-bold">
-                                    👤
+                {stats?.map((s) => (
+                    <div key={s?.id} className={`relative p-[2px] rounded-2xl  bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 ${s.full ? "sm:col-span-2 lg:col-span-1" : ""}`} >
+                        
+                        <div className="rounded-2xl bg-white backdrop-blur-xl p-5 h-full  transition-all duration-300  group-hover:scale-[1.03] group-hover:shadow-2xl" >
+                           
+                            <div className="flex items-center gap-5">
+
+                                {/* Icon Bubble */}
+                                <div className=" w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100  text-blue-700 text-xl shadow-inner"> 
+                                    {s?.icon || "👨‍⚕️"}
                                 </div>
-                                <div>
-                                    <p className="text-gray-500 text-lg">{s?.title || "Not yet"}</p>
-                                    <p className="text-2xl font-bold text-gray-800">{s?.value || "0"}</p>
+
+                                {/* Text */}
+                                <div className="flex flex-col">
+                                    <p className="text-gray-500 font-medium text-lg">{s?.title || "Not yet"}</p>
+
+                                    <p className="text-3xl font-extrabold text-slate-800 leading-tight">
+                                        {s?.value || 0}
+                                    </p>
                                 </div>
                             </div>
-                        </Card>
+
+                            {/* Glow on hover */}
+                            <div className=" absolute inset-0 rounded-2xl opacity-0  group-hover:opacity-100 transition bg-gradient-to-r from-blue-400/10 to-purple-400/10 pointer-events-none" />
+                        </div>
+
                     </div>
                 ))}
             </div>
+
 
         </div>
     )
 }
 
-export default Header
+export default memo(Header)

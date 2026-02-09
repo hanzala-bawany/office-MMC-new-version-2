@@ -14,6 +14,7 @@ import { logoutUser } from "../reduxToolKit/authSlice";
 import { toast } from "react-toastify";
 import { updatePatinetnDocotrsData } from '../reduxToolKit/doctorSlice';
 import ImageLoader from '../utills/ImageLoader';
+import { socket } from '../socket/socket';
 
 
 
@@ -63,6 +64,20 @@ const Screen5Display = () => {
   //   handledRef.current = false;
   // }, [i]);
 
+  const getPatientnDoctorInfo = async () => {
+    try {
+      const res = await axios.get(`${base_URL}/api/opd/patients`);
+      // console.log(res, "res of get Patient for screen");
+      const data = res?.data?.data?.filter((i) => i?.PATIENT_STATUS_ID == 2);
+      dispatch(updatePatinetnDocotrsData(data));
+    }
+    catch (err) {
+      // console.log(err, "error in get Doctor info");
+      // toast.error(err?.message)
+    }
+  }
+
+
   useEffect(() => {
     const interval = setInterval(() => {
       setI((prev) => prev >= slideshowImages?.length - 1 ? 0 : prev + 1);
@@ -71,26 +86,20 @@ const Screen5Display = () => {
     return () => clearInterval(interval); // cleanup
   }, []);
 
+  useEffect(() => {
+    getPatientnDoctorInfo()
+  },[]);
+
 
   useEffect(() => {
 
-    const getPatientnDoctorInfo = async () => {
-      try {
-        const res = await axios.get(`${base_URL}/api/opd/patients`);
-        console.log(res, "res of get Patient for screen");
-        const data = res?.data?.data?.filter((i) => i?.PATIENT_STATUS_ID == 2);
-        // const data = res?.data?.data
-        // console.log(data , ",,,,,,,,,,,");
-        dispatch(updatePatinetnDocotrsData(data));
-      }
-      catch (err) {
-        // console.log(err, "error in get Doctor info");
-        // toast.error(err?.message)
-      }
-    }
-    getPatientnDoctorInfo()
+    socket.on("QUEUE_UPDATED", getPatientnDoctorInfo);
 
-  }, []);
+    return () => {
+      socket.off("QUEUE_UPDATED", getPatientnDoctorInfo);
+    };
+
+  }, [dispatch]);
 
 
   return (
