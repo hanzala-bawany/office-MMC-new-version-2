@@ -2,13 +2,13 @@ import { memo } from "react";
 import { Tag, Badge } from "antd";
 import { FaUserInjured, FaUserMd, FaHashtag } from "react-icons/fa";
 
-const PatientCard = ({ doc , isTwo }) => {
+const PatientCard = ({ doc, isTwo }) => {
 
 
 
   return (
     <div
-      className={`relative bg-white rounded-3xl shadow-xl border border-cyan-200 overflow-hidden hover:shadow-2xl transition-all duration-300 patientCardFont ${isTwo &&  "h-[50%] p-5 py-12"}`}>
+      className={`relative bg-white rounded-3xl shadow-xl border border-cyan-200 overflow-hidden hover:shadow-2xl transition-all duration-300 patientCardFont ${isTwo && "h-[50%] p-5 py-12"}`}>
       {/* Left Gradient Strip */}
       <div className="absolute left-0 top-0 h-full w-2  bg-gradient-to-b from-cyan-500 to-blue-500" />
 
@@ -64,10 +64,10 @@ const PatientCard = ({ doc , isTwo }) => {
           >
             <div
               className="relative bg-gradient-to-br from-cyan-500 to-blue-600
-              text-white rounded-full w-24 h-24 
-              4xl:w-32 4xl:h-32
+              text-white rounded-full px-3 py-5 
+               4xl:px-5 4xl:py-8  
               flex items-center justify-center
-              shadow-2xl border-4 border-white"
+              shadow-2xl border-4 border-white "
             >
               <FaHashtag className="absolute top-3 left-3 opacity-30 text-xl" />
               <span className="text-4xl 4xl:text-5xl font-black">

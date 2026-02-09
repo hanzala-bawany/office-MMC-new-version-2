@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { base_URL } from "../../src/utills/baseUrl.js";
 import axios from "axios";
 import Header from "../components/doctorDashboard/Header.jsx";
@@ -12,27 +12,28 @@ const DoctorDashboard = () => {
 
 
   const [patientsData, setPatientsData] = useState([]);
-  const [isNextBtnClick, setIsNextBtnClick] = useState(false);
   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
   // console.log(loginUserData, "<<<<<<< loginUserData");
   // console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
 
 
-  const foo = async () => {
-    try {
-      const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
-      // console.log(res, "res of get DocotrDetail by id");
-      setPatientsData(res?.data?.data);
-    }
-    catch (err) {
-      // console.log(err, "error in get faculty");
-      toast.error(err?.message)
-    }
-  }
+  const foo = useCallback(
+    async () => {
+      try {
+        const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
+        // console.log(res, "res of get DocotrDetail by id");
+        setPatientsData(res?.data?.data);
+      }
+      catch (err) {
+        // console.log(err, "error in get faculty");
+        toast.error(err?.message)
+      }
+    }, [loginUserData?.doctorId]
+  );
+
+
   useEffect(() => {
-
     foo()
-
   }, [])
 
 
@@ -48,14 +49,14 @@ const DoctorDashboard = () => {
         }}
       />
 
-      <div className="fixed top-0 left-0 w-full h-27 bg-gradient-to-r from-[#0052cc] to-[#00b0ff] z-0 rounded-b-[40px]" />
+      <div className="absolute top-0 left-0 w-full h-27 bg-gradient-to-r from-[#0052cc] to-[#00b0ff] z-0 rounded-b-[40px]" />
 
 
       {/* Header */}
       <Header doctorData={loginUserData} patientsData={patientsData} />
 
       {/* Middle Section */}
-      <MidSection patientsData={patientsData} docPatientData={foo} setIsNextBtnClick={setIsNextBtnClick} />
+      <MidSection patientsData={patientsData} docPatientData={foo} />
 
       {/* History */}
       <HistoryTable />

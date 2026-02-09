@@ -25,7 +25,6 @@ import Screen6Display from './pages/Screen6Display'
 import DoctorDashboard from './pages/DoctorDashboard'
 import DocotorParent from './routes/DocotorParent'
 import DoctorDashboard1 from './pages/DoctorDashboard1'
-import DoctorDashboard2 from './pages/DoctorDashboard2'
 
 
 function App() {
@@ -65,7 +64,6 @@ function App() {
         {/* </Route> */}
 
         <Route path="/doctorDashboard1" element={<DoctorDashboard1 />} />
-        <Route path="/doctorDashboard2" element={<DoctorDashboard2 />} />
 
 
 
