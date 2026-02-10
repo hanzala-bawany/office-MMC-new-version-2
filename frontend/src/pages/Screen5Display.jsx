@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import logo from "../assets/MMC logo.png"; // ← Apna logo path yahan set kar lo
 import NubitLogo from "../assets/nubit logo png.png"; // ← Apna Nubit logo
-import fish from "../assets/fish.mp4";
-import fish1 from "../assets/fish1.mp4";
-import fish2 from "../assets/fish2.mp4";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import PatientCard from '../components/screen5/PatientCard';
@@ -15,6 +12,7 @@ import { toast } from "react-toastify";
 import { updatePatinetnDocotrsData } from '../reduxToolKit/doctorSlice';
 import ImageLoader from '../utills/ImageLoader';
 import { socket } from '../socket/socket';
+import VidioSlideShow from '../components/doctorDashboard/VidioSlideShow';
 
 
 
@@ -24,16 +22,11 @@ const Screen5Display = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [i, setI] = useState(0);
-  const videoRef = useRef(null);
-  const handledRef = useRef(false);
-  const slideshowImages = [
-    fish2,
-    fish,
-    fish1,
-  ];
   const patinetnDocotrsData = useSelector((state) => state?.doctorSlice?.patinetnDocotrData);
   // console.log(patinetnDocotrsData, "<<<<<<<<<<");
+  const voiceQueueRef = useRef([]);
+  const isSpeakingRef = useRef(false);
+
 
 
 
@@ -43,26 +36,6 @@ const Screen5Display = () => {
     navigate("/login")
   }
 
-  // const nextVideo = () => {
-  //   setI(prev =>
-  //     prev >= slideshowImages.length - 1 ? 0 : prev + 1
-  //   );
-  // };
-
-  // const handleTimeUpdate = () => {
-  //   const video = videoRef.current;
-  //   if (!video) return;
-
-  //   if (!handledRef.current && video.duration - video.currentTime <= 1) {
-  //     handledRef.current = true;
-  //     nextVideo();
-  //   }
-  // };
-
-
-  // useEffect(() => {
-  //   handledRef.current = false;
-  // }, [i]);
 
   const getPatientnDoctorInfo = async () => {
     try {
@@ -70,6 +43,8 @@ const Screen5Display = () => {
       // console.log(res, "res of get Patient for screen");
       const data = res?.data?.data?.filter((i) => i?.PATIENT_STATUS_ID == 2);
       dispatch(updatePatinetnDocotrsData(data));
+
+
     }
     catch (err) {
       // console.log(err, "error in get Doctor info");
@@ -77,29 +52,60 @@ const Screen5Display = () => {
     }
   }
 
+  
+  const playNextVoice = () => {
+    if (isSpeakingRef.current || voiceQueueRef.current.length === 0) return;
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setI((prev) => prev >= slideshowImages?.length - 1 ? 0 : prev + 1);
-    }, 1000 * 20);
+    isSpeakingRef.current = true;
+    const data = voiceQueueRef.current.shift();
 
-    return () => clearInterval(interval); // cleanup
-  }, []);
+    speakToken(data);
+  };
+
+  const speakToken = ({ token, doctor }) => {
+    const msg = new SpeechSynthesisUtterance(
+      `Token ${token}, please proceed to Doctor ${doctor}`
+    );
+
+    // msg.lang = "en-US";
+    // msg.lang = "de-DE";
+    msg.lang = "hi-IN";
+    msg.rate = 0.9;
+
+    msg.onend = () => {
+      isSpeakingRef.current = false;
+      playNextVoice(); // 🔁 next
+    };
+
+    window.speechSynthesis.speak(msg);
+  };
+
+
+
+
 
   useEffect(() => {
     getPatientnDoctorInfo()
-  },[]);
+  }, []);
 
 
   useEffect(() => {
 
-    socket.on("QUEUE_UPDATED", getPatientnDoctorInfo);
+    socket.on("QUEUE_UPDATED", () => {
+      getPatientnDoctorInfo()
+
+      voiceQueueRef?.push({ token: "A-2", doctor: "hanzala bawany" });
+      playNextVoice();
+    });
 
     return () => {
       socket.off("QUEUE_UPDATED", getPatientnDoctorInfo);
     };
 
   }, [dispatch]);
+
+
+
 
 
   return (
@@ -113,16 +119,24 @@ const Screen5Display = () => {
         }}
       />
 
+      <button className='bg-amber-300' onClick={() => {
+        voiceQueueRef.current.push({ token: "A-4", doctor: "Hanzala bawany" });
+        playNextVoice();
+      }}>
+        Test Voice
+      </button>
+
+
 
       <div className="flex absolute top-4 4xl:top-8 [@media(min-width:3200px)]:top-12 left-4 4xl:left-8 [@media(min-width:4200px)]:left-12 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
-        <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-[#00b0ff]/30">
+        <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-blue-500 " >
           <img src={logo} alt="logo" className="h-12 min-[2000px]:h-16 [@media(min-width:3000px)]:h-18  [@media(min-width:4400px)]:h-30 w-12 min-[2000px]:w-16 [@media(min-width:3000px)]:w-18 [@media(min-width:4400px)]:w-30 object-contain" />
         </div>
         <div>
-          <h1 className="text-cyan-600 text-3xl font-bold min-[2000px]:text-5xl [@media(min-width:3200px)]:text-6xl  [@media(min-width:4400px)]:text-7xl  tracking-wide drop-shadow">
+          <h1 className="text-blue-500 text-3xl font-bold min-[2000px]:text-5xl [@media(min-width:3200px)]:text-6xl  [@media(min-width:4400px)]:text-7xl  tracking-wide drop-shadow">
             Memon Medical Complex
           </h1>
-          <p className="text-[#a7c8e8] text-sm italic min-[2000px]:text-2xl [@media(min-width:3000px)]:text-3xl [@media(min-width:4400px)]:text-5xl ">
+          <p className="text-[#7d9ec0] text-sm italic min-[2000px]:text-2xl [@media(min-width:3000px)]:text-3xl [@media(min-width:4400px)]:text-5xl ">
             “Serving with Excellence & Care”
           </p>
         </div>
@@ -154,24 +168,13 @@ const Screen5Display = () => {
 
         {
           patinetnDocotrsData.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
-            <video
-              className="h-full w-full object-cover rounded-2xl bg-amber-500"
-              autoPlay
-              loop
-              muted
-              playsInline
-              src={slideshowImages[i]}
-              // onTimeUpdate={handleTimeUpdate}
-              ref={videoRef}>
-
-            </video>
+            <VidioSlideShow />
           </div>
         }
 
-
       </div>
 
-      <div className=" text-cyan-600 flex-1 flex justify-center items-center z-50 [@media(min-width:4200px)]:right-10 bottom-5 [@media(min-width:4200px)]:bottom-8 [@media(min-width:1520px)]:text-2xl [@media(min-width:2200px)]:text-3xl [@media(min-width:3200px)]:text-4xl  [@media(min-width:4200px)]:text-6xl">
+      <div className=" text-blue-500 flex-1 flex justify-center items-center z-50 [@media(min-width:4200px)]:right-10 bottom-5 [@media(min-width:4200px)]:bottom-8 [@media(min-width:1520px)]:text-2xl [@media(min-width:2200px)]:text-3xl [@media(min-width:3200px)]:text-4xl  [@media(min-width:4200px)]:text-6xl">
         <span className='flex justify-center items-center gap-2 cursor-pointer' onClick={logoutHandler}> Powered by <img className="w-[50px] [@media(min-width:2200px)]:w-[70px] [@media(min-width:3200px)]:w-[80px]" src={NubitLogo} alt="" /> </span>
       </div>
 

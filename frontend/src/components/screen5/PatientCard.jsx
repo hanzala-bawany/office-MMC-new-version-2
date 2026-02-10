@@ -21,7 +21,7 @@ const PatientCard = ({ doc, isTwo }) => {
           <div className="flex items-center gap-3 4xl:gap-5 ">
             <FaUserInjured className="text-cyan-600 text-2xl 4xl:text-4xl 5xl:text-5xl" />
             <h2 className="text-2xl xl:text-3xl 4xl:text-4xl  5xl:text-5xl 
-              font-extrabold text-gray-700">
+              font-extrabold text-gray-700 capitalize">
               {doc?.PATIENTNAME}
             </h2>
           </div>
