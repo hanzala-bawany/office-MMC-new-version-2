@@ -29,13 +29,11 @@ const Screen5Display = () => {
 
 
 
-
   const logoutHandler = () => {
     dispatch(logoutUser())
     toast.success("Logout Scuccessful")
     navigate("/login")
   }
-
 
   const getPatientnDoctorInfo = async () => {
     try {
@@ -52,23 +50,14 @@ const Screen5Display = () => {
     }
   }
 
-  
-  const playNextVoice = () => {
-    if (isSpeakingRef.current || voiceQueueRef.current.length === 0) return;
-
-    isSpeakingRef.current = true;
-    const data = voiceQueueRef.current.shift();
-
-    speakToken(data);
-  };
-
   const speakToken = ({ token, doctor }) => {
+
+    // console.log("speak token chala he");
+
     const msg = new SpeechSynthesisUtterance(
-      `Token ${token}, please proceed to Doctor ${doctor}`
+      `Token ${token}, please proceed to ${doctor}`
     );
 
-    // msg.lang = "en-US";
-    // msg.lang = "de-DE";
     msg.lang = "hi-IN";
     msg.rate = 0.9;
 
@@ -78,9 +67,19 @@ const Screen5Display = () => {
     };
 
     window.speechSynthesis.speak(msg);
+    // console.log(window.speechSynthesis.getVoices());
+
   };
 
+  const playNextVoice = () => {
 
+    if (isSpeakingRef.current || voiceQueueRef.current.length === 0) return;
+
+    isSpeakingRef.current = true;
+    const data = voiceQueueRef.current.shift();
+
+    speakToken(data);
+  };
 
 
 
@@ -88,22 +87,27 @@ const Screen5Display = () => {
     getPatientnDoctorInfo()
   }, []);
 
-
   useEffect(() => {
 
-    socket.on("QUEUE_UPDATED", () => {
+    const handleQueue = (payload) => {
+
+      // console.log(" payload ..........", payload);
       getPatientnDoctorInfo()
 
-      voiceQueueRef?.push({ token: "A-2", doctor: "hanzala bawany" });
+      if (!payload?.patientToken) return;
+
+      voiceQueueRef?.current?.push({ token: payload?.patientToken.replace("-", " "), doctor: payload?.docotrName });
       playNextVoice();
-    });
+
+    }
+
+    socket.on("QUEUE_UPDATED", handleQueue);
 
     return () => {
-      socket.off("QUEUE_UPDATED", getPatientnDoctorInfo);
+      socket.off("QUEUE_UPDATED", handleQueue);
     };
 
-  }, [dispatch]);
-
+  }, []);
 
 
 
@@ -119,12 +123,14 @@ const Screen5Display = () => {
         }}
       />
 
-      <button className='bg-amber-300' onClick={() => {
-        voiceQueueRef.current.push({ token: "A-4", doctor: "Hanzala bawany" });
-        playNextVoice();
-      }}>
-        Test Voice
-      </button>
+      {
+        // <button className='bg-amber-300' onClick={() => {
+        //   voiceQueueRef.current.push({ token: "A-4", doctor: "Hanzala bawany" });
+        //   playNextVoice();
+        // }}>
+        //   Test Voice
+        // </button>
+      }
 
 
 

@@ -7,7 +7,7 @@ const getTodayDoctorPatients = async (req, res) => {
   let connection;
 
   try {
-    const { patientStatus } = req.query; 
+    const { patientStatus } = req.query;
     // example: ?patientStatus=2
 
     const pool = await poolPromise;
@@ -168,12 +168,22 @@ const getDoctorNextPatient = async (req, res) => {
     const rows = await rs.getRows();
     await rs.close();
 
+    let currentPatient = rows.find(p => Number(p.PATIENT_STATUS_ID) === 2);
+
+    if (!currentPatient) {
+      console.log(" No current patient found with STATUS=2");
+    } else {
+      console.log("` Current Patient:", currentPatient);
+    }
+
     //  SOCKET EMIT
     const io = req.app.get("io");
     io.emit("QUEUE_UPDATED", {
       type: "NEXT_PATIENT",
       doctorId,
-      patient: rows
+      patientToken: currentPatient?.TOKENNO_1,
+      docotrName: currentPatient?.DOCTOR_NAME,
+      // patient: rows,      
     });
 
     res.json({ success: true, nextPatient: rows });
@@ -190,5 +200,5 @@ const getDoctorNextPatient = async (req, res) => {
 
 
 module.exports = {
-  getTodayDoctorPatients,getDoctorNextPatient,getDoctorPatientsWithStats
+  getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats
 };
