@@ -50,8 +50,10 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 medicalTests: "CBC, Dengue Test",
                 treatment: "Paracetamol + fluids"
             });
-            console.log(res, "res of next Handler by id");
+            // console.log(res, "res of next Handler by id");
             await docPatientData()
+            toast.success(`Next Patient is Coming`)
+            // toast.success(`${currentPatientsData?.PATIENTNAME} is Coming`)
         }
         catch (err) {
             console.log(err, "error in next Handler");
@@ -197,7 +199,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         loading={isNextLoading}
                         disabled={isNextLoading || isAllPatientsChecked}
                     >
-                     {   currentPatientsData?.RECEIPTNO? "Next Patient" : "START"   }
+                        {currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
                     </Button>
                 </div>
 
@@ -300,7 +302,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         loading={isNextLoading}
                         disabled={isNextLoading || isAllPatientsChecked}
                     >
-                         {   currentPatientsData?.RECEIPTNO? "Next Patient" : "START"   }
+                        {currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
                     </Button>
                 </div>
 
