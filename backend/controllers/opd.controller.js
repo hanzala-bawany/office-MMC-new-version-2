@@ -61,8 +61,6 @@ const getTodayDoctorPatients = async (req, res) => {
 
 
 
-//-------------Get Doctor Patient by Id & Appoinment Details-----------------
-
 const getDoctorPatientsWithStats = async (req, res) => {
   let connection;
   try {
@@ -75,11 +73,13 @@ const getDoctorPatientsWithStats = async (req, res) => {
       `
       BEGIN
         get_doctor_patients_with_stats(
-          :doc_id,
-          :today_total,
-          :checked,
-          :remaining,
-          :cursor
+          p_doc_id      => :doc_id,
+          p_today_total => :today_total,
+          p_checked     => :checked,
+          p_remaining   => :remaining,
+          retval         => :cursor1,
+          retval1        => :cursor2,
+          retval2        => :cursor3
         );
       END;
       `,
@@ -88,14 +88,26 @@ const getDoctorPatientsWithStats = async (req, res) => {
         today_total: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         checked: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         remaining: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+
+        cursor1: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+        cursor2: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+        cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
-    const rs = result.outBinds.cursor;
-    const rows = await rs.getRows();
-    await rs.close();
+    // ===== READ CURSORS =====
+    const rs1 = result.outBinds.cursor1; // patients
+    const rs2 = result.outBinds.cursor2; // diagnosis
+    const rs3 = result.outBinds.cursor3; // tests
+
+    const patients = await rs1.getRows();
+    const diagnosisList = await rs2.getRows();
+    const testList = await rs3.getRows();
+
+    await rs1.close();
+    await rs2.close();
+    await rs3.close();
 
     res.status(200).json({
       status: 200,
@@ -103,12 +115,14 @@ const getDoctorPatientsWithStats = async (req, res) => {
         todayAppointments: result.outBinds.today_total,
         patientsChecked: result.outBinds.checked,
         patientsRemaining: result.outBinds.remaining,
-        patients: rows
+        patients,
+        diagnosisList,
+        testList
       }
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("getDoctorPatientsWithStats error:", err);
     res.status(500).json({
       status: 500,
       message: "Internal Server Error",
