@@ -120,7 +120,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
 };
 
 
-//-------next patient api------------------
+//------- NEXT PATIENT API ------------------
 
 const getDoctorNextPatient = async (req, res) => {
   let connection;
@@ -128,7 +128,7 @@ const getDoctorNextPatient = async (req, res) => {
     let { doctorId, receiptNo, remarks, primaryDiagnosis, medicalTests, treatment } = req.body;
 
     // Normalize empty strings to null
-    const normalize = val => val && val.trim() !== "" ? val : null;
+    const normalize = val => (val && val.trim() !== "" ? val : null);
     receiptNo = normalize(receiptNo);
     remarks = normalize(remarks);
     primaryDiagnosis = normalize(primaryDiagnosis);
@@ -148,53 +148,77 @@ const getDoctorNextPatient = async (req, res) => {
           p_primary_diag  => :primary_diag,
           p_medical_tests => :medical_tests,
           p_treatment     => :treatment,
-          retval          => :cursor
+          retval          => :cursor1,
+          retval1         => :cursor2,
+          retval2         => :cursor3
         );
       END;
       `,
       {
         doc_id: doctorId,
         receiptno: receiptNo,
-        remarks: remarks,
+        remarks,
         primary_diag: primaryDiagnosis,
         medical_tests: medicalTests,
-        treatment: treatment,
-        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+        treatment,
+        cursor1: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+        cursor2: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+        cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT, autoCommit: true }
     );
 
-    const rs = result.outBinds.cursor;
-    const rows = await rs.getRows();
-    await rs.close();
+    // ===== READ CURSORS =====
+    const rs1 = result.outBinds.cursor1;
+    const rs2 = result.outBinds.cursor2;
+    const rs3 = result.outBinds.cursor3;
 
-    let currentPatient = rows.find(p => Number(p.PATIENT_STATUS_ID) === 2);
+    const patients = await rs1.getRows();
+    const diagnosisList = await rs2.getRows();
+    const testList = await rs3.getRows();
+
+    await rs1.close();
+    await rs2.close();
+    await rs3.close();
+
+    // Next patient (SQL already returns current patient)
+    const currentPatient = patients[0];
 
     if (!currentPatient) {
-      console.log(" No current patient found with STATUS=2");
+      console.log(" No current patient found");
     } else {
-      console.log("` Current Patient:", currentPatient);
+      console.log(" Current Patient:", currentPatient);
     }
 
-    //  SOCKET EMIT
+    // SOCKET EMIT
     const io = req.app.get("io");
     io.emit("QUEUE_UPDATED", {
       type: "NEXT_PATIENT",
       doctorId,
-      patientToken: currentPatient?.TOKENNO_1,
-      docotrName: currentPatient?.DOCTOR_NAME,
-      // patient: rows,      
+      patientToken: currentPatient?.TOKENNO,   //
+      doctorName: currentPatient?.DOCTOR_NAME,
+      patient: currentPatient
     });
 
-    res.json({ success: true, nextPatient: rows });
+    res.json({
+      success: true,
+      currentPatient,
+      diagnosisList,
+      testList
+    });
 
   } catch (err) {
     console.error("getDoctorNextPatient error:", err);
-    res.status(500).json({ success: false, message: "Failed to fetch next patient", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch next patient",
+      error: err.message
+    });
   } finally {
     if (connection) await connection.close();
   }
 };
+
 
 
 
