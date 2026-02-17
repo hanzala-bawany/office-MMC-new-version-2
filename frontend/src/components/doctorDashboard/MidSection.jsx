@@ -11,6 +11,12 @@ const MidSection = ({ patientsData, docPatientData }) => {
     const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
     const currentPatientsData = patientsData?.patients?.[0];
     const [isNextLoading, setIsNextLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        primaryDiagnosis: null,
+        medicalTests: [],
+        treatment: "",
+        primaryComplain: ""
+    });
     let isAllPatientsChecked = false
     // console.log(patientsData, "<<<<<<<<<");
     console.log(currentPatientsData, "<<<<<<<  currentPatientsData  ");
@@ -22,17 +28,30 @@ const MidSection = ({ patientsData, docPatientData }) => {
         { name: "Patients Checked", uv: patientsData?.patientsChecked, fill: "#A855F7" }, // purple-500
     ];
 
+
     const patientData = {
         name: "Ali Raza",
         age: 32,
         gender: "Male",
-        bloodPressure: "120/80 mmHg",
-        bloodSugar: "95 mg/dL",
-        weight: "72 kg",
-        height: "5.8",
-        temperature: "98.4*F",
-        pulse: "78 bpm",
         opdId: "A - 20",
+
+        CbloodPressure: "120/80 mmHg",
+        LbloodPressure: "130/85 mmHg",
+
+        CbloodSugar: "95 mg/dL",
+        LbloodSugar: "105 mg/dL",
+
+        Cweight: "72 kg",
+        Lweight: "74 kg",
+
+        Cheight: "5.8 ft",
+        Lheight: "5.8 ft",
+
+        Ctemperature: "98.4°F",
+        Ltemperature: "99.1°F",
+
+        Cpulse: "78 bpm",
+        Lpulse: "82 bpm",
     };
 
 
@@ -45,15 +64,24 @@ const MidSection = ({ patientsData, docPatientData }) => {
             const res = await axios.post(`${base_URL}/api/opd/doctor/next-patient`, {
                 doctorId: loginUserData?.doctorId,
                 receiptNo: currentPatientsData?.RECEIPTNO || null,
-                remarks: "Patient stable, mild fever",
-                primaryDiagnosis: "Viral Infection",
-                medicalTests: "CBC, Dengue Test",
-                treatment: "Paracetamol + fluids"
+                remarks: "ascas" || formData?.primaryComplain || null,
+                // remarks:  formData?.primaryComplain || null,
+                primaryDiagnosis: "ascas" || formData?.primaryDiagnosis || null,
+                // primaryDiagnosis:  formData?.primaryDiagnosis || null,
+                medicalTests: "ascas" || formData?.medicalTests || null,
+                // medicalTests:  formData?.medicalTests || null,
+                treatment: "ascas" || formData?.treatment || null
+                // treatment:  formData?.treatment || null
             });
             // console.log(res, "res of next Handler by id");
             await docPatientData()
             toast.success(`Next Patient is Coming`)
-            // toast.success(`${currentPatientsData?.PATIENTNAME} is Coming`)
+            setFormData({
+                primaryDiagnosis: null,
+                medicalTests: [],
+                treatment: "",
+                primaryComplain: ""
+            });
         }
         catch (err) {
             console.log(err, "error in next Handler");
@@ -69,6 +97,10 @@ const MidSection = ({ patientsData, docPatientData }) => {
         isAllPatientsChecked = patientsData?.todayAppointments == patientsData?.patientsChecked
     }
 
+    const formHandler = (key, value) => {
+        setFormData({ ...formData, [key]: value });
+    }
+
 
 
 
@@ -77,7 +109,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 mb-8 h-auto ">
 
             {/* Pie Chart */}
-            <div className="themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex flex-col justify-between min-h-[35vh] sm:min-h-[40vh] lg:h-auto">
+            <div className="themeBoxShadow  border-none outline-none rounded-[10px] z-10 bg-white hidden lg:flex flex-col justify-between min-h-[35vh] sm:min-h-[40vh] lg:h-auto">
 
                 <div className="flex-1 p-2 px-4 sm:p-4 flex justify-between gap-4 sm:gap-8 items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
                     {/* text-slate-700 */}
@@ -135,7 +167,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
                 <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
 
-                    <div className="font-semibold  py-1 flex justify-between text-gray-500" >
+                    <div className="font-semibold  py-1 flex justify-between text-gray-600" >
                         <p>
                             <span className="font-semibold text-gray-800">Name :</span> {currentPatientsData?.PATIENTNAME || "Not Yet"}
                         </p>
@@ -147,46 +179,219 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         </p>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-3 gap-3 gap-x-5 text-sm  p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
+                    {
+                        <div className="mt-3 grid grid-cols-2  sm:grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
 
-                        {/* Blood Pressure - Green Theme */}
-                        <div className="flex flex-col p-3 rounded-lg border" style={{ backgroundColor: "#FDF2F8", borderColor: "#EC4899" }}>
-                            <span className="text-black font-semibold">Blood Pressure</span>
-                            <span className="font-bold text-[#DB2777]">{patientData.bloodPressure}</span>
+                            {/* Blood Pressure */}
+                            <div className="flex flex-col p-3 rounded-lg border"
+                                style={{ backgroundColor: "#FDF2F8", borderColor: "#EC4899" }}>
+
+                                <span className="text-black font-semibold">Blood Pressure</span>
+
+                                <div className="font-bold text-[#DB2777]">
+                                    {patientData?.CbloodPressure}
+                                </div>
+
+                                <div className="font-medium text-[#9D174D]">
+                                    {patientData?.LbloodPressure}
+                                </div>
+                            </div>
+
+
+                            {/* Blood Sugar */}
+                            <div className="flex flex-col p-3 rounded-lg border"
+                                style={{ backgroundColor: "#ECFDF5", borderColor: "#22C55E" }}>
+
+                                <span className="text-black font-semibold">Blood Sugar</span>
+
+                                <div className="font-bold text-green-700">
+                                    {patientData?.CbloodSugar}
+                                </div>
+
+                                <div className="font-medium text-green-800">
+                                    {patientData?.LbloodSugar}
+                                </div>
+                            </div>
+
+
+                            {/* Weight */}
+                            <div className="flex flex-col p-3 rounded-lg border"
+                                style={{ backgroundColor: "#DBEAFE", borderColor: "#2563EB" }}>
+
+                                <span className="text-black font-semibold">Weight</span>
+
+                                <div className="font-bold text-blue-700">
+                                    {patientData?.Cweight}
+                                </div>
+
+                                <div className="font-medium text-blue-800">
+                                    {patientData?.Lweight}
+                                </div>
+                            </div>
+
+
+                            {/* Height */}
+                            <div className="flex flex-col p-3 rounded-lg border"
+                                style={{ backgroundColor: "#F3F4F6", borderColor: "#4B5563" }}>
+
+                                <span className="text-black font-semibold">Height</span>
+
+                                <div className="font-bold text-gray-700">
+                                    {patientData?.Cheight}
+                                </div>
+
+                                <div className="font-medium text-gray-800">
+                                    {patientData?.Lheight}
+                                </div>
+                            </div>
+
+
+                            {/* Temperature */}
+                            <div className="flex flex-col p-3 rounded-lg border"
+                                style={{ backgroundColor: "#EDE9FE", borderColor: "#7C3AED" }}>
+
+                                <span className="text-black font-semibold">Temp</span>
+
+                                <div className="font-bold text-purple-700">
+                                    {patientData?.Ctemperature}
+                                </div>
+
+                                <div className="font-medium text-purple-800">
+                                    {patientData?.Ltemperature}
+                                </div>
+                            </div>
+
+
+                            {/* Pulse */}
+                            <div className="flex flex-col p-3 rounded-lg border"
+                                style={{ backgroundColor: "#FEF9C3", borderColor: "#CA8A04" }}>
+
+                                <span className="text-black font-semibold">Pulse</span>
+
+                                <div className="font-bold text-yellow-700">
+                                    {patientData?.Cpulse}
+                                </div>
+
+                                <div className="font-medium text-yellow-800">
+                                    {patientData?.Lpulse}
+                                </div>
+                            </div>
+
                         </div>
+                    }
 
-                        {/* Blood Sugar - Orange Theme */}
-                        <div className="flex flex-col p-3 rounded-lg border" style={{ backgroundColor: "#ECFDF5", borderColor: "#22C55E" }}>
-                            <span className="text-black font-semibold">Blood Sugar</span>
-                            <span className="font-bold text-green-700">{patientData.bloodSugar}</span>
-                        </div>
+                    {
+                        // <div className="mt-3 grid grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
 
-                        {/* Weight - Blue Theme */}
-                        <div className="flex flex-col p-3 rounded-lg border" style={{ backgroundColor: "#DBEAFE", borderColor: "#2563EB" }}>
-                            <span className="text-black font-semibold">Weight</span>
-                            <span className="font-bold text-blue-700">{patientData.weight}</span>
-                        </div>
+                        //     {/* Blood Pressure */}
+                        //     <div className="flex flex-col p-3 rounded-lg border"
+                        //         style={{ backgroundColor: "#FDF2F8", borderColor: "#EC4899" }}>
 
-                        {/* Height - Gray Theme */}
-                        <div className="flex flex-col p-3 rounded-lg border" style={{ backgroundColor: "#F3F4F6", borderColor: "#4B5563" }}>
-                            <span className="text-black font-semibold">Height</span>
-                            <span className="font-bold text-gray-700">{patientData.height}</span>
-                        </div>
+                        //         <span className="text-black font-semibold">Blood Pressure</span>
 
-                        {/* Temp - Yellow Theme */}
-                        <div className="flex flex-col p-3 rounded-lg border" style={{ backgroundColor: "#EDE9FE", borderColor: "#7C3AED" }}>
-                            <span className="text-black font-semibold">Temp</span>
-                            <span className="font-bold text-purple-700">{patientData.temperature}</span>
-                        </div>
+                        //         <div className="font-bold text-[#DB2777]">
+                        //             {patientData?.CbloodPressure}
+                        //             <span className="text-gray-500"> (C)</span>
+                        //         </div>
 
-                        {/* Pulse - Purple Theme */}
-                        <div className="flex flex-col p-3 rounded-lg border" style={{ backgroundColor: "#FEF9C3", borderColor: "#CA8A04" }}>
-                            <span className="text-black font-semibold">Pulse</span>
-                            <span className="font-bold  text-yellow-700">{patientData.pulse}</span>
-                        </div>
+                        //         <div className="font-medium text-[#9D174D]">
+                        //             {patientData?.LbloodPressure}
+                        //             <span className="text-gray-500"> (L)</span>
+                        //         </div>
+                        //     </div>
 
-                    </div>
 
+                        //     {/* Blood Sugar */}
+                        //     <div className="flex flex-col p-3 rounded-lg border"
+                        //         style={{ backgroundColor: "#ECFDF5", borderColor: "#22C55E" }}>
+
+                        //         <span className="text-black font-semibold">Blood Sugar</span>
+
+                        //         <div className="font-bold text-green-700">
+                        //             {patientData?.CbloodSugar}
+                        //             <span className="text-gray-500">(C)</span>
+                        //         </div>
+
+                        //         <div className="font-medium text-green-800">
+                        //             {patientData?.LbloodSugar}
+                        //             <span className="text-gray-500">(L)</span>
+                        //         </div>
+                        //     </div>
+
+
+                        //     {/* Weight */}
+                        //     <div className="flex flex-col p-3 rounded-lg border"
+                        //         style={{ backgroundColor: "#DBEAFE", borderColor: "#2563EB" }}>
+
+                        //         <span className="text-black font-semibold">Weight</span>
+
+                        //         <div className="font-bold text-blue-700">
+                        //             {patientData?.Cweight}
+                        //             <span className="text-gray-500">(C)</span>
+                        //         </div>
+
+                        //         <div className="font-medium text-blue-800">
+                        //             {patientData?.Lweight}
+                        //             <span className="text-gray-500">(L)</span>
+                        //         </div>
+                        //     </div>
+
+
+                        //     {/* Height */}
+                        //     <div className="flex flex-col p-3 rounded-lg border"
+                        //         style={{ backgroundColor: "#F3F4F6", borderColor: "#4B5563" }}>
+
+                        //         <span className="text-black font-semibold">Height</span>
+
+                        //         <div className="font-bold text-gray-700">
+                        //             {patientData?.Cheight}
+                        //             <span className="text-gray-500">(C)</span>
+                        //         </div>
+
+                        //         <div className="font-medium text-gray-800">
+                        //             {patientData?.Lheight}
+                        //             <span className="text-gray-500">(L)</span>
+                        //         </div>
+                        //     </div>
+
+
+                        //     {/* Temperature */}
+                        //     <div className="flex flex-col p-3 rounded-lg border"
+                        //         style={{ backgroundColor: "#EDE9FE", borderColor: "#7C3AED" }}>
+
+                        //         <span className="text-black font-semibold">Temp</span>
+
+                        //         <div className="font-bold text-purple-700">
+                        //             {patientData?.Ctemperature}
+                        //             <span className="text-gray-500">(C)</span>
+                        //         </div>
+
+                        //         <div className="font-medium text-purple-800">
+                        //             {patientData?.Ltemperature}
+                        //             <span className="text-gray-500">(L)</span>
+                        //         </div>
+                        //     </div>
+
+
+                        //     {/* Pulse */}
+                        //     <div className="flex flex-col p-3 rounded-lg border"
+                        //         style={{ backgroundColor: "#FEF9C3", borderColor: "#CA8A04" }}>
+
+                        //         <span className="text-black font-semibold">Pulse</span>
+
+                        //         <div className="font-bold text-yellow-700">
+                        //             {patientData?.Cpulse}
+                        //             <span className="text-gray-500">(C)</span>
+                        //         </div>
+
+                        //         <div className="font-medium text-yellow-800">
+                        //             {patientData?.Lpulse}
+                        //             <span className="text-gray-500">(L)</span>
+                        //         </div>
+                        //     </div>
+
+                        // </div>
+                    }
 
                 </div>
 
@@ -245,6 +450,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
                                 { value: "flu", label: "Flu" },
                                 { value: "migraine", label: "Migraine" },
                             ]}
+                            onChange={(value) => formHandler("primaryDiagnosis", value)}
+                            value={formData.primaryDiagnosis}
                         />
                     </div>
 
@@ -266,6 +473,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
                                 { value: "mri", label: "MRI" },
                                 { value: "urine", label: "Urine Test" },
                             ]}
+                            onChange={(value) => formHandler("medicalTests", value)}
+                            value={formData.medicalTests}
                         />
                     </div>
 
@@ -277,17 +486,22 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         <Input.TextArea
                             rows={3}
                             placeholder="Prescribed medicines or treatment"
+                            onChange={(e) => formHandler("treatment", e.target.value)}
+                            value={formData.treatment}
+
                         />
                     </div>
 
                     {/* PRIMARY COMPLAINT */}
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-medium text-gray-500">
-                            Primary Complaint
+                            Primary Complain
                         </label>
                         <Input.TextArea
                             rows={3}
-                            placeholder="Patient complaints / symptoms"
+                            placeholder="Patient complain / symptoms"
+                            onChange={(e) => formHandler("primaryComplain", e.target.value)}
+                            value={formData.primaryComplain}
                         />
                     </div>
 

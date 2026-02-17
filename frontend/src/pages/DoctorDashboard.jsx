@@ -21,7 +21,7 @@ const DoctorDashboard = () => {
     async () => {
       try {
         const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
-        // console.log(res, "res of get DocotrDetail by id");
+        console.log(res, "res of get DocotrDetail by id");
         setPatientsData(res?.data?.data);
       }
       catch (err) {

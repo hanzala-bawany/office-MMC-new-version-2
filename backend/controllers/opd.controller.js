@@ -195,9 +195,9 @@ const getDoctorNextPatient = async (req, res) => {
     io.emit("QUEUE_UPDATED", {
       type: "NEXT_PATIENT",
       doctorId,
-      patientToken: currentPatient?.TOKENNO,   //
+      patientToken: currentPatient?.TOKENNO_1,  
       doctorName: currentPatient?.DOCTOR_NAME,
-      patient: currentPatient
+      // patient: currentPatient
     });
 
     res.json({

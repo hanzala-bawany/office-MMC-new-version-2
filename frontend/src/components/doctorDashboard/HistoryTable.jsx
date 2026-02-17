@@ -24,14 +24,14 @@ const HistoryTable = () => {
   const [openTreatment, setOpenTreatment] = useState(false);
   const card = "rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 themeBoxShadow";
 
-  
+
   const historyColumns = [
     { title: "Date", dataIndex: "date" },
     { title: "Patient", dataIndex: "name" },
     { title: "Primery Diagnosis", dataIndex: "disease", render: (d) => <Tag color="cyan">{d}</Tag> },
-    { title: "Primery Complain", dataIndex: "comment", },
+    // { title: "Primery Complain", dataIndex: "comment", },
     {
-      title: "Treatment",
+      title: "Complain and Treatment",
       render: () => (
         <Button
           icon={<FaPills />}
@@ -233,7 +233,7 @@ const HistoryTable = () => {
 
       </Modal>
 
-      {/* vitals modal */}
+      {/* primery complain and medication/treatment */}
       <Modal
         open={openTreatment}
         onCancel={() => setOpenTreatment(false)}
@@ -246,7 +246,7 @@ const HistoryTable = () => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
             <FaPills className="text-green-600" />
-            Prescribed Medication
+            Complain and Treatment
           </h2>
 
           <span className="text-sm text-gray-600 font-medium mr-6 hidden sm:flex items-center gap-1 ">
@@ -257,24 +257,35 @@ const HistoryTable = () => {
 
 
         {/* Body */}
-        <div className="mt-3 gap-4 p-4 rounded-2xl themeBoxShadow">
+        <div className="mt-3 gap-4 p-4 rounded-2xl themeBoxShadow flex flex-col gap-2" >
+
+          {/* Primary Complaint */}
+          <div className="bg-gray-50 p-4 rounded-xl border">
+
+            <h3 className="text-sm font-semibold text-gray-700 mb-1">
+              Primary Complain :
+            </h3>
+            <p className="text-gray-800 text-sm leading-relaxed">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit.
+              Asperiores explicabo accusantium repudiandae dicta.
+            </p>
+
+          </div>
 
           {/* Medicine Card */}
-          <div className="flex flex-col gap-2 p-4 rounded-xl border bg-green-50 border-green-400">
-            <div className="flex items-center gap-2 font-semibold text-green-800">
-              <FaPills />
-              Panadol 500mg
-            </div>
+          <div className="bg-green-50 border-green-400 p-4 rounded-xl border">
 
-            <div className="text-sm text-gray-700 flex items-center gap-2">
-              {/* <FaClock className="text-gray-500" /> */}
-              Take rest for 3 days
-            </div>
+            <h3 className="text-sm font-semibold text-green-800 mb-1">
+              Prescribed Treatment :
+            </h3>
+            <p className="text-green-800 text-sm leading-relaxed">
+              Lorem ipsum dolor sit amet consectetur adipisicing elit.
+              Asperiores explicabo accusantium repudiandae dicta.
+            </p>
+
           </div>
 
         </div>
-
-
 
       </Modal>
 
