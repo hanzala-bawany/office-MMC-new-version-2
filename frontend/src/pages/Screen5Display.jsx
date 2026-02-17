@@ -55,7 +55,7 @@ const Screen5Display = () => {
     // console.log("speak token chala he");
 
     const msg = new SpeechSynthesisUtterance(
-      `Token ${token}, please proceed to ${doctor}`
+      `Token ${token}, please proceed to doctor ${doctor}`
     );
 
     msg.lang = "hi-IN";
@@ -96,7 +96,7 @@ const Screen5Display = () => {
 
       if (!payload?.patientToken) return;
 
-      voiceQueueRef?.current?.push({ token: payload?.patientToken.replace("-", " "), doctor: payload?.docotrName });
+      voiceQueueRef?.current?.push({ token: payload?.patientToken?.replace("-", " ") , doctor: payload?.doctorName?.replace("DR.", "") });
       playNextVoice();
 
     }
@@ -124,14 +124,13 @@ const Screen5Display = () => {
       />
 
       {
-        // <button className='bg-amber-300' onClick={() => {
-        //   voiceQueueRef.current.push({ token: "A-4", doctor: "Hanzala bawany" });
-        //   playNextVoice();
-        // }}>
-        //   Test Voice
-        // </button>
+        <button className='bg-amber-300' onClick={() => {
+          voiceQueueRef.current.push({ token: "A-4", doctor: "Hanzala bawany" });
+          playNextVoice();
+        }}>
+          Test Voice
+        </button>
       }
-
 
 
       <div className="flex absolute top-4 4xl:top-8 [@media(min-width:3200px)]:top-12 left-4 4xl:left-8 [@media(min-width:4200px)]:left-12 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
