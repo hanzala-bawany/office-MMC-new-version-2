@@ -12,14 +12,15 @@ const MidSection = ({ patientsData, docPatientData }) => {
     const currentPatientsData = patientsData?.patients?.[0];
     const [isNextLoading, setIsNextLoading] = useState(false);
     const [formData, setFormData] = useState({
-        primaryDiagnosis: null,
+        primaryDiagnosis: [],
         medicalTests: [],
         treatment: "",
         primaryComplain: ""
     });
     let isAllPatientsChecked = false
+
+    // console.log(currentPatientsData, "<<<<<<<  currentPatientsData  ");
     // console.log(patientsData, "<<<<<<<<<");
-    console.log(currentPatientsData, "<<<<<<<  currentPatientsData  ");
     // console.log(loginUserData, "<<<<<<<  loginUserData  "); 
 
 
@@ -27,7 +28,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
         { name: "Patients Remaining", uv: patientsData?.patientsRemaining, fill: "#60A5FA" },   // blue-400
         { name: "Patients Checked", uv: patientsData?.patientsChecked, fill: "#A855F7" }, // purple-500
     ];
-
 
     const patientData = {
         name: "Ali Raza",
@@ -54,34 +54,43 @@ const MidSection = ({ patientsData, docPatientData }) => {
         Lpulse: "82 bpm",
     };
 
+    const diagnosisOptions = patientsData?.diagnosisList?.map((item) => ({
+        value: item.DIAGNOSIS,
+        label: item.DIAGNOSIS,
+    }));
+
+    const testOptions = patientsData?.testList?.map((item) => ({
+        value: item?.TEST_NAME,
+        label: item?.TEST_NAME,
+    }));
+
+
 
     const nextHandler = async () => {
 
         // if (!currentPatientsData) return;
+        // console.log(formData, ">>>>>>>>>>>>>");
 
         try {
             setIsNextLoading(true)
             const res = await axios.post(`${base_URL}/api/opd/doctor/next-patient`, {
                 doctorId: loginUserData?.doctorId,
                 receiptNo: currentPatientsData?.RECEIPTNO || null,
-                remarks: "ascas" || formData?.primaryComplain || null,
-                // remarks:  formData?.primaryComplain || null,
-                primaryDiagnosis: "ascas" || formData?.primaryDiagnosis || null,
-                // primaryDiagnosis:  formData?.primaryDiagnosis || null,
-                medicalTests: "ascas" || formData?.medicalTests || null,
-                // medicalTests:  formData?.medicalTests || null,
-                treatment: "ascas" || formData?.treatment || null
-                // treatment:  formData?.treatment || null
+                remarks: formData?.primaryComplain || null,
+                primaryDiagnosis: formData?.primaryDiagnosis || null,
+                medicalTests: formData?.medicalTests || null,
+                treatment: formData?.treatment || null
             });
-            // console.log(res, "res of next Handler by id");
+            console.log(res, "res of next Handler by id");
             await docPatientData()
             toast.success(`Next Patient is Coming`)
             setFormData({
-                primaryDiagnosis: null,
+                primaryDiagnosis: [],
                 medicalTests: [],
                 treatment: "",
                 primaryComplain: ""
             });
+
         }
         catch (err) {
             console.log(err, "error in next Handler");
@@ -146,6 +155,27 @@ const MidSection = ({ patientsData, docPatientData }) => {
                                 </div>
                             )
                     }
+                </div>
+
+                <div className="p-4 border-t border-gray-200 flex gap-4">
+                    <Button
+                        type="primary"
+                        block
+                        // onClick={nextHandler}
+                        // loading={isNextLoading}
+                        // disabled={isNextLoading || isAllPatientsChecked}
+                    >
+                        Skip Patient
+                    </Button>
+                    <Button
+                        type="primary"
+                        block
+                        // onClick={nextHandler}
+                        // loading={isNextLoading}
+                        // disabled={isNextLoading || isAllPatientsChecked}
+                    >
+                        Call Skip Patient
+                    </Button>
                 </div>
 
 
@@ -280,119 +310,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         </div>
                     }
 
-                    {
-                        // <div className="mt-3 grid grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
-
-                        //     {/* Blood Pressure */}
-                        //     <div className="flex flex-col p-3 rounded-lg border"
-                        //         style={{ backgroundColor: "#FDF2F8", borderColor: "#EC4899" }}>
-
-                        //         <span className="text-black font-semibold">Blood Pressure</span>
-
-                        //         <div className="font-bold text-[#DB2777]">
-                        //             {patientData?.CbloodPressure}
-                        //             <span className="text-gray-500"> (C)</span>
-                        //         </div>
-
-                        //         <div className="font-medium text-[#9D174D]">
-                        //             {patientData?.LbloodPressure}
-                        //             <span className="text-gray-500"> (L)</span>
-                        //         </div>
-                        //     </div>
-
-
-                        //     {/* Blood Sugar */}
-                        //     <div className="flex flex-col p-3 rounded-lg border"
-                        //         style={{ backgroundColor: "#ECFDF5", borderColor: "#22C55E" }}>
-
-                        //         <span className="text-black font-semibold">Blood Sugar</span>
-
-                        //         <div className="font-bold text-green-700">
-                        //             {patientData?.CbloodSugar}
-                        //             <span className="text-gray-500">(C)</span>
-                        //         </div>
-
-                        //         <div className="font-medium text-green-800">
-                        //             {patientData?.LbloodSugar}
-                        //             <span className="text-gray-500">(L)</span>
-                        //         </div>
-                        //     </div>
-
-
-                        //     {/* Weight */}
-                        //     <div className="flex flex-col p-3 rounded-lg border"
-                        //         style={{ backgroundColor: "#DBEAFE", borderColor: "#2563EB" }}>
-
-                        //         <span className="text-black font-semibold">Weight</span>
-
-                        //         <div className="font-bold text-blue-700">
-                        //             {patientData?.Cweight}
-                        //             <span className="text-gray-500">(C)</span>
-                        //         </div>
-
-                        //         <div className="font-medium text-blue-800">
-                        //             {patientData?.Lweight}
-                        //             <span className="text-gray-500">(L)</span>
-                        //         </div>
-                        //     </div>
-
-
-                        //     {/* Height */}
-                        //     <div className="flex flex-col p-3 rounded-lg border"
-                        //         style={{ backgroundColor: "#F3F4F6", borderColor: "#4B5563" }}>
-
-                        //         <span className="text-black font-semibold">Height</span>
-
-                        //         <div className="font-bold text-gray-700">
-                        //             {patientData?.Cheight}
-                        //             <span className="text-gray-500">(C)</span>
-                        //         </div>
-
-                        //         <div className="font-medium text-gray-800">
-                        //             {patientData?.Lheight}
-                        //             <span className="text-gray-500">(L)</span>
-                        //         </div>
-                        //     </div>
-
-
-                        //     {/* Temperature */}
-                        //     <div className="flex flex-col p-3 rounded-lg border"
-                        //         style={{ backgroundColor: "#EDE9FE", borderColor: "#7C3AED" }}>
-
-                        //         <span className="text-black font-semibold">Temp</span>
-
-                        //         <div className="font-bold text-purple-700">
-                        //             {patientData?.Ctemperature}
-                        //             <span className="text-gray-500">(C)</span>
-                        //         </div>
-
-                        //         <div className="font-medium text-purple-800">
-                        //             {patientData?.Ltemperature}
-                        //             <span className="text-gray-500">(L)</span>
-                        //         </div>
-                        //     </div>
-
-
-                        //     {/* Pulse */}
-                        //     <div className="flex flex-col p-3 rounded-lg border"
-                        //         style={{ backgroundColor: "#FEF9C3", borderColor: "#CA8A04" }}>
-
-                        //         <span className="text-black font-semibold">Pulse</span>
-
-                        //         <div className="font-bold text-yellow-700">
-                        //             {patientData?.Cpulse}
-                        //             <span className="text-gray-500">(C)</span>
-                        //         </div>
-
-                        //         <div className="font-medium text-yellow-800">
-                        //             {patientData?.Lpulse}
-                        //             <span className="text-gray-500">(L)</span>
-                        //         </div>
-                        //     </div>
-
-                        // </div>
-                    }
-
                 </div>
 
                 {/* NEXT BUTTON */}
@@ -437,19 +354,14 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             Primary Diagnosis
                         </label>
                         <Select
+                            // mode="multiple"
+                            mode="tags"
                             allowClear
                             showSearch
                             placeholder="Select primary diagnosis"
                             optionFilterProp="label"
                             style={{ width: "100%" }}
-                            options={[
-                                { value: "diabetes", label: "Diabetes" },
-                                { value: "blood_pressure", label: "Blood Pressure" },
-                                { value: "heart_disease", label: "Heart Disease" },
-                                { value: "asthma", label: "Asthma" },
-                                { value: "flu", label: "Flu" },
-                                { value: "migraine", label: "Migraine" },
-                            ]}
+                            options={diagnosisOptions}
                             onChange={(value) => formHandler("primaryDiagnosis", value)}
                             value={formData.primaryDiagnosis}
                         />
@@ -461,18 +373,12 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             Recommended Tests
                         </label>
                         <Select
-                            mode="multiple"
+                            // mode="multiple"
+                            mode="tags"
                             allowClear
                             placeholder="Select medical tests"
                             style={{ width: "100%" }}
-                            options={[
-                                { value: "cbc", label: "CBC" },
-                                { value: "blood_sugar", label: "Blood Sugar" },
-                                { value: "xray", label: "X-Ray" },
-                                { value: "ecg", label: "ECG" },
-                                { value: "mri", label: "MRI" },
-                                { value: "urine", label: "Urine Test" },
-                            ]}
+                            options={testOptions}
                             onChange={(value) => formHandler("medicalTests", value)}
                             value={formData.medicalTests}
                         />

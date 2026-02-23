@@ -26,6 +26,7 @@ const Screen5Display = () => {
   // console.log(patinetnDocotrsData, "<<<<<<<<<<");
   const voiceQueueRef = useRef([]);
   const isSpeakingRef = useRef(false);
+  // const [voices, setVoices] = useState([]);
 
 
 
@@ -36,12 +37,12 @@ const Screen5Display = () => {
   }
 
   const getPatientnDoctorInfo = async () => {
+
     try {
       const res = await axios.get(`${base_URL}/api/opd/patients`);
       // console.log(res, "res of get Patient for screen");
       const data = res?.data?.data?.filter((i) => i?.PATIENT_STATUS_ID == 2);
       dispatch(updatePatinetnDocotrsData(data));
-
 
     }
     catch (err) {
@@ -50,33 +51,79 @@ const Screen5Display = () => {
     }
   }
 
-  const speakToken = ({ token, doctor }) => {
+  // const speakToken = ({ token, doctor }) => {
 
-    // console.log("speak token chala he");
+  //   console.log("speak token chala ", token, doctor);
+  //   console.log(window.speechSynthesis.getVoices(), "voices");
+
+  //   const msg = new SpeechSynthesisUtterance(
+  //     `Token ${token}, please proceed to doctor ${doctor}`
+  //   );
+  //   console.log("msg bhi chala");
+
+
+  //   msg.lang = "hi-IN";
+  //   msg.rate = 0.9;
+
+  //   msg.onend = () => {
+  //     isSpeakingRef.current = false;
+  //     console.log("oned bhi chala", isSpeakingRef.current);
+  //     playNextVoice();
+  //   };
+
+  //   window.speechSynthesis.speak(msg);
+  //   console.log("speak voice ebnd");
+  // };
+
+  
+
+  const loadVoices = () => {
+    return new Promise(resolve => {
+      let voices = speechSynthesis.getVoices();
+      if (voices.length) resolve(voices);
+
+      speechSynthesis.onvoiceschanged = () => {
+        resolve(speechSynthesis.getVoices());
+      };
+    });
+  };
+
+  const speakToken = async ({ token, doctor }) => {
+
+    const voices = await loadVoices();
+    console.log(voices, " <<<<<<<< voices");
+
 
     const msg = new SpeechSynthesisUtterance(
       `Token ${token}, please proceed to doctor ${doctor}`
     );
-
-    msg.lang = "hi-IN";
+    
+    
+    msg.voice = voices.find(v => v.lang.includes("hi")) || voices.find(v => v.lang.includes("en")) || voices[0];
     msg.rate = 0.9;
-
+    console.log(msg, " >>>>>> msg");
+    
     msg.onend = () => {
       isSpeakingRef.current = false;
-      playNextVoice(); // 🔁 next
+      console.log("oned bhi chala", isSpeakingRef.current);
+      playNextVoice();
     };
 
+    window.speechSynthesis.cancel();
     window.speechSynthesis.speak(msg);
-    // console.log(window.speechSynthesis.getVoices());
+    isSpeakingRef.current = false;
+    console.log("voice ebnd");
 
   };
 
   const playNextVoice = () => {
 
+    console.log("isSpeakingRef.current >>>>> ", isSpeakingRef.current, " voiceQueueRef.current.length === 0 >>>> ", voiceQueueRef.current.length === 0);
     if (isSpeakingRef.current || voiceQueueRef.current.length === 0) return;
 
     isSpeakingRef.current = true;
     const data = voiceQueueRef.current.shift();
+
 
     speakToken(data);
   };
@@ -91,12 +138,12 @@ const Screen5Display = () => {
 
     const handleQueue = (payload) => {
 
-      // console.log(" payload ..........", payload);
+      console.log(" payload ..........", payload);
       getPatientnDoctorInfo()
 
       if (!payload?.patientToken) return;
 
-      voiceQueueRef?.current?.push({ token: payload?.patientToken?.replace("-", " ") , doctor: payload?.doctorName?.replace("DR.", "") });
+      voiceQueueRef?.current?.push({ token: payload?.patientToken?.replace("-", " "), doctor: payload?.doctorName?.replace("DR.", "") });
       playNextVoice();
 
     }
@@ -111,6 +158,49 @@ const Screen5Display = () => {
 
 
 
+  // const speakToken = ({ token, doctor }) => {
+  //   if (!voices.length) {
+  //     console.log("Voices not loaded yet");
+  //     return;
+  //   }
+
+  //   const msg = new SpeechSynthesisUtterance(
+  //     `Token ${token}, please proceed to doctor ${doctor}`
+  //   );
+
+  //   // Try Hindi first
+  //   let selectedVoice =
+  //     voices.find(v => v.lang === "hi-IN") ||
+  //     voices.find(v => v.lang === "en-IN") ||
+  //     voices.find(v => v.default) ||
+  //     voices[0];
+
+  //   msg.voice = selectedVoice;
+  //   msg.lang = selectedVoice.lang;
+  //   msg.rate = 0.9;
+
+  //   msg.onend = () => {
+  //     isSpeakingRef.current = false;
+  //     playNextVoice();
+  //   };
+
+  //   window.speechSynthesis.cancel();
+  //   window.speechSynthesis.speak(msg);
+  // };
+
+
+  // useEffect(() => {
+  //   const loadVoices = () => {
+  //     const allVoices = window.speechSynthesis.getVoices();
+  //     setVoices(allVoices);
+  //     console.log("Voices Loaded:", allVoices);
+  //   };
+
+  //   loadVoices();
+
+  //   window.speechSynthesis.onvoiceschanged = loadVoices;
+  // }, []);
+
 
   return (
 
@@ -124,12 +214,12 @@ const Screen5Display = () => {
       />
 
       {
-        <button className='bg-amber-300' onClick={() => {
-          voiceQueueRef.current.push({ token: "A-4", doctor: "Hanzala bawany" });
-          playNextVoice();
-        }}>
-          Test Voice
-        </button>
+        // <button className='bg-amber-300' onClick={() => {
+        //   voiceQueueRef.current.push({ token: "A-4", doctor: "hanzala bawany" });
+        //   playNextVoice();
+        // }}>
+        //   Test Voice
+        // </button>
       }
 
 

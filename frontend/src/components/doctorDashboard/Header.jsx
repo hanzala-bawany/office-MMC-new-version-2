@@ -6,17 +6,24 @@ import { toast } from "react-toastify";
 import logo from "../../assets/MMC logo.png";
 import docotorAvatar from "../../assets/maleDoctor.png";
 import { logoutUser } from "../../reduxToolKit/authSlice";
-import { FaSignOutAlt } from "react-icons/fa";
+import { FaSignOutAlt, FaTimesCircle } from "react-icons/fa";
+import { base_URL } from "../../utills/baseUrl";
+import axios from "axios";
 
 const Header = ({ doctorData, patientsData }) => {
 
+    // console.log(patientsData, "patientsData >>>>>>>>>>>");
+    // console.log(doctorData, "doctorData >>>>>>>>>>>");
+
     const [openProfile, setOpenProfile] = useState(false);
+    const [cancelLoading, setCancelLoading] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const stats = [
         { title: "Today Appointments", value: patientsData?.todayAppointments, id: 1, half: true, icon: "📅" },
         { title: "Patients Checked", value: patientsData?.patientsChecked, id: 2, icon: "✅" },
         { title: "Patients Remaining", value: patientsData?.patientsRemaining, id: 3, full: true, icon: "⏳" },
+        { title: "Patients Skip", value: patientsData?.patientsSkipped, id: 4, full: true, icon: "⏳" },
     ];
 
 
@@ -30,6 +37,27 @@ const Header = ({ doctorData, patientsData }) => {
     }
 
 
+    const cancelAllHandler = async () => {
+        try {
+            setCancelLoading(true)
+            const res = await axios.post(`${base_URL}/api/opd/doctor/patient-cancel-all`, {
+                doctorId: doctorData?.doctorId,
+                receiptNo: null
+            });
+            // console.log(res, "res of cancel Handler by id");
+            toast.success(`Cancel all remaining patients Successfully`)
+
+        }
+        catch (err) {
+            console.log(err, "error in next Handler");
+            toast.error(err?.message)
+        }
+        finally {
+            setCancelLoading(false);
+        }
+    }
+
+
     return (
         <div className="flex flex-col 2xl:flex-row 2xl:items-center w-full justify-between">
 
@@ -37,15 +65,25 @@ const Header = ({ doctorData, patientsData }) => {
             <Modal open={openProfile} onCancel={() => setOpenProfile(false)} footer={null} centered width={400} >
                 <div className="flex flex-col items-center text-center py-4">
                     <h2 className="text-xl font-bold text-slate-800">   {doctorData?.name || "Doctor Name"} </h2>
-                    <p className="text-slate-400 mb-8 font-medium italic underline underline-offset-4 decoration-blue-200 text-sm">   {doctorData?.consultant || "Consultant"} </p>
+                    <p className="text-slate-400 mb-8 font-medium italic underline underline-offset-4 decoration-blue-200 text-sm">   {doctorData?.faculty || "Consultant"} </p>
+                    <Button
+                        type="primary"
+                        block
+                        loading={cancelLoading}
+                        icon={<FaTimesCircle />}
+                        onClick={cancelAllHandler}
+                        className="rounded-xl flex items-center justify-center gap-2 bg-blue-500"
+                    >
+                        Cancel All
+                    </Button>
                     <Button
                         danger
                         type="primary"
                         block
-                        size="large"
+                        size="medium"
                         icon={<FaSignOutAlt />}
                         onClick={logoutHandler}
-                        className="rounded-xl flex items-center justify-center gap-2"
+                        className="rounded-xl flex items-center justify-center gap-2 mt-4"
                     >
                         Logout Securely
                     </Button>
@@ -89,16 +127,16 @@ const Header = ({ doctorData, patientsData }) => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4  gap-6 mb-8">
                 {stats?.map((s) => (
-                    <div key={s?.id} className={`relative p-[2px] rounded-2xl  bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 ${s.full ? "sm:col-span-2 lg:col-span-1" : ""}`} >
-                        
+                    <div key={s?.id} className={`relative p-[2px] rounded-2xl  bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 `} >
+
                         <div className="rounded-2xl bg-white backdrop-blur-xl p-5 h-full  transition-all duration-300  group-hover:scale-[1.03] group-hover:shadow-2xl" >
-                           
+
                             <div className="flex items-center gap-5">
 
                                 {/* Icon Bubble */}
-                                <div className=" w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100  text-blue-700 text-xl shadow-inner"> 
+                                <div className=" w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100  text-blue-700 text-xl shadow-inner">
                                     {s?.icon || "👨‍⚕️"}
                                 </div>
 
