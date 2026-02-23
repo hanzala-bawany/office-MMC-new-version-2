@@ -4,6 +4,7 @@ import axios from "axios";
 import Header from "../components/doctorDashboard/Header.jsx";
 import MidSection from "../components/doctorDashboard/MidSection.jsx";
 import HistoryTable from "../components/doctorDashboard/HistoryTable.jsx";
+import { toast } from "react-toastify";
 
 
 
@@ -21,7 +22,7 @@ const DoctorDashboard = () => {
     async () => {
       try {
         const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
-        console.log(res, "res of get DocotrDetail by id");
+        // console.log(res, "res of get DocotrDetail by id");
         setPatientsData(res?.data?.data);
       }
       catch (err) {
