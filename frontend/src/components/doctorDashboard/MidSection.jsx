@@ -6,11 +6,15 @@ import { base_URL } from "../../utills/baseUrl";
 import { memo, useState } from "react";
 import { toast } from "react-toastify";
 
+
 const MidSection = ({ patientsData, docPatientData }) => {
 
     const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
     const currentPatientsData = patientsData?.patients?.[0];
     const [isNextLoading, setIsNextLoading] = useState(false);
+    const [isSkipLoading, setIsSkipLoading] = useState(false);
+    const [isCallSkipLoading, setIsCallSkipLoading] = useState(false);
+    const [specificSearchingToken, setSpecificSearchingToken] = useState(null);
     const [formData, setFormData] = useState({
         primaryDiagnosis: [],
         medicalTests: [],
@@ -18,8 +22,11 @@ const MidSection = ({ patientsData, docPatientData }) => {
         primaryComplain: ""
     });
     let isAllPatientsChecked = false
+    let isRemaining0 = true;
+    let patientToken =  Number(specificSearchingToken?.split("-")[1])
 
-    // console.log(currentPatientsData, "<<<<<<<  currentPatientsData  ");
+    // console.log(specificSearchingToken, "<<<<<<<  specificSearchingToken  ");
+    // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
     // console.log(patientsData, "<<<<<<<<<");
     // console.log(loginUserData, "<<<<<<<  loginUserData  "); 
 
@@ -64,6 +71,11 @@ const MidSection = ({ patientsData, docPatientData }) => {
         label: item?.TEST_NAME,
     }));
 
+    const skippedTokenListOptions = patientsData?.skippedTokenList?.map((item) => ({
+        value: item?.TOKENNO,
+        label: item?.TOKENNO,
+    }));
+
 
 
     const nextHandler = async () => {
@@ -81,9 +93,14 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 medicalTests: formData?.medicalTests || null,
                 treatment: formData?.treatment || null
             });
-            console.log(res, "res of next Handler by id");
+            // console.log(res, "res of next Handler by id");
             await docPatientData()
-            toast.success(`Next Patient is Coming`)
+            if (patientsData?.patientsRemaining) {
+                toast.success(`Next Patient is Coming`)
+            }
+            else {
+                toast.info(`Patient Not yet`)
+            }
             setFormData({
                 primaryDiagnosis: [],
                 medicalTests: [],
@@ -102,14 +119,121 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
     }
 
-    if (patientsData?.todayAppointments > 0 && patientsData?.patientsChecked > 0) {
-        isAllPatientsChecked = patientsData?.todayAppointments == patientsData?.patientsChecked
+    const specificCallingHandler = async () => {
+
+        // if (!currentPatientsData) return;
+        // console.log(formData, ">>>>>>>>>>>>>");
+
+        try {
+            setIsNextLoading(true)
+            const res = await axios.post(`${base_URL}/api/opd/doctor/patient-specific-call`, {
+                doctorId: loginUserData?.doctorId,
+                tokenNo: patientToken || null,
+                remarks: formData?.primaryComplain || null,
+                primaryDiagnosis: formData?.primaryDiagnosis || null,
+                medicalTests: formData?.medicalTests || null,
+                treatment: formData?.treatment || null
+            });
+            console.log(res, "res of specific Calling Handler by id");
+            await docPatientData()
+            if (patientsData?.patientsRemaining) {
+                toast.success(`Next Patient is Coming`)
+            }
+            else {
+                toast.info(`Patient Not yet`)
+            }
+
+            setSpecificSearchingToken(null)
+
+        }
+        catch (err) {
+            console.log(err, "error in specific Calling Handler");
+            toast.error(err?.message)
+        }
+        finally {
+            setIsNextLoading(false);
+        }
+
+    }
+
+    const skipHandler = async () => {
+
+        // if (!currentPatientsData) return;
+        // console.log(formData, ">>>>>>>>>>>>>");
+
+        try {
+            setIsSkipLoading(true)
+            const res = await axios.post(`${base_URL}/api/opd/doctor/patient-skipped`, {
+                doctorId: loginUserData?.doctorId,
+                receiptNo: null,
+            });
+            // console.log(res, "res of skip Handler by id");
+            await docPatientData()
+            if (patientsData?.patientsSkipped) {
+                toast.success(`Next Patient is Coming`)
+            }
+            else {
+                toast.info(`Patient Not yet`)
+            }
+
+        }
+        catch (err) {
+            console.log(err, "error in skip Handler");
+            toast.error(err?.message)
+        }
+        finally {
+            setIsSkipLoading(false);
+        }
+
+    }
+
+    const callSkipHandler = async () => {
+
+        // if (!currentPatientsData) return;
+        // console.log(formData, ">>>>>>>>>>>>>");
+
+        try {
+            setIsCallSkipLoading(true)
+            const res = await axios.post(`${base_URL}/api/opd/doctor/patient-skipped-call`, {
+                doctorId: loginUserData?.doctorId,
+                receiptNo: null,
+                remarks: formData?.primaryComplain || null,
+                primaryDiagnosis: formData?.primaryDiagnosis || null,
+                medicalTests: formData?.medicalTests || null,
+                treatment: formData?.treatment || null
+            });
+            // console.log(res, "res of call Skip Handler by id");
+            await docPatientData()
+            if (patientsData?.patientsSkipped) {
+                toast.success(`Next Patient is Coming`)
+            }
+            else {
+                toast.info(`Patient Not yet`)
+            }
+
+        }
+        catch (err) {
+            console.log(err, "error in call Skip Handler");
+            toast.error(err?.message)
+        }
+        finally {
+            setIsCallSkipLoading(false);
+        }
+
     }
 
     const formHandler = (key, value) => {
         setFormData({ ...formData, [key]: value });
     }
 
+
+
+    if (patientsData?.todayAppointments > 0 && patientsData?.patientsChecked > 0) {
+        isAllPatientsChecked = patientsData?.todayAppointments == patientsData?.patientsChecked + patientsData?.patientsSkipped
+    }
+
+    const isPatientApointmentEqualstoChecked = patientsData?.todayAppointments == patientsData?.patientsChecked;
+    const isPatientApointment0 = patientsData?.todayAppointments;
 
 
 
@@ -161,23 +285,22 @@ const MidSection = ({ patientsData, docPatientData }) => {
                     <Button
                         type="primary"
                         block
-                        // onClick={nextHandler}
-                        // loading={isNextLoading}
-                        // disabled={isNextLoading || isAllPatientsChecked}
+                        onClick={skipHandler}
+                        loading={isSkipLoading}
+                        disabled={isSkipLoading || isPatientApointmentEqualstoChecked || !currentPatientsData}
                     >
                         Skip Patient
                     </Button>
                     <Button
                         type="primary"
                         block
-                        // onClick={nextHandler}
-                        // loading={isNextLoading}
-                        // disabled={isNextLoading || isAllPatientsChecked}
+                        onClick={callSkipHandler}
+                        loading={isCallSkipLoading}
+                        disabled={isCallSkipLoading || isPatientApointmentEqualstoChecked || !patientsData?.patientsSkipped}
                     >
                         Call Skip Patient
                     </Button>
                 </div>
-
 
             </div>
 
@@ -313,15 +436,27 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 </div>
 
                 {/* NEXT BUTTON */}
-                <div className="p-4 border-t border-gray-200 hidden 2xl:inline">
+                <div className="p-4 border-t border-gray-200 hidden 2xl:flex gap-5">
+                    <Select
+                        allowClear
+                        showSearch
+                        placeholder="Select Token"
+                        optionFilterProp="label"
+                        style={{ width: "40%" }}
+                        options={skippedTokenListOptions}
+                        onChange={(value) => setSpecificSearchingToken(value)}
+                        value={specificSearchingToken}
+
+                    />
+
                     <Button
                         type="primary"
                         block
-                        onClick={nextHandler}
+                        onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
                         loading={isNextLoading}
-                        disabled={isNextLoading || isAllPatientsChecked}
+                        disabled={isNextLoading || isAllPatientsChecked || !isPatientApointment0}
                     >
-                        {currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
+                        {specificSearchingToken ? "Specific Calling" : currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
                     </Button>
                 </div>
 
@@ -418,14 +553,36 @@ const MidSection = ({ patientsData, docPatientData }) => {
                     <Button
                         type="primary"
                         block
-                        onClick={nextHandler}
+                        onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
                         loading={isNextLoading}
-                        disabled={isNextLoading || isAllPatientsChecked}
+                        disabled={isNextLoading || isAllPatientsChecked || !isRemaining0 || !isPatientApointment0}
                     >
-                        {currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
+                        {specificSearchingToken ? "Specific Calling" : currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
                     </Button>
                 </div>
 
+            </div>
+
+
+            <div className="border-t border-gray-200  gap-4 flex  lg:hidden ">
+                <Button
+                    type="primary"
+                    block
+                    onClick={skipHandler}
+                    loading={isSkipLoading}
+                    disabled={isSkipLoading || isPatientApointmentEqualstoChecked || !currentPatientsData}
+                >
+                    Skip Patient
+                </Button>
+                <Button
+                    type="primary"
+                    block
+                    onClick={callSkipHandler}
+                    loading={isCallSkipLoading}
+                    disabled={isCallSkipLoading || isPatientApointmentEqualstoChecked || !patientsData?.patientsSkipped}
+                >
+                    Call Skip Patient
+                </Button>
             </div>
 
         </div >

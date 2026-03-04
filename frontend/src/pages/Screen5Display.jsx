@@ -26,7 +26,8 @@ const Screen5Display = () => {
   // console.log(patinetnDocotrsData, "<<<<<<<<<<");
   const voiceQueueRef = useRef([]);
   const isSpeakingRef = useRef(false);
-  // const [voices, setVoices] = useState([]);
+  const audioRef = useRef(null);
+  const currentSpeakingTokenRef = useRef(null);
 
 
 
@@ -50,6 +51,7 @@ const Screen5Display = () => {
       // toast.error(err?.message)
     }
   }
+
 
   // const speakToken = ({ token, doctor }) => {
 
@@ -75,7 +77,6 @@ const Screen5Display = () => {
   //   console.log("speak voice ebnd");
   // };
 
-  
 
   const loadVoices = () => {
     return new Promise(resolve => {
@@ -90,6 +91,8 @@ const Screen5Display = () => {
 
   const speakToken = async ({ token, doctor }) => {
 
+    console.log("speak tokenc chala");
+
     const voices = await loadVoices();
     console.log(voices, " <<<<<<<< voices");
 
@@ -97,21 +100,22 @@ const Screen5Display = () => {
     const msg = new SpeechSynthesisUtterance(
       `Token ${token}, please proceed to doctor ${doctor}`
     );
-    
-    
+
+
     msg.voice = voices.find(v => v.lang.includes("hi")) || voices.find(v => v.lang.includes("en")) || voices[0];
     msg.rate = 0.9;
     console.log(msg, " >>>>>> msg");
-    
+
     msg.onend = () => {
       isSpeakingRef.current = false;
       console.log("oned bhi chala", isSpeakingRef.current);
+      currentSpeakingTokenRef.current = null; // remove highlight
       playNextVoice();
     };
 
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(msg);
-    isSpeakingRef.current = false;
+    // isSpeakingRef.current = false;
     console.log("voice ebnd");
 
   };
@@ -157,49 +161,6 @@ const Screen5Display = () => {
   }, []);
 
 
-
-  // const speakToken = ({ token, doctor }) => {
-  //   if (!voices.length) {
-  //     console.log("Voices not loaded yet");
-  //     return;
-  //   }
-
-  //   const msg = new SpeechSynthesisUtterance(
-  //     `Token ${token}, please proceed to doctor ${doctor}`
-  //   );
-
-  //   // Try Hindi first
-  //   let selectedVoice =
-  //     voices.find(v => v.lang === "hi-IN") ||
-  //     voices.find(v => v.lang === "en-IN") ||
-  //     voices.find(v => v.default) ||
-  //     voices[0];
-
-  //   msg.voice = selectedVoice;
-  //   msg.lang = selectedVoice.lang;
-  //   msg.rate = 0.9;
-
-  //   msg.onend = () => {
-  //     isSpeakingRef.current = false;
-  //     playNextVoice();
-  //   };
-
-  //   window.speechSynthesis.cancel();
-  //   window.speechSynthesis.speak(msg);
-  // };
-
-
-  // useEffect(() => {
-  //   const loadVoices = () => {
-  //     const allVoices = window.speechSynthesis.getVoices();
-  //     setVoices(allVoices);
-  //     console.log("Voices Loaded:", allVoices);
-  //   };
-
-  //   loadVoices();
-
-  //   window.speechSynthesis.onvoiceschanged = loadVoices;
-  // }, []);
 
 
   return (

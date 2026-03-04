@@ -2,7 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
     doctorsData: [],
-    patinetnDocotrData: []
+    patinetnDocotrData: [],
+    refreshPatients: false
 }
 
 const doctorSlice = createSlice({
@@ -19,10 +20,13 @@ const doctorSlice = createSlice({
             // console.log(action, "action");
             state.patinetnDocotrData = action.payload;
         },
+        toggleRefreshPatients: (state) => {
+            state.refreshPatients = !state.refreshPatients;
+        }
     },
 })
 
 
-export const { updateDoctorsData , updatePatinetnDocotrsData } = doctorSlice.actions
+export const { updateDoctorsData, updatePatinetnDocotrsData , toggleRefreshPatients } = doctorSlice.actions
 
 export default doctorSlice.reducer;

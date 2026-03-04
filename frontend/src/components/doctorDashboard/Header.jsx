@@ -6,7 +6,8 @@ import { toast } from "react-toastify";
 import logo from "../../assets/MMC logo.png";
 import docotorAvatar from "../../assets/maleDoctor.png";
 import { logoutUser } from "../../reduxToolKit/authSlice";
-import { FaSignOutAlt, FaTimesCircle } from "react-icons/fa";
+import { toggleRefreshPatients } from "../../reduxToolKit/doctorSlice";
+import { FaSignOutAlt, FaTimesCircle, FaCalendarAlt, FaUserCheck, FaUserClock, FaUserTimes } from "react-icons/fa";
 import { base_URL } from "../../utills/baseUrl";
 import axios from "axios";
 
@@ -20,14 +21,31 @@ const Header = ({ doctorData, patientsData }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const stats = [
-        { title: "Today Appointments", value: patientsData?.todayAppointments, id: 1, half: true, icon: "📅" },
-        { title: "Patients Checked", value: patientsData?.patientsChecked, id: 2, icon: "✅" },
-        { title: "Patients Remaining", value: patientsData?.patientsRemaining, id: 3, full: true, icon: "⏳" },
-        { title: "Patients Skip", value: patientsData?.patientsSkipped, id: 4, full: true, icon: "⏳" },
+        {
+            id: 1,
+            title: "Today Appointments",
+            value: patientsData?.todayAppointments,
+            icon: <FaCalendarAlt />,
+        },
+        {
+            id: 2,
+            title: "Patients Checked",
+            value: patientsData?.patientsChecked,
+            icon: <FaUserCheck />,
+        },
+        {
+            id: 3,
+            title: "Patients Waiting",
+            value: patientsData?.patientsRemaining,
+            icon: <FaUserClock />,
+        },
+        {
+            id: 4,
+            title: "Patients Skipped",
+            value: patientsData?.patientsSkipped,
+            icon: <FaUserTimes />,
+        },
     ];
-
-
-    const card = "rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 themeBoxShadow";
 
 
     const logoutHandler = () => {
@@ -35,7 +53,6 @@ const Header = ({ doctorData, patientsData }) => {
         toast.success("Logout Scuccessful")
         navigate("/login")
     }
-
 
     const cancelAllHandler = async () => {
         try {
@@ -45,6 +62,7 @@ const Header = ({ doctorData, patientsData }) => {
                 receiptNo: null
             });
             // console.log(res, "res of cancel Handler by id");
+            dispatch(toggleRefreshPatients())
             toast.success(`Cancel all remaining patients Successfully`)
 
         }
@@ -58,14 +76,28 @@ const Header = ({ doctorData, patientsData }) => {
     }
 
 
+
     return (
-        <div className="flex flex-col 2xl:flex-row 2xl:items-center w-full justify-between">
+        <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:gap-25 w-full justify-between">
 
 
             <Modal open={openProfile} onCancel={() => setOpenProfile(false)} footer={null} centered width={400} >
                 <div className="flex flex-col items-center text-center py-4">
-                    <h2 className="text-xl font-bold text-slate-800">   {doctorData?.name || "Doctor Name"} </h2>
-                    <p className="text-slate-400 mb-8 font-medium italic underline underline-offset-4 decoration-blue-200 text-sm">   {doctorData?.faculty || "Consultant"} </p>
+                  
+                    <h2 className="text-xl font-bold text-slate-800 ">   {doctorData?.name || "Doctor Name"} </h2>
+                  
+                    <p className="text-slate-400 font-medium italic underline underline-offset-4 decoration-blue-200 text-sm">   {doctorData?.faculty || "Consultant"} </p>
+                  
+                    <div className="w-full flex items-center justify-between bg-slate-50 rounded-2xl p-2 shadow-sm border border-slate-100 mb-6 mt-2">                
+                            <span className="text-sm text-slate-500 font-medium">
+                                Patients Cancelled
+                            </span>
+
+                            <span className="px-4 py-1 rounded-full bg-red-100 text-red-600 font-semibold text-lg shadow-sm">
+                                {patientsData?.patientsCanceled || 0}
+                            </span>
+                  
+                    </div>
                     <Button
                         type="primary"
                         block
@@ -76,6 +108,7 @@ const Header = ({ doctorData, patientsData }) => {
                     >
                         Cancel All
                     </Button>
+                  
                     <Button
                         danger
                         type="primary"
@@ -87,6 +120,7 @@ const Header = ({ doctorData, patientsData }) => {
                     >
                         Logout Securely
                     </Button>
+
                 </div>
             </Modal>
 
@@ -127,7 +161,7 @@ const Header = ({ doctorData, patientsData }) => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4  gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-4  gap-6 mb-8">
                 {stats?.map((s) => (
                     <div key={s?.id} className={`relative p-[2px] rounded-2xl  bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 `} >
 
@@ -142,7 +176,7 @@ const Header = ({ doctorData, patientsData }) => {
 
                                 {/* Text */}
                                 <div className="flex flex-col">
-                                    <p className="text-gray-500 font-medium text-lg">{s?.title || "Not yet"}</p>
+                                    <p className="text-gray-500 font-medium text-lg text-start">{s?.title || "Not yet"}</p>
 
                                     <p className="text-3xl font-extrabold text-slate-800 leading-tight">
                                         {s?.value || 0}
@@ -157,7 +191,6 @@ const Header = ({ doctorData, patientsData }) => {
                     </div>
                 ))}
             </div>
-
 
         </div>
     )
