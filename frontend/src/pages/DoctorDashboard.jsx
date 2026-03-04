@@ -5,6 +5,8 @@ import Header from "../components/doctorDashboard/Header.jsx";
 import MidSection from "../components/doctorDashboard/MidSection.jsx";
 import HistoryTable from "../components/doctorDashboard/HistoryTable.jsx";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { socket } from "../socket/socket.js";
 
 
 
@@ -14,6 +16,8 @@ const DoctorDashboard = () => {
 
   const [patientsData, setPatientsData] = useState([]);
   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
+  const isCancelClick = useSelector(state => state?.doctorSlice?.refreshPatients);
+  // console.log(isCancelClick, "<<<<<<< isCancelClick");
   // console.log(loginUserData, "<<<<<<< loginUserData");
   // console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
 
@@ -34,8 +38,12 @@ const DoctorDashboard = () => {
 
 
   useEffect(() => {
-    foo()
-  }, [])
+    foo();
+    socket.on("opdUpdated", () => {
+      foo();
+    });
+  }, [isCancelClick]);
+
 
 
   return (
