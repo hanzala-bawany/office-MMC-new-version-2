@@ -1,10 +1,11 @@
-import { Select, Input, Button, Tag, } from "antd";
+import { Select, Input, Button, Tag, Badge, Table, } from "antd";
 const { Option } = Select;
 import MyCircleChart from "../Dashboard/MyCircleChart"
 import axios from "axios";
 import { base_URL } from "../../utills/baseUrl";
 import { memo, useState } from "react";
 import { toast } from "react-toastify";
+import GetVoice from "./GetVoice";
 
 
 const MidSection = ({ patientsData, docPatientData }) => {
@@ -14,6 +15,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
     const [isNextLoading, setIsNextLoading] = useState(false);
     const [isSkipLoading, setIsSkipLoading] = useState(false);
     const [isCallSkipLoading, setIsCallSkipLoading] = useState(false);
+    const [resetTrigger, setResetTrigger] = useState(false);
     const [specificSearchingToken, setSpecificSearchingToken] = useState(null);
     const [formData, setFormData] = useState({
         primaryDiagnosis: [],
@@ -21,14 +23,121 @@ const MidSection = ({ patientsData, docPatientData }) => {
         treatment: "",
         primaryComplain: ""
     });
-    let isAllPatientsChecked = false
-    let isRemaining0 = true;
-    let patientToken =  Number(specificSearchingToken?.split("-")[1])
+    let patientToken = Number(specificSearchingToken?.split(" ")[0]?.split("-")[1]);
+    const hasAppointments = patientsData?.todayAppointments > 0;
+    const hasCurrentPatient = !!currentPatientsData?.RECEIPTNO;
+    const allPatientsDone = patientsData?.todayAppointments === patientsData?.patientsChecked + patientsData?.patientsSkipped;
+    const disableNext = isNextLoading || !hasAppointments || (!specificSearchingToken && allPatientsDone);
+    const disableSkip = isSkipLoading || !hasCurrentPatient;
+    const [selectedDepartment, setSelectedDepartment] = useState(null);
+    const [selectedTest, setSelectedTest] = useState(null);
+    let patintsW8ing;
+
+
 
     // console.log(specificSearchingToken, "<<<<<<<  specificSearchingToken  ");
     // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
     // console.log(patientsData, "<<<<<<<<<");
     // console.log(loginUserData, "<<<<<<<  loginUserData  "); 
+
+
+    const departments = [
+        { id: "1", name: "General", type: "1" },
+        { id: "2", name: "BIOCHEMISTRY", type: "2" },
+        { id: "3", name: "HEAMOTOLOGY", type: "2" },
+        { id: "4", name: "SEROLOGY", type: "2" },
+        { id: "5", name: "HORMONES", type: "2" },
+        { id: "6", name: "URINE EXAMINATION", type: "2" },
+        { id: "7", name: "BLOOD BANK", type: "2" },
+        { id: "8", name: "FLUIDS", type: "2" },
+        { id: "9", name: "MICROBIOLOGY", type: "2" },
+        { id: "10", name: "STOOL EXAMINATION", type: "2" },
+        { id: "11", name: "SEMEN ANALYSIS", type: "2" },
+        { id: "12", name: "HEPATITIS", type: "2" },
+        { id: "14", name: "HISTROPATHOLOGY", type: "2" },
+        { id: "15", name: "ECHOCARDIOGRAPHY", type: "19" },
+        { id: "16", name: "SPECIAL CHEMISTRY-1", type: "2" },
+        { id: "17", name: "SPECIAL CHEMISTRY-2", type: "2" },
+    ];
+
+    // Sample tests data - sirf UI dikhane ke liye
+    const sampleTests = [
+        { id: "101", name: "Complete Blood Count", department: "2" },
+        { id: "102", name: "Blood Sugar Fasting", department: "2" },
+        { id: "103", name: "Lipid Profile", department: "2" },
+        { id: "104", name: "Liver Function Test", department: "2" },
+        { id: "105", name: "Thyroid Profile", department: "5" },
+        { id: "106", name: "Urine Routine", department: "6" },
+    ];
+
+    // Sample lab patients data - sirf UI dikhane ke liye
+    const sampleLabPatients = [
+        {
+            id: 1,
+            patientName: "Ahmed Khan",
+            tokenNo: "T-101",
+            testName: "Complete Blood Count",
+            department: "HEAMOTOLOGY",
+            status: "pending",
+        },
+        {
+            id: 2,
+            patientName: "Fatima Ali",
+            tokenNo: "T-102",
+            testName: "Blood Sugar Fasting",
+            department: "BIOCHEMISTRY",
+            status: "in progress",
+        },
+        {
+            id: 3,
+            patientName: "Usman Tariq",
+            tokenNo: "T-103",
+            testName: "Lipid Profile",
+            department: "BIOCHEMISTRY",
+            status: "completed",
+        },
+        {
+            id: 4,
+            patientName: "Ayesha Malik",
+            tokenNo: "T-104",
+            testName: "Thyroid Profile",
+            department: "HORMONES",
+            status: "pending",
+        },
+        {
+            id: 5,
+            patientName: "Bilal Ahmed",
+            tokenNo: "T-105",
+            testName: "Urine Routine",
+            department: "URINE EXAMINATION",
+            status: "in progress",
+        },
+        {
+            id: 6,
+            patientName: "Hassan Raza",
+            tokenNo: "T-106",
+            testName: "Liver Function Test",
+            department: "BIOCHEMISTRY",
+            status: "completed",
+        },
+        {
+            id: 7,
+            patientName: "Sara Khan",
+            tokenNo: "T-107",
+            testName: "Hepatitis Screening",
+            department: "HEPATITIS",
+            status: "pending",
+        },
+        {
+            id: 8,
+            patientName: "Ali Hamza",
+            tokenNo: "T-108",
+            testName: "Stool Routine",
+            department: "STOOL EXAMINATION",
+            status: "pending",
+        },
+    ];
+
 
 
     const pieData = [
@@ -78,6 +187,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
 
 
+
+
     const nextHandler = async () => {
 
         // if (!currentPatientsData) return;
@@ -95,7 +206,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             });
             // console.log(res, "res of next Handler by id");
             await docPatientData()
-            if (patientsData?.patientsRemaining) {
+            if (patientsData?.patientsRemaining > 0) {
                 toast.success(`Next Patient is Coming`)
             }
             else {
@@ -107,6 +218,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 treatment: "",
                 primaryComplain: ""
             });
+            setResetTrigger(prev => !prev)
 
         }
         catch (err) {
@@ -134,9 +246,9 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 medicalTests: formData?.medicalTests || null,
                 treatment: formData?.treatment || null
             });
-            console.log(res, "res of specific Calling Handler by id");
+            // console.log(res, "res of specific Calling Handler by id");
             await docPatientData()
-            if (patientsData?.patientsRemaining) {
+            if (patientsData?.patientsRemaining > 0) {
                 toast.success(`Next Patient is Coming`)
             }
             else {
@@ -159,7 +271,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
     const skipHandler = async () => {
 
         // if (!currentPatientsData) return;
-        // console.log(formData, ">>>>>>>>>>>>>");
+        console.log(formData, ">>>>>>>>>>>>>");
 
         try {
             setIsSkipLoading(true)
@@ -169,7 +281,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             });
             // console.log(res, "res of skip Handler by id");
             await docPatientData()
-            if (patientsData?.patientsSkipped) {
+            if (patientsData?.patientsRemaining > 0) {
                 toast.success(`Next Patient is Coming`)
             }
             else {
@@ -228,78 +340,256 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
 
 
-    if (patientsData?.todayAppointments > 0 && patientsData?.patientsChecked > 0) {
-        isAllPatientsChecked = patientsData?.todayAppointments == patientsData?.patientsChecked + patientsData?.patientsSkipped
-    }
 
     const isPatientApointmentEqualstoChecked = patientsData?.todayAppointments == patientsData?.patientsChecked;
-    const isPatientApointment0 = patientsData?.todayAppointments;
+    // if (specificSearchingToken) {
+    //     patintsW8ing = true
+    // }
+    // else if (patientsData?.todayAppointments && patientsData?.patientsChecked) {
+    //     patintsW8ing = patientsData?.patientsRemaining
+    // }
+    // console.log(patintsW8ing, "<<<<<<<<<<<");
 
 
 
     return (
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 mb-8 h-auto ">
+        <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6 mb-8 h-auto ">
 
             {/* Pie Chart */}
-            <div className="themeBoxShadow  border-none outline-none rounded-[10px] z-10 bg-white hidden lg:flex flex-col justify-between min-h-[35vh] sm:min-h-[40vh] lg:h-auto">
+            {
 
-                <div className="flex-1 p-2 px-4 sm:p-4 flex justify-between gap-4 sm:gap-8 items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
-                    {/* text-slate-700 */}
-                    <h2 className="text-lg sm:text-xl font-semibold text-black"> Patient Progress </h2>
-                    <div className="flex flex-col sm:flex-row  justify-center gap-1 sm:gap-6 text-sm ">
-                        <span className="text-[#60A5FA] ">● Patients Remaining </span>
-                        <span className="text-[#A855F7] ">● Patients Checked</span>
+                // <div className="themeBoxShadow  border-none outline-none rounded-[10px] z-10 bg-white hidden lg:flex flex-col justify-between min-h-[35vh] sm:min-h-[40vh] lg:h-auto">
+
+
+                //     <div className="flex-1 p-2 px-4 sm:p-4 flex justify-between gap-4 sm:gap-8 items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
+                //         {/* text-slate-700 */}
+                //         <h2 className="text-lg sm:text-xl font-semibold text-black"> Patient Progress </h2>
+                //         <div className="flex flex-col sm:flex-row  justify-center gap-1 sm:gap-6 text-sm ">
+                //             <span className="text-[#60A5FA] ">● Patients Remaining </span>
+                //             <span className="text-[#A855F7] ">● Patients Checked</span>
+                //         </div>
+
+                //     </div>
+
+                //     <div className={`flex-7 ${!(patientsData?.patientsRemaining || patientsData?.patientsChecked) && "p-6"}`}>
+                //         {
+                //             (patientsData?.patientsRemaining || patientsData?.patientsChecked) ?
+                //                 <MyCircleChart piData={pieData} active="dd" /> :
+                //                 (
+                //                     <div className=" flex flex-col items-center justify-center  h-full  rounded-xl border-2 border-dashed border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 text-center transition-all">
+
+                //                         <div className=" w-16 h-16 rounded-full  bg-blue-100 flex items-center justify-center mb-3">
+                //                             <span className="text-3xl">📊</span>
+                //                         </div>
+
+                //                         <h3 className="text-base sm:text-lg font-semibold text-blue-700">
+                //                             No Patients Checked Today
+                //                         </h3>
+
+                //                         <p className="text-sm text-blue-500 mt-1 max-w-[220px]">
+                //                             Patient visit data will appear here once appointments are scheduled
+                //                         </p>
+
+                //                         <div className=" mt-3 px-4 py-1 rounded-full text-xs font-medium  bg-blue-100 text-blue-600">
+                //                             Waiting for OPD entries
+                //                         </div>
+                //                     </div>
+                //                 )
+                //         }
+                //     </div>
+
+                //     <div className="p-4 border-t border-gray-200 flex gap-4">
+                //         <Button
+                //             type="primary"
+                //             block
+                //             onClick={skipHandler}
+                //             loading={isSkipLoading}
+                //             disabled={disableSkip}
+                //         >
+                //             Skip Patient
+                //         </Button>
+                //         {/* <Button
+                //         type="primary"
+                //         block
+                //         onClick={callSkipHandler}
+                //         loading={isCallSkipLoading}
+                //         disabled={isCallSkipLoading }
+                //     >
+                //         Call Skip Patient
+                //     </Button> */}
+                //     </div>
+
+                // </div>
+            }
+
+            <div className="z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col min-h-[35vh]  overflow-hidden">
+
+                {/* Header */}
+                <div className="flex-1 p-4 flex justify-between items-center bg-gradient-to-r from-indigo-600 to-blue-500">
+                    <div>
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">
+                            Lab Management
+                        </h2>
+                        <p className="text-xs text-blue-100">
+                            Assign & Monitor Patient Lab Tests
+                        </p>
                     </div>
 
+                    <div className=" flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                        </span>
+                        <span className="text-xs text-white">Live</span>
+                    </div>
                 </div>
 
-                <div className={`flex-7 ${!(patientsData?.patientsRemaining || patientsData?.patientsChecked) && "p-6"}`}>
-                    {
-                        (patientsData?.patientsRemaining || patientsData?.patientsChecked) ?
-                            <MyCircleChart piData={pieData} active="dd" /> :
-                            (
-                                <div className=" flex flex-col items-center justify-center  h-full  rounded-xl border-2 border-dashed border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 text-center transition-all">
+                {/* Department + Test Selection */}
+                <div className="p-4 border-b border-gray-200 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <Select
+                            placeholder="Select Department"
+                            value={selectedDepartment}
+                            onChange={setSelectedDepartment}
+                            showSearch
+                            optionFilterProp="children"
+                            className="w-full"
+                            size="large"
+                        >
+                            {departments.map((dept) => (
+                                <Option key={dept.id} value={dept.id}>
+                                    {dept.name}
+                                </Option>
+                            ))}
+                        </Select>
 
-                                    <div className=" w-16 h-16 rounded-full  bg-blue-100 flex items-center justify-center mb-3">
-                                        <span className="text-3xl">📊</span>
-                                    </div>
+                        <Select
+                            placeholder="Select Test"
+                            value={selectedTest}
+                            onChange={setSelectedTest}
+                            disabled={!selectedDepartment}
+                            showSearch
+                            optionFilterProp="children"
+                            className="w-full"
+                            size="large"
+                        >
+                            {selectedDepartment &&
+                                sampleTests
+                                    .filter((test) => test.department === selectedDepartment)
+                                    .map((test) => (
+                                        <Option key={test.id} value={test.id}>
+                                            {test.name}
+                                        </Option>
+                                    ))}
+                        </Select>
 
-                                    <h3 className="text-base sm:text-lg font-semibold text-blue-700">
-                                        No Patients Checked Today
-                                    </h3>
-
-                                    <p className="text-sm text-blue-500 mt-1 max-w-[220px]">
-                                        Patient visit data will appear here once appointments are scheduled
-                                    </p>
-
-                                    <div className=" mt-3 px-4 py-1 rounded-full text-xs font-medium  bg-blue-100 text-blue-600">
-                                        Waiting for OPD entries
-                                    </div>
-                                </div>
-                            )
-                    }
+                        <Button
+                            type="primary"
+                            size="large"
+                            className="bg-gradient-to-r from-blue-500 to-indigo-500 border-none hover:opacity-90"
+                            onClick={() => {
+                                if (selectedTest && currentPatientsData) {
+                                    toast.success(
+                                        `Test assigned to ${currentPatientsData.PATIENTNAME}`,
+                                    );
+                                    setSelectedTest(null);
+                                } else {
+                                    toast.warning(
+                                        "Please select test and ensure patient available",
+                                    );
+                                }
+                            }}
+                            disabled={!selectedTest || !currentPatientsData}
+                        >
+                            Assign Test
+                        </Button>
+                    </div>
                 </div>
 
-                <div className="p-4 border-t border-gray-200 flex gap-4">
-                    <Button
-                        type="primary"
-                        block
-                        onClick={skipHandler}
-                        loading={isSkipLoading}
-                        disabled={isSkipLoading || isPatientApointmentEqualstoChecked || !currentPatientsData}
-                    >
-                        Skip Patient
-                    </Button>
-                    <Button
-                        type="primary"
-                        block
-                        onClick={callSkipHandler}
-                        loading={isCallSkipLoading}
-                        disabled={isCallSkipLoading || isPatientApointmentEqualstoChecked || !patientsData?.patientsSkipped}
-                    >
-                        Call Skip Patient
-                    </Button>
+
+                {/* Lab Patients Table */}
+                <div className="flex-6 p-4 overflow-auto hide-scrollbar">
+
+                    <div className="mb-3 flex justify-between items-center">
+                        <h3 className="font-semibold text-gray-700">
+                            Today's Lab Patients
+                        </h3>
+
+                        <Badge
+                            count={sampleLabPatients?.length}
+                            style={{ backgroundColor: "#3b82f6" }}
+                        />
+                    </div>
+
+                    <Table
+                        columns={[
+                            {
+                                title: "Patient",
+                                dataIndex: "patientName",
+                                key: "patientName",
+                                render: (text) => (
+                                    <span className="font-medium text-gray-800">{text}</span>
+                                ),
+                            },
+                            {
+                                title: "Token",
+                                dataIndex: "tokenNo",
+                                key: "tokenNo",
+                                render: (text) => <Tag color="blue">{text}</Tag>,
+                            },
+                            {
+                                title: "Test",
+                                dataIndex: "testName",
+                                key: "testName",
+                                render: (text) => <span className="text-gray-600">{text}</span>,
+                            },
+                            {
+                                title: "Department",
+                                dataIndex: "department",
+                                key: "department",
+                                render: (text) => (
+                                    <span className="text-gray-600 text-xs font-medium">
+                                        {text}
+                                    </span>
+                                ),
+                            },
+                            {
+                                title: "Status",
+                                dataIndex: "status",
+                                key: "status",
+                                render: (status) => {
+                                    const style =
+                                        status === "completed"
+                                            ? "bg-green-100 text-green-700"
+                                            : status === "pending"
+                                                ? "bg-yellow-100 text-yellow-700"
+                                                : "bg-blue-100 text-blue-700";
+
+                                    const label =
+                                        status === "completed"
+                                            ? "Completed"
+                                            : status === "pending"
+                                                ? "Pending"
+                                                : "Processing";
+
+                                    return (
+                                        <span
+                                            className={`px-3 py-1 rounded-full text-xs font-medium ${style}`}
+                                        >
+                                            {label}
+                                        </span>
+                                    );
+                                },
+                            },
+                        ]}
+                        dataSource={sampleLabPatients}
+                        rowKey="id"
+                        size="middle"
+                        pagination={false}
+                        scroll={{ y: 270, x: 'max-content' }}
+                        className="rounded-lg"
+                    />
                 </div>
 
             </div>
@@ -313,7 +603,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         Patient Vitals
                     </h2>
 
-                    <div className="flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                    <div className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
                         {currentPatientsData?.TOKENNO || "Not Yet"}
                     </div>
                 </div>
@@ -454,34 +744,73 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         block
                         onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
                         loading={isNextLoading}
-                        disabled={isNextLoading || isAllPatientsChecked || !isPatientApointment0}
+                        // disabled={disableNext || !patintsW8ing}
+                        disabled={disableNext}
                     >
                         {specificSearchingToken ? "Specific Calling" : currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
                     </Button>
+                </div>
+
+                {/* Skip Buttons */}
+                <div className="p-4 border-t  border-gray-200 hidden 2xl:flex gap-3">
+                    <Button
+                        type="primary"
+                        block
+                        size="middle"
+                        onClick={skipHandler}
+                        loading={isSkipLoading}
+                        disabled={isSkipLoading || isPatientApointmentEqualstoChecked || !currentPatientsData}
+                        className="bg-yellow-500 hover:bg-yellow-600 border-none"
+                    >
+                        Skip Patient
+                    </Button>
+
+                    {/* <Button
+                        type="primary"
+                        block
+                        size="large"
+                        onClick={callSkipHandler}
+                        loading={isCallSkipLoading}
+                        disabled={
+                            isCallSkipLoading ||
+                            isPatientApointmentEqualstoChecked ||
+                            !patientsData?.patientsSkipped
+                        }
+                        className="bg-green-500 hover:bg-green-600 border-none"
+                    >
+                        Call Skip Patient
+                    </Button> */}
                 </div>
 
             </div>
 
 
             {/* Add Patient Detail */}
-            <div className="z-10 col-span-1 lg:col-span-2 2xl:col-span-1  themeBoxShadow rounded-[10px] bg-white h-full flex flex-col">
+            <div className="z-10 col-span-1 lg:col-span-2 2xl:col-span-1 themeBoxShadow border-none outline-none rounded-xl overflow-hidden bg-white h-full flex flex-col">
 
                 {/* HEADER */}
-                <div className="flex items-center justify-between border-b border-gray-200 p-4">
-                    <h2 className="text-lg sm:text-xl font-semibold text-slate-800">
-                        Add Patient Detail
-                    </h2>
+                <div className="p-4 flex-1 flex justify-between items-center bg-gradient-to-r from-indigo-600 to-blue-500">
 
-                    {/* RIGHT SIDE BADGE */}
-                    <div className="flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        OPD Entry
+                    <div>
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">
+                            Add Patient Detail
+                        </h2>
+                        <p className="text-xs text-blue-100">
+                            Assign & Monitor
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
+                        <span className="relative flex h-2 w-2">
+                            <span className=" absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                        </span>
+                        <span className="text-xs text-white"> OPD Entry</span>
                     </div>
                 </div>
 
                 {/* BODY */}
-                {/* <div className="flex flex-col gap-5 p-4 "> */}
-                <div className="grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
+                <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
 
                     {/* PRIMARY DIAGNOSIS */}
                     <div className="flex flex-col gap-1">
@@ -548,41 +877,54 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
                 </div>
 
+                <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} />
+
                 {/* NEXT BUTTON */}
-                <div className="p-4 border-t border-gray-200 inline 2xl:hidden">
+                <div className="p-4 border-t border-gray-200 flex gap-5 2xl:hidden">
+                    <Select
+                        allowClear
+                        showSearch
+                        placeholder="Select Token"
+                        optionFilterProp="label"
+                        style={{ width: "40%" }}
+                        options={skippedTokenListOptions}
+                        onChange={(value) => setSpecificSearchingToken(value)}
+                        value={specificSearchingToken}
+
+                    />
+
                     <Button
                         type="primary"
                         block
                         onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
                         loading={isNextLoading}
-                        disabled={isNextLoading || isAllPatientsChecked || !isRemaining0 || !isPatientApointment0}
+                        disabled={disableNext}
                     >
                         {specificSearchingToken ? "Specific Calling" : currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
                     </Button>
                 </div>
 
-            </div>
-
-
-            <div className="border-t border-gray-200  gap-4 flex  lg:hidden ">
-                <Button
-                    type="primary"
-                    block
-                    onClick={skipHandler}
-                    loading={isSkipLoading}
-                    disabled={isSkipLoading || isPatientApointmentEqualstoChecked || !currentPatientsData}
-                >
-                    Skip Patient
-                </Button>
-                <Button
+                <div className="border-t p-4 border-gray-200  gap-4 flex  2xl:hidden ">
+                    <Button
+                        type="primary"
+                        block
+                        onClick={skipHandler}
+                        loading={isSkipLoading}
+                        disabled={disableSkip}
+                    >
+                        Skip Patient
+                    </Button>
+                    {/* <Button
                     type="primary"
                     block
                     onClick={callSkipHandler}
                     loading={isCallSkipLoading}
-                    disabled={isCallSkipLoading || isPatientApointmentEqualstoChecked || !patientsData?.patientsSkipped}
+                    disabled={isCallSkipLoading}
                 >
                     Call Skip Patient
-                </Button>
+                </Button> */}
+                </div>
+
             </div>
 
         </div >

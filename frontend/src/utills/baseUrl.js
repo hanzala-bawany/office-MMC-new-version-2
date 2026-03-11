@@ -1,6 +1,7 @@
 //  export const base_URL = "http://localhost:3000";  
 // export const base_URL = "http://192.168.100.13:3000";
-export const base_URL = "http://192.168.100.85:3000";
+ export const base_URL = "http://192.168.100.85:3000";
+//export const base_URL = "https://touchy-aliza-winkingly.ngrok-free.dev";
 
 
 
