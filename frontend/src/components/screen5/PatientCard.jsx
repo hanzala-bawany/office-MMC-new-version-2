@@ -2,12 +2,15 @@ import { memo } from "react";
 import { Tag, Badge } from "antd";
 import { FaUserInjured, FaUserMd, FaHashtag } from "react-icons/fa";
 
-const PatientCard = ({ doc, isTwo }) => {
+const PatientCard = ({ doc, isTwo, highlight }) => {
 
 
 
   return (
-    <div className={`relative bg-white rounded-3xl shadow-xl border border-cyan-200 overflow-hidden hover:shadow-2xl transition-all duration-300 patientCardFont ${isTwo && "h-[40%] p-5 py-12"}`}>
+    <div className={` relative bg-white rounded-3xl shadow-xl border border-cyan-200 overflow-hidden hover:shadow-2xl transition-all duration-300 patientCardFont 
+     ${isTwo && "h-[40%] p-5 py-12"}  ${highlight ? "animate-pulse ring-2 ring-yellow-400 shadow-md shadow-yellow-400/40 scale-100 border-yellow-400" : ""}`}>
+
+
       {/* Left Gradient Strip */}
       <div className="absolute left-0 top-0 h-full w-2  bg-gradient-to-b from-cyan-500 to-blue-500" />
 
@@ -41,11 +44,6 @@ const PatientCard = ({ doc, isTwo }) => {
             <div className=" inline-flex items-center justify-center px-4 py-1  bg-[#e6fffb] border border-[#87e8de] rounded-full  text-cyan-700 font-extrabold text-md 2xl:text-lg 4xl:text-xl tracking-wide shadow-sm">
               {doc?.FACULTY?.length > 25 ? `${doc?.FACULTY.slice(0, 30)} ...` : doc?.FACULTY || "General"}
             </div>
-
-            {/* Room / Counter */}
-            {/* <div className=" inline-flex items-center justify-center px-4 py-1  bg-[#e6fffb] border border-[#87e8de] rounded-full  text-cyan-700 font-extrabold text-sm 2xl:text-md tracking-wide shadow-sm">
-              A - 12
-            </div> */}
 
           </div>
 

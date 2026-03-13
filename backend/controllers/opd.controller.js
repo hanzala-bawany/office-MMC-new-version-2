@@ -806,8 +806,43 @@ const doctorCallTokenByNumber = async (req, res) => {
 };
 
 
+// ------- REPEAT CALL  PATIENT BY STATUS API with SOCKET ------------------
+const repeatCallPatient = async (req, res) => {
+  let connection;
+
+  try {
+    const { doctorId , doctorName , patientToken } = req.body;
+    // console.log(doctorId, "docotr id");
+    // console.log(doctorName, "doctorName");
+    // console.log(patientToken, "patient Token");
+
+    const io = req.app.get("io");
+
+    io.emit("QUEUE_UPDATED", {
+      type: "REPEAT_CALL",
+      doctorId,
+      patientToken: patientToken,
+      doctorName: doctorName,
+    });
+
+
+    res.json({
+      success: true,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  } finally {
+    if (connection) await connection.close();
+  }
+};
+
+
 
 module.exports = {
-  getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, cancelAllDoctorPatients, getDoctorNextPatientQueue, getDoctorNextPatientSkip , doctorCallTokenByNumber
+  getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, cancelAllDoctorPatients, getDoctorNextPatientQueue, getDoctorNextPatientSkip, doctorCallTokenByNumber , repeatCallPatient
 };
 1
