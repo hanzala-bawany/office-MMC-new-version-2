@@ -14,7 +14,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
     const currentPatientsData = patientsData?.patients?.[0];
     const [isNextLoading, setIsNextLoading] = useState(false);
     const [isSkipLoading, setIsSkipLoading] = useState(false);
-    const [isCallSkipLoading, setIsCallSkipLoading] = useState(false);
+    const [isRepeatCallingHandler, setRepeatCallingHandler] = useState(false);
+    // const [isCallSkipLoading, setIsCallSkipLoading] = useState(false);
     const [resetTrigger, setResetTrigger] = useState(false);
     const [specificSearchingToken, setSpecificSearchingToken] = useState(null);
     const [formData, setFormData] = useState({
@@ -34,11 +35,11 @@ const MidSection = ({ patientsData, docPatientData }) => {
     let patintsW8ing;
 
 
-
     // console.log(specificSearchingToken, "<<<<<<<  specificSearchingToken  ");
-    // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
-    // console.log(patientsData, "<<<<<<<<<");
-    // console.log(loginUserData, "<<<<<<<  loginUserData  "); 
+    console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
+    console.log(patientsData, "<<<<<<<<<");
+    console.log(loginUserData, "<<<<<<<  loginUserData  ");
+
 
 
     const departments = [
@@ -139,7 +140,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
     ];
 
 
-
     const pieData = [
         { name: "Patients Remaining", uv: patientsData?.patientsRemaining, fill: "#60A5FA" },   // blue-400
         { name: "Patients Checked", uv: patientsData?.patientsChecked, fill: "#A855F7" }, // purple-500
@@ -188,11 +188,9 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
 
 
-
     const nextHandler = async () => {
 
-        // if (!currentPatientsData) return;
-        // console.log(formData, ">>>>>>>>>>>>>");
+
 
         try {
             setIsNextLoading(true)
@@ -233,9 +231,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
     const specificCallingHandler = async () => {
 
-        // if (!currentPatientsData) return;
-        // console.log(formData, ">>>>>>>>>>>>>");
-
         try {
             setIsNextLoading(true)
             const res = await axios.post(`${base_URL}/api/opd/doctor/patient-specific-call`, {
@@ -270,8 +265,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
     const skipHandler = async () => {
 
-        // if (!currentPatientsData) return;
-        console.log(formData, ">>>>>>>>>>>>>");
+        // console.log(formData, ">>>>>>>>>>>>>");
 
         try {
             setIsSkipLoading(true)
@@ -299,29 +293,53 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
     }
 
-    const callSkipHandler = async () => {
+    // const callSkipHandler = async () => {
 
-        // if (!currentPatientsData) return;
-        // console.log(formData, ">>>>>>>>>>>>>");
+    //     // if (!currentPatientsData) return;
+    //     // console.log(formData, ">>>>>>>>>>>>>");
+
+    //     try {
+    //         setIsCallSkipLoading(true)
+    //         const res = await axios.post(`${base_URL}/api/opd/doctor/patient-skipped-call`, {
+    //             doctorId: loginUserData?.doctorId,
+    //             receiptNo: null,
+    //             remarks: formData?.primaryComplain || null,
+    //             primaryDiagnosis: formData?.primaryDiagnosis || null,
+    //             medicalTests: formData?.medicalTests || null,
+    //             treatment: formData?.treatment || null
+    //         });
+    //         // console.log(res, "res of call Skip Handler by id");
+    //         await docPatientData()
+    //         if (patientsData?.patientsSkipped) {
+    //             toast.success(`Next Patient is Coming`)
+    //         }
+    //         else {
+    //             toast.info(`Patient Not yet`)
+    //         }
+
+    //     }
+    //     catch (err) {
+    //         console.log(err, "error in call Skip Handler");
+    //         toast.error(err?.message)
+    //     }
+    //     finally {
+    //         setIsCallSkipLoading(false);
+    //     }
+
+    // }
+
+    const repeatCallingHandler = async () => {
 
         try {
-            setIsCallSkipLoading(true)
-            const res = await axios.post(`${base_URL}/api/opd/doctor/patient-skipped-call`, {
+            setRepeatCallingHandler(true)
+            const res = await axios.post(`${base_URL}/api/opd/doctor/patient-repeat-call`, {
                 doctorId: loginUserData?.doctorId,
-                receiptNo: null,
-                remarks: formData?.primaryComplain || null,
-                primaryDiagnosis: formData?.primaryDiagnosis || null,
-                medicalTests: formData?.medicalTests || null,
-                treatment: formData?.treatment || null
+                doctorName: loginUserData?.name,
+                patientToken: currentPatientsData?.TOKENNO,
             });
-            // console.log(res, "res of call Skip Handler by id");
-            await docPatientData()
-            if (patientsData?.patientsSkipped) {
-                toast.success(`Next Patient is Coming`)
-            }
-            else {
-                toast.info(`Patient Not yet`)
-            }
+            console.log(res, "res of repeat Calling Handler");
+
+            toast.success(`Repeat Calling`)
 
         }
         catch (err) {
@@ -329,7 +347,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             toast.error(err?.message)
         }
         finally {
-            setIsCallSkipLoading(false);
+            setRepeatCallingHandler(false);
         }
 
     }
@@ -423,30 +441,33 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 // </div>
             }
 
-            <div className="z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col min-h-[35vh]  overflow-hidden">
+            {/* Lab management */}
+            <div className="order-3 xl:order-1 z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col min-h-[35vh]  overflow-hidden">
 
                 {/* Header */}
-                <div className="flex-1 p-4 flex justify-between items-center bg-gradient-to-r from-indigo-600 to-blue-500">
+                <div className="flex-1 p-4 flex justify-between items-center rounded-xl border border-gray-300 xl:bg-gradient-to-r xl:from-indigo-600 xl:to-blue-500">
                     <div>
-                        <h2 className="text-lg sm:text-xl font-semibold text-white">
+                        <h2 className="text-lg sm:text-xl font-semibold text-black xl:text-white">
                             Lab Management
                         </h2>
-                        <p className="text-xs text-blue-100">
+                        <p className="text-xs text-blue-600 xl:text-blue-100">
                             Assign & Monitor Patient Lab Tests
                         </p>
                     </div>
 
-                    <div className=" flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
+                    <div className=" flex items-center gap-2 bg-gray-100 xl:bg-white/20 px-3 py-1 rounded-full">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
                         </span>
-                        <span className="text-xs text-white">Live</span>
+                        <span className="text-xs text-black  xl:text-white">Live</span>
                     </div>
                 </div>
 
+
                 {/* Department + Test Selection */}
                 <div className="p-4 border-b border-gray-200 space-y-4">
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <Select
                             placeholder="Select Department"
@@ -455,7 +476,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             showSearch
                             optionFilterProp="children"
                             className="w-full"
-                            size="large"
+                            size="middle"
                         >
                             {departments.map((dept) => (
                                 <Option key={dept.id} value={dept.id}>
@@ -472,7 +493,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             showSearch
                             optionFilterProp="children"
                             className="w-full"
-                            size="large"
+                            size="middle"
                         >
                             {selectedDepartment &&
                                 sampleTests
@@ -486,7 +507,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
                         <Button
                             type="primary"
-                            size="large"
+                            size="middle"
                             className="bg-gradient-to-r from-blue-500 to-indigo-500 border-none hover:opacity-90"
                             onClick={() => {
                                 if (selectedTest && currentPatientsData) {
@@ -594,18 +615,35 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
             </div>
 
-
             {/* Patient Vitals */}
-            <div className="z-10 themeBoxShadow rounded-[12px] bg-white h-full flex flex-col justify-between transition-all duration-300 hover:shadow-lg">
+            <div className="order-1 xl:order-2 z-10 themeBoxShadow rounded-[12px] bg-white h-full flex flex-col justify-between transition-all duration-300 hover:shadow-lg">
 
                 <div className="flex-1 p-4 flex items-center justify-between border-b border-gray-200">
+
                     <h2 className="text-lg sm:text-xl font-semibold text-black">
                         Patient Vitals
                     </h2>
 
-                    <div className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
-                        {currentPatientsData?.TOKENNO || "Not Yet"}
+                    <div className="flex items-center gap-6">
+
+                        {/* TOKEN */}
+                        <div className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                            {currentPatientsData?.TOKENNO || "Not Yet"}
+                        </div>
+
+                        {/* REPEAT CALL BUTTON */}
+                        <Button
+                            size="middle"
+                            onClick={repeatCallingHandler}
+                            loading={isRepeatCallingHandler}
+                            disabled={!currentPatientsData}
+                            className="bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90"
+                        >
+                            🔁 Repeat Call
+                        </Button>
+
                     </div>
+
                 </div>
 
                 <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
@@ -754,13 +792,11 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 {/* Skip Buttons */}
                 <div className="p-4 border-t  border-gray-200 hidden 2xl:flex gap-3">
                     <Button
-                        type="primary"
                         block
-                        size="middle"
+                        className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
                         onClick={skipHandler}
                         loading={isSkipLoading}
-                        disabled={isSkipLoading || isPatientApointmentEqualstoChecked || !currentPatientsData}
-                        className="bg-yellow-500 hover:bg-yellow-600 border-none"
+                        disabled={disableSkip}
                     >
                         Skip Patient
                     </Button>
@@ -784,9 +820,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
             </div>
 
-
             {/* Add Patient Detail */}
-            <div className="z-10 col-span-1 lg:col-span-2 2xl:col-span-1 themeBoxShadow border-none outline-none rounded-xl overflow-hidden bg-white h-full flex flex-col">
+            <div className="order-2 xl:order-3 z-10 col-span-1 lg:col-span-2 2xl:col-span-1 themeBoxShadow border-none outline-none rounded-xl overflow-hidden bg-white h-full flex flex-col">
 
                 {/* HEADER */}
                 <div className="p-4 flex-1 flex justify-between items-center bg-gradient-to-r from-indigo-600 to-blue-500">
@@ -880,49 +915,64 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} />
 
                 {/* NEXT BUTTON */}
-                <div className="p-4 border-t border-gray-200 flex gap-5 2xl:hidden">
-                    <Select
-                        allowClear
-                        showSearch
-                        placeholder="Select Token"
-                        optionFilterProp="label"
-                        style={{ width: "40%" }}
-                        options={skippedTokenListOptions}
-                        onChange={(value) => setSpecificSearchingToken(value)}
-                        value={specificSearchingToken}
+                <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
 
-                    />
+                    {/* TOKEN SELECT */}
+                    <div className="flex-1">
+                        <Select
+                            allowClear
+                            showSearch
+                            placeholder="Select Token"
+                            optionFilterProp="label"
+                            className="w-full"
+                            options={skippedTokenListOptions}
+                            onChange={(value) => setSpecificSearchingToken(value)}
+                            value={specificSearchingToken}
+                        />
+                    </div>
 
-                    <Button
-                        type="primary"
-                        block
-                        onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
-                        loading={isNextLoading}
-                        disabled={disableNext}
-                    >
-                        {specificSearchingToken ? "Specific Calling" : currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
-                    </Button>
+                    {/* MAIN ACTION BUTTON */}
+                    <div className="flex-1">
+                        <Button
+                            type="primary"
+                            block
+                            onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
+                            loading={isNextLoading}
+                            disabled={disableNext}
+                        >
+                            {specificSearchingToken
+                                ? "Specific Calling"
+                                : currentPatientsData?.RECEIPTNO
+                                    ? "Next Patient"
+                                    : "START"}
+                        </Button>
+                    </div>
+
+                    {/* SKIP BUTTON */}
+                    <div className="flex-1 hidden md:block">
+                        <Button
+                            block
+                            className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
+                            onClick={skipHandler}
+                            loading={isSkipLoading}
+                            disabled={disableSkip}
+                        >
+                            Skip Patient
+                        </Button>
+                    </div>
+
                 </div>
 
-                <div className="border-t p-4 border-gray-200  gap-4 flex  2xl:hidden ">
+                <div className="border-t p-4 border-gray-200 gap-4 flex md:hidden">
                     <Button
-                        type="primary"
                         block
+                        className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
                         onClick={skipHandler}
                         loading={isSkipLoading}
                         disabled={disableSkip}
                     >
                         Skip Patient
                     </Button>
-                    {/* <Button
-                    type="primary"
-                    block
-                    onClick={callSkipHandler}
-                    loading={isCallSkipLoading}
-                    disabled={isCallSkipLoading}
-                >
-                    Call Skip Patient
-                </Button> */}
                 </div>
 
             </div>

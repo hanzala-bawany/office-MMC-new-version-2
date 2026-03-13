@@ -23,12 +23,14 @@ const Screen5Display = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const patinetnDocotrsData = useSelector((state) => state?.doctorSlice?.patinetnDocotrData);
-  // console.log(patinetnDocotrsData, "<<<<<<<<<<");
   const voiceQueueRef = useRef([]);
   const isSpeakingRef = useRef(false);
   const audioRef = useRef(null);
   const currentSpeakingTokenRef = useRef(null);
+  const [highlightToken, setHighlightToken] = useState(null);
 
+
+  // console.log(patinetnDocotrsData, "<<<<<<<<<<");
 
 
   const logoutHandler = () => {
@@ -91,10 +93,10 @@ const Screen5Display = () => {
 
   const speakToken = async ({ token, doctor }) => {
 
-    console.log("speak tokenc chala");
+    // console.log("speak tokenc chala");
 
     const voices = await loadVoices();
-    console.log(voices, " <<<<<<<< voices");
+    // console.log(voices, " <<<<<<<< voices");
 
 
     const msg = new SpeechSynthesisUtterance(
@@ -104,19 +106,21 @@ const Screen5Display = () => {
 
     msg.voice = voices.find(v => v.lang.includes("hi")) || voices.find(v => v.lang.includes("en")) || voices[0];
     msg.rate = 0.9;
-    console.log(msg, " >>>>>> msg");
+    // console.log(msg, " >>>>>> msg");
+
 
     msg.onend = () => {
+      // console.log("oned bhi chala", isSpeakingRef.current);
       isSpeakingRef.current = false;
-      console.log("oned bhi chala", isSpeakingRef.current);
       currentSpeakingTokenRef.current = null; // remove highlight
+      setHighlightToken(null);
       playNextVoice();
     };
 
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(msg);
     // isSpeakingRef.current = false;
-    console.log("voice ebnd");
+    // console.log("voice ebnd");
 
   };
 
@@ -147,8 +151,15 @@ const Screen5Display = () => {
 
       if (!payload?.patientToken) return;
 
+      const token = payload?.patientToken;
+      setHighlightToken(token);
+
       voiceQueueRef?.current?.push({ token: payload?.patientToken?.replace("-", " "), doctor: payload?.doctorName?.replace("DR.", "") });
       playNextVoice();
+
+      // setTimeout(() => {
+      //   setHighlightToken(null);
+      // }, 5000);
 
     }
 
@@ -214,7 +225,7 @@ const Screen5Display = () => {
         {
           patinetnDocotrsData.length ?
             <div className={`${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${patinetnDocotrsData.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
-              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} />)}
+              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken === doc?.TOKENNO} />)}
             </div>
             :
             <div className='flex justify-center w-[70%]'>
