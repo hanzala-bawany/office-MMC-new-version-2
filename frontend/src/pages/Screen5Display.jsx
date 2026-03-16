@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 import { updatePatinetnDocotrsData } from '../reduxToolKit/doctorSlice';
 import ImageLoader from '../utills/ImageLoader';
 import { socket } from '../socket/socket';
-import VidioSlideShow from '../components/doctorDashboard/VidioSlideShow';
+import VidioSlideShow from '../components/screen5/VidioSlideShow';
 
 
 
@@ -25,7 +25,7 @@ const Screen5Display = () => {
   const patinetnDocotrsData = useSelector((state) => state?.doctorSlice?.patinetnDocotrData);
   const voiceQueueRef = useRef([]);
   const isSpeakingRef = useRef(false);
-  const audioRef = useRef(null);
+  const alertAudioRef = useRef(null);
   const currentSpeakingTokenRef = useRef(null);
   const [highlightToken, setHighlightToken] = useState(null);
 
@@ -54,6 +54,25 @@ const Screen5Display = () => {
     }
   }
 
+  const playAlert = () => {
+    return new Promise((resolve) => {
+
+      if (!alertAudioRef.current) {
+        resolve();
+        return;
+      }
+      console.log(alertAudioRef);
+      
+      alertAudioRef.current.currentTime = 0;
+
+      alertAudioRef.current.play();
+
+      alertAudioRef.current.onended = () => {
+        resolve();
+      };
+
+    });
+  };
 
   // const speakToken = ({ token, doctor }) => {
 
@@ -79,7 +98,6 @@ const Screen5Display = () => {
   //   console.log("speak voice ebnd");
   // };
 
-
   const loadVoices = () => {
     return new Promise(resolve => {
       let voices = speechSynthesis.getVoices();
@@ -94,47 +112,46 @@ const Screen5Display = () => {
   const speakToken = async ({ token, doctor }) => {
 
     // console.log("speak tokenc chala");
-
     const voices = await loadVoices();
     // console.log(voices, " <<<<<<<< voices");
 
-
     const msg = new SpeechSynthesisUtterance(
-      `Token ${token}, please proceed to doctor ${doctor}`
+      token === "System" ? "Voice service is ready." : `Token ${token}, please proceed to doctor ${doctor}`
     );
 
-
-    msg.voice = voices.find(v => v.lang.includes("hi")) || voices.find(v => v.lang.includes("en")) || voices[0];
+    msg.voice = voices.find(v => v?.lang?.includes("hi")) || voices?.find(v => v?.lang?.includes("en")) || voices[0];
     msg.rate = 0.9;
-    // console.log(msg, " >>>>>> msg");
 
 
     msg.onend = () => {
       // console.log("oned bhi chala", isSpeakingRef.current);
-      isSpeakingRef.current = false;
-      currentSpeakingTokenRef.current = null; // remove highlight
-      setHighlightToken(null);
+      isSpeakingRef.current = false;           // stop voice alert
+      currentSpeakingTokenRef.current = null;
+      setHighlightToken(null);  // remove highlight
       playNextVoice();
     };
 
-    window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
+    // console.log(msg, " >>>>>> msg");
     window.speechSynthesis.speak(msg);
     // isSpeakingRef.current = false;
     // console.log("voice ebnd");
 
   };
 
-  const playNextVoice = () => {
+  const playNextVoice = async () => {
 
-    console.log("isSpeakingRef.current >>>>> ", isSpeakingRef.current, " voiceQueueRef.current.length === 0 >>>> ", voiceQueueRef.current.length === 0);
+    // console.log("isSpeakingRef.current >>>>> ", isSpeakingRef.current, " voiceQueueRef.current.length === 0 >>>> ", voiceQueueRef.current.length === 0);
     if (isSpeakingRef.current || voiceQueueRef.current.length === 0) return;
 
     isSpeakingRef.current = true;
     const data = voiceQueueRef.current.shift();
 
-
+    await playAlert();
+    setHighlightToken(data?.token?.replace(" ", "-"));
     speakToken(data);
   };
+
 
 
 
@@ -150,9 +167,6 @@ const Screen5Display = () => {
       getPatientnDoctorInfo()
 
       if (!payload?.patientToken) return;
-
-      const token = payload?.patientToken;
-      setHighlightToken(token);
 
       voiceQueueRef?.current?.push({ token: payload?.patientToken?.replace("-", " "), doctor: payload?.doctorName?.replace("DR.", "") });
       playNextVoice();
@@ -171,6 +185,11 @@ const Screen5Display = () => {
 
   }, []);
 
+  useEffect(() => {
+    // alertAudioRef.current = new Audio("/buffer.mp3.wav");
+    alertAudioRef.current = new Audio("/buffer3.mp3.wav");
+  }, []);
+
 
 
 
@@ -186,7 +205,7 @@ const Screen5Display = () => {
       />
 
       {
-        // <button className='bg-amber-300' onClick={() => {
+        // <button className='bg-amber-300'  onClick={() => {
         //   voiceQueueRef.current.push({ token: "A-4", doctor: "hanzala bawany" });
         //   playNextVoice();
         // }}>
@@ -194,8 +213,10 @@ const Screen5Display = () => {
         // </button>
       }
 
-
-      <div className="flex absolute top-4 4xl:top-8 [@media(min-width:3200px)]:top-12 left-4 4xl:left-8 [@media(min-width:4200px)]:left-12 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
+      <div onClick={() => {
+        voiceQueueRef.current.push({ token: "System", doctor: "hanzala bawany" });
+        playNextVoice();
+      }} className="cursor-pointer flex absolute top-4 4xl:top-8 [@media(min-width:3200px)]:top-12 left-4 4xl:left-8 [@media(min-width:4200px)]:left-12 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
         <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-blue-500 " >
           <img src={logo} alt="logo" className="h-12 min-[2000px]:h-16 [@media(min-width:3000px)]:h-18  [@media(min-width:4400px)]:h-30 w-12 min-[2000px]:w-16 [@media(min-width:3000px)]:w-18 [@media(min-width:4400px)]:w-30 object-contain" />
         </div>

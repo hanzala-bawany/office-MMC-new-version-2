@@ -8,7 +8,7 @@ const PatientCard = ({ doc, isTwo, highlight }) => {
 
   return (
     <div className={` relative bg-white rounded-3xl shadow-xl border border-cyan-200 overflow-hidden hover:shadow-2xl transition-all duration-300 patientCardFont 
-     ${isTwo && "h-[40%] p-5 py-12"}  ${highlight ? "animate-pulse ring-2 ring-yellow-400 shadow-md shadow-yellow-400/40 scale-100 border-yellow-400" : ""}`}>
+     ${isTwo && "h-[40%] p-5 py-12"}  ${highlight ? "bg-yellow-50 animate-pulse  ring-2 ring-yellow-400 shadow-md shadow-yellow-400/40 scale-100 border-yellow-400" : ""}`}>
 
 
       {/* Left Gradient Strip */}

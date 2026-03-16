@@ -32,16 +32,18 @@ const MidSection = ({ patientsData, docPatientData }) => {
     const disableSkip = isSkipLoading || !hasCurrentPatient;
     const [selectedDepartment, setSelectedDepartment] = useState(null);
     const [selectedTest, setSelectedTest] = useState(null);
-    let patintsW8ing;
+    const [activeVoiceField, setActiveVoiceField] = useState(null);
+
+    // let patintsW8ing;
 
 
     // console.log(specificSearchingToken, "<<<<<<<  specificSearchingToken  ");
-    console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
-    console.log(patientsData, "<<<<<<<<<");
-    console.log(loginUserData, "<<<<<<<  loginUserData  ");
+    // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
+    // console.log(patientsData, "<<<<<<<<<");
+    // console.log(loginUserData, "<<<<<<<  loginUserData  ");
 
 
-
+    // Sample departments data - sirf UI dikhane ke liye
     const departments = [
         { id: "1", name: "General", type: "1" },
         { id: "2", name: "BIOCHEMISTRY", type: "2" },
@@ -139,11 +141,10 @@ const MidSection = ({ patientsData, docPatientData }) => {
         },
     ];
 
-
-    const pieData = [
-        { name: "Patients Remaining", uv: patientsData?.patientsRemaining, fill: "#60A5FA" },   // blue-400
-        { name: "Patients Checked", uv: patientsData?.patientsChecked, fill: "#A855F7" }, // purple-500
-    ];
+    // const pieData = [
+    //     { name: "Patients Remaining", uv: patientsData?.patientsRemaining, fill: "#60A5FA" },   // blue-400
+    //     { name: "Patients Checked", uv: patientsData?.patientsChecked, fill: "#A855F7" }, // purple-500
+    // ];
 
     const patientData = {
         name: "Ali Raza",
@@ -187,10 +188,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
 
 
-
     const nextHandler = async () => {
-
-
 
         try {
             setIsNextLoading(true)
@@ -293,41 +291,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
     }
 
-    // const callSkipHandler = async () => {
-
-    //     // if (!currentPatientsData) return;
-    //     // console.log(formData, ">>>>>>>>>>>>>");
-
-    //     try {
-    //         setIsCallSkipLoading(true)
-    //         const res = await axios.post(`${base_URL}/api/opd/doctor/patient-skipped-call`, {
-    //             doctorId: loginUserData?.doctorId,
-    //             receiptNo: null,
-    //             remarks: formData?.primaryComplain || null,
-    //             primaryDiagnosis: formData?.primaryDiagnosis || null,
-    //             medicalTests: formData?.medicalTests || null,
-    //             treatment: formData?.treatment || null
-    //         });
-    //         // console.log(res, "res of call Skip Handler by id");
-    //         await docPatientData()
-    //         if (patientsData?.patientsSkipped) {
-    //             toast.success(`Next Patient is Coming`)
-    //         }
-    //         else {
-    //             toast.info(`Patient Not yet`)
-    //         }
-
-    //     }
-    //     catch (err) {
-    //         console.log(err, "error in call Skip Handler");
-    //         toast.error(err?.message)
-    //     }
-    //     finally {
-    //         setIsCallSkipLoading(false);
-    //     }
-
-    // }
-
     const repeatCallingHandler = async () => {
 
         try {
@@ -337,13 +300,13 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 doctorName: loginUserData?.name,
                 patientToken: currentPatientsData?.TOKENNO,
             });
-            console.log(res, "res of repeat Calling Handler");
+            // console.log(res, "res of repeat Calling Handler");
 
             toast.success(`Repeat Calling`)
 
         }
         catch (err) {
-            console.log(err, "error in call Skip Handler");
+            console.log(err, "error in call Repeat Handler");
             toast.error(err?.message)
         }
         finally {
@@ -353,9 +316,16 @@ const MidSection = ({ patientsData, docPatientData }) => {
     }
 
     const formHandler = (key, value) => {
-        setFormData({ ...formData, [key]: value });
-    }
 
+        setFormData({ ...formData, [key]: value });
+
+        setActiveVoiceField(key)
+
+        setTimeout(() => {
+            setActiveVoiceField(null)
+        }, 1200)
+
+    }
 
 
 
@@ -369,10 +339,13 @@ const MidSection = ({ patientsData, docPatientData }) => {
     // console.log(patintsW8ing, "<<<<<<<<<<<");
 
 
+    // console.log(activeVoiceField, "<<<<<<<<<<<<<<<<<<<<<<<");
+
 
     return (
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6 mb-8 h-auto ">
+        // <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6 mb-8 h-auto ">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:gap-6 2xl:grid-cols-3 mb-8 h-auto">
 
             {/* Pie Chart */}
             {
@@ -442,7 +415,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             }
 
             {/* Lab management */}
-            <div className="order-3 xl:order-1 z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col min-h-[35vh]  overflow-hidden">
+            <div className="order-3 xl:order-1 z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col max-h-[55vh] 2xl:max-h-none 2xl:min-h-[35vh]  overflow-hidden">
 
                 {/* Header */}
                 <div className="flex-1 p-4 flex justify-between items-center rounded-xl border border-gray-300 xl:bg-gradient-to-r xl:from-indigo-600 xl:to-blue-500">
@@ -615,193 +588,228 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
             </div>
 
-            {/* Patient Vitals */}
-            <div className="order-1 xl:order-2 z-10 themeBoxShadow rounded-[12px] bg-white h-full flex flex-col justify-between transition-all duration-300 hover:shadow-lg">
+            <div className="z-10 rounded-t-[12px] order-1 xl:order-2 2xl:contents">
 
-                <div className="flex-1 p-4 flex items-center justify-between border-b border-gray-200">
+                {/* Patient Vitals */}
+                <div className="z-10 themeBoxShadow rounded-t-[12px] rounded-b-none 2xl:rounded-[12px] bg-white flex flex-col justify-between transition-all duration-300 hover:shadow-lg">
+                  
+                    <div className="flex-1 p-4 flex items-center justify-between border-b border-gray-200  bg-gradient-to-r from-indigo-600 to-blue-500 xl:bg-none xl:from-transparent xl:to-transparent">
+                        <h2 className="text-lg sm:text-xl font-semibold text-black md:text-white xl:text-black">
+                            Patient Vitals
+                        </h2>
 
-                    <h2 className="text-lg sm:text-xl font-semibold text-black">
-                        Patient Vitals
-                    </h2>
+                        <div className="flex items-center gap-6">
+                            {/* TOKEN */}
+                            <div
+                                className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full 
+                bg-blue-50 text-blue-600 border border-blue-200
+                md:bg-white/20 md:text-white md:border-white/30
+                xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200"
+                            >
+                                {currentPatientsData?.TOKENNO || "Not Yet"}
+                            </div>
 
-                    <div className="flex items-center gap-6">
+                            {/* REPEAT CALL BUTTON */}
+                            <Button
+                                size="middle"
+                                onClick={repeatCallingHandler}
+                                loading={isRepeatCallingHandler}
+                                disabled={!currentPatientsData}
+                                className="bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90
+                    md:bg-none md:bg-white/20 md:border-white/40
+                    xl:bg-gradient-to-r xl:from-indigo-500 xl:to-blue-500"
+                            >
+                                🔁 Repeat Call
+                            </Button>
+                        </div>
+                    </div>
 
-                        {/* TOKEN */}
-                        <div className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
-                            {currentPatientsData?.TOKENNO || "Not Yet"}
+                    {/* <div className="order-1 xl:order-2 z-10 themeBoxShadow rounded-[12px] bg-white h-full flex flex-col justify-between transition-all duration-300 hover:shadow-lg">
+
+                    <div className="flex-1 p-4 flex items-center justify-between border-b border-gray-200">
+
+                        <h2 className="text-lg sm:text-xl font-semibold text-black">
+                            Patient Vitals
+                        </h2>
+
+                        <div className="flex items-center gap-6">
+
+                       
+                            <div className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                                {currentPatientsData?.TOKENNO || "Not Yet"}
+                            </div>
+
+                           
+                            <Button
+                                size="middle"
+                                onClick={repeatCallingHandler}
+                                loading={isRepeatCallingHandler}
+                                disabled={!currentPatientsData}
+                                className="bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90"
+                            >
+                                🔁 Repeat Call
+                            </Button>
+
                         </div>
 
-                        {/* REPEAT CALL BUTTON */}
+                    </div> */}
+
+                    <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
+
+                        <div className="font-semibold  py-1 flex justify-between text-gray-600" >
+                            <p>
+                                <span className="font-semibold text-gray-800">Name :</span> {currentPatientsData?.PATIENTNAME || "Not Yet"}
+                            </p>
+                            <p>
+                                <span className="font-semibold text-gray-800">Age :</span> {currentPatientsData?.AGE || "Not Yet"}
+                            </p>
+                            <p>
+                                <span className="font-semibold text-gray-800">Gender :</span> {currentPatientsData?.GENDER || "Not Yet"}
+                            </p>
+                        </div>
+
+                        {
+                            <div className="mt-3 grid grid-cols-2  sm:grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
+
+                                {/* Blood Pressure */}
+                                <div className="flex flex-col p-3 rounded-lg border"
+                                    style={{ backgroundColor: "#FDF2F8", borderColor: "#EC4899" }}>
+
+                                    <span className="text-black font-semibold">Blood Pressure</span>
+
+                                    <div className="font-bold text-[#DB2777]">
+                                        {patientData?.CbloodPressure}
+                                    </div>
+
+                                    <div className="font-medium text-[#9D174D]">
+                                        {patientData?.LbloodPressure}
+                                    </div>
+                                </div>
+
+
+                                {/* Blood Sugar */}
+                                <div className="flex flex-col p-3 rounded-lg border"
+                                    style={{ backgroundColor: "#ECFDF5", borderColor: "#22C55E" }}>
+
+                                    <span className="text-black font-semibold">Blood Sugar</span>
+
+                                    <div className="font-bold text-green-700">
+                                        {patientData?.CbloodSugar}
+                                    </div>
+
+                                    <div className="font-medium text-green-800">
+                                        {patientData?.LbloodSugar}
+                                    </div>
+                                </div>
+
+
+                                {/* Weight */}
+                                <div className="flex flex-col p-3 rounded-lg border"
+                                    style={{ backgroundColor: "#DBEAFE", borderColor: "#2563EB" }}>
+
+                                    <span className="text-black font-semibold">Weight</span>
+
+                                    <div className="font-bold text-blue-700">
+                                        {patientData?.Cweight}
+                                    </div>
+
+                                    <div className="font-medium text-blue-800">
+                                        {patientData?.Lweight}
+                                    </div>
+                                </div>
+
+
+                                {/* Height */}
+                                <div className="flex flex-col p-3 rounded-lg border"
+                                    style={{ backgroundColor: "#F3F4F6", borderColor: "#4B5563" }}>
+
+                                    <span className="text-black font-semibold">Height</span>
+
+                                    <div className="font-bold text-gray-700">
+                                        {patientData?.Cheight}
+                                    </div>
+
+                                    <div className="font-medium text-gray-800">
+                                        {patientData?.Lheight}
+                                    </div>
+                                </div>
+
+
+                                {/* Temperature */}
+                                <div className="flex flex-col p-3 rounded-lg border"
+                                    style={{ backgroundColor: "#EDE9FE", borderColor: "#7C3AED" }}>
+
+                                    <span className="text-black font-semibold">Temp</span>
+
+                                    <div className="font-bold text-purple-700">
+                                        {patientData?.Ctemperature}
+                                    </div>
+
+                                    <div className="font-medium text-purple-800">
+                                        {patientData?.Ltemperature}
+                                    </div>
+                                </div>
+
+
+                                {/* Pulse */}
+                                <div className="flex flex-col p-3 rounded-lg border"
+                                    style={{ backgroundColor: "#FEF9C3", borderColor: "#CA8A04" }}>
+
+                                    <span className="text-black font-semibold">Pulse</span>
+
+                                    <div className="font-bold text-yellow-700">
+                                        {patientData?.Cpulse}
+                                    </div>
+
+                                    <div className="font-medium text-yellow-800">
+                                        {patientData?.Lpulse}
+                                    </div>
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                    {/* NEXT BUTTON */}
+                    <div className="p-4 border-t border-gray-200 hidden 2xl:flex gap-5">
+                        <Select
+                            allowClear
+                            showSearch
+                            placeholder="Select Token"
+                            optionFilterProp="label"
+                            style={{ width: "40%" }}
+                            options={skippedTokenListOptions}
+                            onChange={(value) => setSpecificSearchingToken(value)}
+                            value={specificSearchingToken}
+
+                        />
+
                         <Button
-                            size="middle"
-                            onClick={repeatCallingHandler}
-                            loading={isRepeatCallingHandler}
-                            disabled={!currentPatientsData}
-                            className="bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90"
+                            type="primary"
+                            block
+                            onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
+                            loading={isNextLoading}
+                            // disabled={disableNext || !patintsW8ing}
+                            disabled={disableNext}
                         >
-                            🔁 Repeat Call
+                            {specificSearchingToken ? "Specific Calling" : currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
+                        </Button>
+                    </div>
+
+                    {/* Skip Buttons */}
+                    <div className="p-4 border-t  border-gray-200 hidden 2xl:flex gap-3">
+                        <Button
+                            block
+                            className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
+                            onClick={skipHandler}
+                            loading={isSkipLoading}
+                            disabled={disableSkip}
+                        >
+                            Skip Patient
                         </Button>
 
-                    </div>
-
-                </div>
-
-                <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
-
-                    <div className="font-semibold  py-1 flex justify-between text-gray-600" >
-                        <p>
-                            <span className="font-semibold text-gray-800">Name :</span> {currentPatientsData?.PATIENTNAME || "Not Yet"}
-                        </p>
-                        <p>
-                            <span className="font-semibold text-gray-800">Age :</span> {currentPatientsData?.AGE || "Not Yet"}
-                        </p>
-                        <p>
-                            <span className="font-semibold text-gray-800">Gender :</span> {currentPatientsData?.GENDER || "Not Yet"}
-                        </p>
-                    </div>
-
-                    {
-                        <div className="mt-3 grid grid-cols-2  sm:grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
-
-                            {/* Blood Pressure */}
-                            <div className="flex flex-col p-3 rounded-lg border"
-                                style={{ backgroundColor: "#FDF2F8", borderColor: "#EC4899" }}>
-
-                                <span className="text-black font-semibold">Blood Pressure</span>
-
-                                <div className="font-bold text-[#DB2777]">
-                                    {patientData?.CbloodPressure}
-                                </div>
-
-                                <div className="font-medium text-[#9D174D]">
-                                    {patientData?.LbloodPressure}
-                                </div>
-                            </div>
-
-
-                            {/* Blood Sugar */}
-                            <div className="flex flex-col p-3 rounded-lg border"
-                                style={{ backgroundColor: "#ECFDF5", borderColor: "#22C55E" }}>
-
-                                <span className="text-black font-semibold">Blood Sugar</span>
-
-                                <div className="font-bold text-green-700">
-                                    {patientData?.CbloodSugar}
-                                </div>
-
-                                <div className="font-medium text-green-800">
-                                    {patientData?.LbloodSugar}
-                                </div>
-                            </div>
-
-
-                            {/* Weight */}
-                            <div className="flex flex-col p-3 rounded-lg border"
-                                style={{ backgroundColor: "#DBEAFE", borderColor: "#2563EB" }}>
-
-                                <span className="text-black font-semibold">Weight</span>
-
-                                <div className="font-bold text-blue-700">
-                                    {patientData?.Cweight}
-                                </div>
-
-                                <div className="font-medium text-blue-800">
-                                    {patientData?.Lweight}
-                                </div>
-                            </div>
-
-
-                            {/* Height */}
-                            <div className="flex flex-col p-3 rounded-lg border"
-                                style={{ backgroundColor: "#F3F4F6", borderColor: "#4B5563" }}>
-
-                                <span className="text-black font-semibold">Height</span>
-
-                                <div className="font-bold text-gray-700">
-                                    {patientData?.Cheight}
-                                </div>
-
-                                <div className="font-medium text-gray-800">
-                                    {patientData?.Lheight}
-                                </div>
-                            </div>
-
-
-                            {/* Temperature */}
-                            <div className="flex flex-col p-3 rounded-lg border"
-                                style={{ backgroundColor: "#EDE9FE", borderColor: "#7C3AED" }}>
-
-                                <span className="text-black font-semibold">Temp</span>
-
-                                <div className="font-bold text-purple-700">
-                                    {patientData?.Ctemperature}
-                                </div>
-
-                                <div className="font-medium text-purple-800">
-                                    {patientData?.Ltemperature}
-                                </div>
-                            </div>
-
-
-                            {/* Pulse */}
-                            <div className="flex flex-col p-3 rounded-lg border"
-                                style={{ backgroundColor: "#FEF9C3", borderColor: "#CA8A04" }}>
-
-                                <span className="text-black font-semibold">Pulse</span>
-
-                                <div className="font-bold text-yellow-700">
-                                    {patientData?.Cpulse}
-                                </div>
-
-                                <div className="font-medium text-yellow-800">
-                                    {patientData?.Lpulse}
-                                </div>
-                            </div>
-
-                        </div>
-                    }
-
-                </div>
-
-                {/* NEXT BUTTON */}
-                <div className="p-4 border-t border-gray-200 hidden 2xl:flex gap-5">
-                    <Select
-                        allowClear
-                        showSearch
-                        placeholder="Select Token"
-                        optionFilterProp="label"
-                        style={{ width: "40%" }}
-                        options={skippedTokenListOptions}
-                        onChange={(value) => setSpecificSearchingToken(value)}
-                        value={specificSearchingToken}
-
-                    />
-
-                    <Button
-                        type="primary"
-                        block
-                        onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
-                        loading={isNextLoading}
-                        // disabled={disableNext || !patintsW8ing}
-                        disabled={disableNext}
-                    >
-                        {specificSearchingToken ? "Specific Calling" : currentPatientsData?.RECEIPTNO ? "Next Patient" : "START"}
-                    </Button>
-                </div>
-
-                {/* Skip Buttons */}
-                <div className="p-4 border-t  border-gray-200 hidden 2xl:flex gap-3">
-                    <Button
-                        block
-                        className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
-                        onClick={skipHandler}
-                        loading={isSkipLoading}
-                        disabled={disableSkip}
-                    >
-                        Skip Patient
-                    </Button>
-
-                    {/* <Button
+                        {/* <Button
                         type="primary"
                         block
                         size="large"
@@ -816,140 +824,188 @@ const MidSection = ({ patientsData, docPatientData }) => {
                     >
                         Call Skip Patient
                     </Button> */}
-                </div>
-
-            </div>
-
-            {/* Add Patient Detail */}
-            <div className="order-2 xl:order-3 z-10 col-span-1 lg:col-span-2 2xl:col-span-1 themeBoxShadow border-none outline-none rounded-xl overflow-hidden bg-white h-full flex flex-col">
-
-                {/* HEADER */}
-                <div className="p-4 flex-1 flex justify-between items-center bg-gradient-to-r from-indigo-600 to-blue-500">
-
-                    <div>
-                        <h2 className="text-lg sm:text-xl font-semibold text-white">
-                            Add Patient Detail
-                        </h2>
-                        <p className="text-xs text-blue-100">
-                            Assign & Monitor
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
-                        <span className="relative flex h-2 w-2">
-                            <span className=" absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
-                        </span>
-                        <span className="text-xs text-white"> OPD Entry</span>
-                    </div>
-                </div>
-
-                {/* BODY */}
-                <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
-
-                    {/* PRIMARY DIAGNOSIS */}
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-gray-500">
-                            Primary Diagnosis
-                        </label>
-                        <Select
-                            // mode="multiple"
-                            mode="tags"
-                            allowClear
-                            showSearch
-                            placeholder="Select primary diagnosis"
-                            optionFilterProp="label"
-                            style={{ width: "100%" }}
-                            options={diagnosisOptions}
-                            onChange={(value) => formHandler("primaryDiagnosis", value)}
-                            value={formData.primaryDiagnosis}
-                        />
-                    </div>
-
-                    {/* MEDICAL TESTS */}
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-gray-500">
-                            Recommended Tests
-                        </label>
-                        <Select
-                            // mode="multiple"
-                            mode="tags"
-                            allowClear
-                            placeholder="Select medical tests"
-                            style={{ width: "100%" }}
-                            options={testOptions}
-                            onChange={(value) => formHandler("medicalTests", value)}
-                            value={formData.medicalTests}
-                        />
-                    </div>
-
-                    {/* TREATMENT */}
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-gray-500">
-                            Treatment / Medication
-                        </label>
-                        <Input.TextArea
-                            rows={3}
-                            placeholder="Prescribed medicines or treatment"
-                            onChange={(e) => formHandler("treatment", e.target.value)}
-                            value={formData.treatment}
-
-                        />
-                    </div>
-
-                    {/* PRIMARY COMPLAINT */}
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm font-medium text-gray-500">
-                            Primary Complain
-                        </label>
-                        <Input.TextArea
-                            rows={3}
-                            placeholder="Patient complain / symptoms"
-                            onChange={(e) => formHandler("primaryComplain", e.target.value)}
-                            value={formData.primaryComplain}
-                        />
                     </div>
 
                 </div>
 
-                <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} />
+                {/* Add Patient Detail */}
+                <div className="z-10 themeBoxShadow border-none outline-none rounded-b-[12px] rounded-t-none 2xl:rounded-xl overflow-hidden bg-white flex flex-col">
 
-                {/* NEXT BUTTON */}
-                <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
+                    <div className="p-4 flex-1 flex justify-between items-center bg-gradient-to-r xl:from-indigo-600 xl:to-blue-500">
+                        <div>
+                            <h2
+                                className="text-lg sm:text-xl font-semibold text-black md:text-black xl:text-white"
+                            >
+                                Add Patient Detail
+                            </h2>
+                            <p
+                                className="text-xs text-gray-400 md:text-gray-400 xl:text-blue-100"
+                            >
+                                Assign & Monitor
+                            </p>
+                        </div>
 
-                    {/* TOKEN SELECT */}
-                    <div className="flex-1">
-                        <Select
-                            allowClear
-                            showSearch
-                            placeholder="Select Token"
-                            optionFilterProp="label"
-                            className="w-full"
-                            options={skippedTokenListOptions}
-                            onChange={(value) => setSpecificSearchingToken(value)}
-                            value={specificSearchingToken}
-                        />
-                    </div>
-
-                    {/* MAIN ACTION BUTTON */}
-                    <div className="flex-1">
-                        <Button
-                            type="primary"
-                            block
-                            onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
-                            loading={isNextLoading}
-                            disabled={disableNext}
+                        <div
+                            className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full md:bg-blue-50 md:border md:border-blue-200 xl:bg-white/20 xl:border-0"
                         >
-                            {specificSearchingToken
-                                ? "Specific Calling"
-                                : currentPatientsData?.RECEIPTNO
-                                    ? "Next Patient"
-                                    : "START"}
-                        </Button>
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                            </span>
+                            <span
+                                className="text-xs text-blue-600 md:text-blue-600 xl:text-white"
+                            >
+                                OPD Entry
+                            </span>
+                        </div>
+
                     </div>
 
-                    {/* SKIP BUTTON */}
-                    <div className="flex-1 hidden md:block">
+                    {/* <div className="order-2 xl:order-3 z-10 col-span-1 lg:col-span-2 2xl:col-span-1 themeBoxShadow border-none outline-none rounded-xl overflow-hidden bg-white h-full flex flex-col"> */}
+
+                    {/* HEADER */}
+                    {/* <div className="p-4 flex-1 flex justify-between items-center bg-gradient-to-r from-indigo-600 to-blue-500">
+
+                        <div>
+                            <h2 className="text-lg sm:text-xl font-semibold text-white">
+                                Add Patient Detail
+                            </h2>
+                            <p className="text-xs text-blue-100">
+                                Assign & Monitor
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
+                            <span className="relative flex h-2 w-2">
+                                <span className=" absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                            </span>
+                            <span className="text-xs text-white"> OPD Entry</span>
+                        </div>
+                    </div> */}
+
+                    {/* BODY */}
+                    <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
+
+                        {/* PRIMARY DIAGNOSIS */}
+                        <div className="flex flex-col gap-1">
+                            <label className="text-sm font-medium text-gray-500">
+                                Primary Diagnosis
+                            </label>
+                            <Select
+                                // mode="multiple"
+                                mode="tags"
+                                allowClear
+                                showSearch
+                                placeholder="Select primary diagnosis"
+                                optionFilterProp="label"
+                                style={{ width: "100%" }}
+                                options={diagnosisOptions}
+                                onChange={(value) => formHandler("primaryDiagnosis", value)}
+                                value={formData.primaryDiagnosis}
+                            />
+                        </div>
+
+                        {/* MEDICAL TESTS */}
+                        <div className="flex flex-col gap-1">
+                            <label className="text-sm font-medium text-gray-500">
+                                Recommended Tests
+                            </label>
+                            <Select
+                                // mode="multiple"
+                                mode="tags"
+                                allowClear
+                                placeholder="Select medical tests"
+                                style={{ width: "100%" }}
+                                options={testOptions}
+                                onChange={(value) => formHandler("medicalTests", value)}
+                                value={formData.medicalTests}
+                            />
+                        </div>
+
+                        {/* TREATMENT */}
+                        <div className="flex flex-col gap-1">
+                            <label className={`text-sm font-medium  ${activeVoiceField === "treatment" ? "text-blue-500" : "text-gray-500"}`}>
+                                Treatment / Medication
+                            </label>
+                            <Input.TextArea
+                                rows={3}
+                                placeholder="Prescribed medicines or treatment"
+                                onChange={(e) => formHandler("treatment", e.target.value)}
+                                value={formData.treatment}
+                                className={activeVoiceField === "treatment" ? "!border-blue-500 !text-blue-500" : ""}
+
+                            />
+                        </div>
+
+                        {/* PRIMARY COMPLAINT */}
+                        <div className="flex flex-col gap-1">
+                            <label className={`text-sm font-medium ${activeVoiceField === "primaryComplain" ? "text-blue-500" : "text-gray-500"}`}>
+                                Primary Complain
+                            </label>
+                            <Input.TextArea
+                                rows={3}
+                                placeholder="Patient complain / symptoms"
+                                onChange={(e) => formHandler("primaryComplain", e.target.value)}
+                                value={formData.primaryComplain}
+                                className={activeVoiceField === "primaryComplain" ? "!border-blue-500 !text-blue-500" : ""}
+                            />
+                        </div>
+
+                    </div>
+
+                    <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} />
+
+                    {/* NEXT BUTTON */}
+                    <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
+
+                        {/* TOKEN SELECT */}
+                        <div className="flex-1">
+                            <Select
+                                allowClear
+                                showSearch
+                                placeholder="Select Token"
+                                optionFilterProp="label"
+                                className="w-full"
+                                options={skippedTokenListOptions}
+                                onChange={(value) => setSpecificSearchingToken(value)}
+                                value={specificSearchingToken}
+                            />
+                        </div>
+
+                        {/* MAIN ACTION BUTTON */}
+                        <div className="flex-1">
+                            <Button
+                                type="primary"
+                                block
+                                onClick={specificSearchingToken ? specificCallingHandler : nextHandler}
+                                loading={isNextLoading}
+                                disabled={disableNext}
+                            >
+                                {specificSearchingToken
+                                    ? "Specific Calling"
+                                    : currentPatientsData?.RECEIPTNO
+                                        ? "Next Patient"
+                                        : "START"}
+                            </Button>
+                        </div>
+
+                        {/* SKIP BUTTON */}
+                        <div className="flex-1 hidden md:block">
+                            <Button
+                                block
+                                className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
+                                onClick={skipHandler}
+                                loading={isSkipLoading}
+                                disabled={disableSkip}
+                            >
+                                Skip Patient
+                            </Button>
+                        </div>
+
+                    </div>
+
+                    <div className="border-t p-4 border-gray-200 gap-4 flex md:hidden">
                         <Button
                             block
                             className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
@@ -961,18 +1017,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         </Button>
                     </div>
 
-                </div>
-
-                <div className="border-t p-4 border-gray-200 gap-4 flex md:hidden">
-                    <Button
-                        block
-                        className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
-                        onClick={skipHandler}
-                        loading={isSkipLoading}
-                        disabled={disableSkip}
-                    >
-                        Skip Patient
-                    </Button>
                 </div>
 
             </div>
