@@ -8,7 +8,7 @@ const unifiedLogin = async (req, res) => {
   if (!username || !password) {
     return res.status(400).json({
       success: false,
-      message: "Username and password are required"
+      message: "Username and password are required",
     });
   }
 
@@ -35,29 +35,38 @@ const unifiedLogin = async (req, res) => {
         username,
         password,
         status: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        message: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 200 },
-        userrole: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-      }
+        message: {
+          dir: oracledb.BIND_OUT,
+          type: oracledb.STRING,
+          maxSize: 200,
+        },
+        userrole: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+      },
     );
 
     const { status, message, userrole } = userResult.outBinds;
 
-    // ✅ Admin / Screen success
+    //  Admin / Screen success
     if (status === 1) {
-      const role =
-        userrole === 1 ? "admin" : "screen";
+      let role = "";
 
-      const token = jwt.sign(
-        { username, role },
-        process.env.JWT_SECRET,
-        { expiresIn: "1d" }
-      );
+      if (userrole === 1) {
+        role = "admin";
+      } else if (userrole === 2) {
+        role = "medical_assistant";
+      } else {
+        role = "screen";
+      }
+
+      const token = jwt.sign({ username, role }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+      });
 
       return res.status(200).json({
         success: true,
         message,
         role,
-        token
+        token,
       });
     }
 
@@ -75,11 +84,11 @@ const unifiedLogin = async (req, res) => {
       {
         username,
         password,
-        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
       },
       {
-        outFormat: oracledb.OUT_FORMAT_OBJECT
-      }
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+      },
     );
 
     const rs = doctorResult.outBinds.cursor;
@@ -97,7 +106,7 @@ const unifiedLogin = async (req, res) => {
           faculty: doctor.FACULTY,
         },
         process.env.JWT_SECRET,
-        { expiresIn: "1d" }
+        { expiresIn: "1d" },
       );
 
       return res.status(200).json({
@@ -107,22 +116,21 @@ const unifiedLogin = async (req, res) => {
         doctorId: doctor.ID,
         doctorName: doctor.NAME,
         faculty: doctor.FACULTY,
-        token
+        token,
       });
     }
 
     // ❌ Both failed
     return res.status(401).json({
       success: false,
-      message: "Invalid username or password"
+      message: "Invalid username or password",
     });
-
   } catch (err) {
     console.error("Unified Login Error:", err);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
-      error: err.message
+      error: err.message,
     });
   } finally {
     if (connection) {
