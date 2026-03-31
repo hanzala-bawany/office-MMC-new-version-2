@@ -246,6 +246,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
   try {
     const { doctorId } = req.params;
     const { status } = req.query;
+    const statusFilter = status ? Number(status) : 2;
 
     const pool = await poolPromise;
     connection = await pool.getConnection();
@@ -254,82 +255,83 @@ const getDoctorPatientsWithStats = async (req, res) => {
       `
       BEGIN
         get_doctor_patients_with_stats(
-          p_doc_id      => :doc_id,
-          p_status_filter => :status_filter,
-          p_today_total => :today_total,
-          p_checked     => :checked,
-          p_remaining   => :remaining,
-          p_skipped     => :skipped,
-          p_cancel      => :canceled,
-          retval         => :cursor1,
-          retval1        => :cursor2,
-          retval2        => :cursor3,
+          p_doc_id         => :doc_id,
+          p_status_filter  => :status_filter,
+          p_today_total    => :today_total,
+          p_checked        => :checked,
+          p_remaining      => :remaining,
+          p_skipped        => :skipped,
+          p_cancel         => :canceled,
+          retval           => :cursor1,
+          retval1          => :cursor2,
+          retval2          => :cursor3,
           p_skipped_tokens => :cursor4,
-          retval3       => :cursor5 
+          retval3          => :cursor5 
         );
       END;
       `,
       {
         doc_id: doctorId,
-        status_filter: status ? Number(status) : 2,
+        status_filter: statusFilter,
         today_total: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        checked: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        remaining: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        skipped: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        canceled: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-
+        checked:     { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        remaining:   { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        skipped:     { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        canceled:    { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         cursor1: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor2: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor4: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor5: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
-        
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
-    // ===== READ CURSORS =====
-    const rs1 = result.outBinds.cursor1; // patients
-    const rs2 = result.outBinds.cursor2; // diagnosis
-    const rs3 = result.outBinds.cursor3; // tests
+    const rs1 = result.outBinds.cursor1;
+    const rs2 = result.outBinds.cursor2;
+    const rs3 = result.outBinds.cursor3;
     const rs4 = result.outBinds.cursor4;
     const rs5 = result.outBinds.cursor5;
 
     const patients = await rs1.getRows();
-    const diagnosisList = await rs2.getRows();
-    const testList = await rs3.getRows();
-    const skippedTokens = await rs4.getRows();
-    const patientVitals = await rs5.getRows();
-    
+
+    //  Sirf status 2 pe
+    let diagnosisList, testList, skippedTokens, patientVitals;
+    if (statusFilter === 2) {
+      diagnosisList  = await rs2.getRows();
+      testList       = await rs3.getRows();
+      skippedTokens  = await rs4.getRows();
+      patientVitals  = await rs5.getRows();
+    }
+
     await rs1.close();
     await rs2.close();
     await rs3.close();
     await rs4.close();
     await rs5.close();
 
-    res.status(200).json({
-      status: 200,
-      data: {
-        todayAppointments: result.outBinds.today_total,
-        patientsChecked: result.outBinds.checked,
-        patientsRemaining: result.outBinds.remaining,
-        patientsSkipped: result.outBinds.skipped,
-        patientsCanceled: result.outBinds.canceled,
-        patients,
-        diagnosisList,
-        testList,
-        skippedTokenList: skippedTokens,
-        patientVitals
-      }
-    });
+    //  Response conditionally build
+    const responseData = {
+      todayAppointments:  result.outBinds.today_total,
+      patientsChecked:    result.outBinds.checked,
+      patientsRemaining:  result.outBinds.remaining,
+      patientsSkipped:    result.outBinds.skipped,
+      patientsCanceled:   result.outBinds.canceled,
+      patients,
+    };
+
+    if (statusFilter === 2) {
+      responseData.diagnosisList     = diagnosisList;
+      responseData.testList          = testList;
+      responseData.skippedTokenList  = skippedTokens;
+      responseData.patientVitals     = patientVitals;
+    }
+
+    res.status(200).json({ status: 200, data: responseData });
 
   } catch (err) {
     console.error("getDoctorPatientsWithStats error:", err);
-    res.status(500).json({
-      status: 500,
-      message: "Internal Server Error",
-      error: err.message
-    });
+    res.status(500).json({ status: 500, message: "Internal Server Error", error: err.message });
   } finally {
     if (connection) await connection.close();
   }
