@@ -245,6 +245,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
   let connection;
   try {
     const { doctorId } = req.params;
+    const { status } = req.query;
 
     const pool = await poolPromise;
     connection = await pool.getConnection();
@@ -254,6 +255,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
       BEGIN
         get_doctor_patients_with_stats(
           p_doc_id      => :doc_id,
+          p_status_filter => :status_filter,
           p_today_total => :today_total,
           p_checked     => :checked,
           p_remaining   => :remaining,
@@ -262,12 +264,14 @@ const getDoctorPatientsWithStats = async (req, res) => {
           retval         => :cursor1,
           retval1        => :cursor2,
           retval2        => :cursor3,
-          p_skipped_tokens => :cursor4
+          p_skipped_tokens => :cursor4,
+          retval3       => :cursor5 
         );
       END;
       `,
       {
         doc_id: doctorId,
+        status_filter: status ? Number(status) : 2,
         today_total: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         checked: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         remaining: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
@@ -277,7 +281,9 @@ const getDoctorPatientsWithStats = async (req, res) => {
         cursor1: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor2: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-        cursor4: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+        cursor4: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+        cursor5: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+        
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
@@ -287,17 +293,19 @@ const getDoctorPatientsWithStats = async (req, res) => {
     const rs2 = result.outBinds.cursor2; // diagnosis
     const rs3 = result.outBinds.cursor3; // tests
     const rs4 = result.outBinds.cursor4;
-
+    const rs5 = result.outBinds.cursor5;
 
     const patients = await rs1.getRows();
     const diagnosisList = await rs2.getRows();
     const testList = await rs3.getRows();
     const skippedTokens = await rs4.getRows();
-
+    const patientVitals = await rs5.getRows();
+    
     await rs1.close();
     await rs2.close();
     await rs3.close();
     await rs4.close();
+    await rs5.close();
 
     res.status(200).json({
       status: 200,
@@ -310,7 +318,8 @@ const getDoctorPatientsWithStats = async (req, res) => {
         patients,
         diagnosisList,
         testList,
-        skippedTokenList: skippedTokens
+        skippedTokenList: skippedTokens,
+        patientVitals
       }
     });
 
@@ -841,8 +850,156 @@ const repeatCallPatient = async (req, res) => {
 };
 
 
+// ---------  Active Consultants api -------------
+
+const getActiveConsultants = async (req, res) => {
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `
+      BEGIN
+        get_active_consultants(
+          :cursor
+        );
+      END;
+      `,
+      {
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+      },
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT
+      }
+    );
+
+    // ===== READ CURSOR =====
+    const resultSet = result.outBinds.cursor;
+    const rows = await resultSet.getRows();
+    await resultSet.close();
+
+    res.status(200).json({
+      status: 200,
+      count: rows.length,
+      data: rows
+    });
+
+  } catch (err) {
+    console.error("getActiveConsultants error:", err);
+
+    res.status(500).json({
+      status: 500,
+      message: "Failed to fetch consultants",
+      error: err.message
+    });
+
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Connection close error:", err);
+      }
+    }
+  }
+};
+
+
+
+
+
+// ------- ADD PATIENT VITALS API --------------------
+const addPatientVitals = async (req, res) => {
+  let connection;
+
+  try {
+    const {
+      receiptNo,
+      bloodPressure,
+      bloodSugar,
+      weight,
+      height,
+      temperature,
+      pulse,
+      createdBy
+    } = req.body;
+
+    // ================= NORMALIZE STRINGS =================
+    const normalize = (val) => (val && val.trim() !== "" ? val.trim() : null);
+
+    const p_receiptno = normalize(receiptNo);
+    const p_blood_pressure = normalize(bloodPressure);
+    const p_blood_sugar = normalize(bloodSugar);
+    const p_weight = normalize(weight);
+    const p_height = normalize(height);
+    const p_temperature = normalize(temperature);
+    const p_pulse = normalize(pulse);
+    const p_created_by = normalize(createdBy);
+
+    if (!p_receiptno) {
+      return res.status(400).json({
+        success: false,
+        message: "receiptNo is required"
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // ================= CALL PROCEDURE =================
+    await connection.execute(
+      `
+      BEGIN
+        add_patient_vitals(
+          p_receiptno      => :receiptNo,
+          p_blood_pressure => :bloodPressure,
+          p_blood_sugar    => :bloodSugar,
+          p_weight         => :weight,
+          p_height         => :height,
+          p_temperature    => :temperature,
+          p_pulse          => :pulse,
+          p_created_by     => :createdBy
+        );
+      END;
+      `,
+      {
+        receiptNo: p_receiptno,
+        bloodPressure: p_blood_pressure,
+        bloodSugar: p_blood_sugar,
+        weight: p_weight,
+        height: p_height,
+        temperature: p_temperature,
+        pulse: p_pulse,
+        createdBy: p_created_by
+      },
+      {
+        autoCommit: true
+      }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Patient vitals added successfully"
+    });
+
+  } catch (err) {
+    console.error("addPatientVitals error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add patient vitals",
+      error: err.message
+    });
+
+  } finally {
+    if (connection) {
+      try { await connection.close(); } catch (e) { console.error("Connection close error:", e); }
+    }
+  }
+};
+
 
 module.exports = {
-  getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, cancelAllDoctorPatients, getDoctorNextPatientQueue, getDoctorNextPatientSkip, doctorCallTokenByNumber , repeatCallPatient
+  getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, cancelAllDoctorPatients, getDoctorNextPatientQueue, getDoctorNextPatientSkip, doctorCallTokenByNumber , repeatCallPatient,getActiveConsultants,addPatientVitals
 };
-1
