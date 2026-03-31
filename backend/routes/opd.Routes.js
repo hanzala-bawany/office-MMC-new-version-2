@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 
-const {repeatCallPatient, getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, getDoctorNextPatientSkip, getDoctorNextPatientQueue, cancelAllDoctorPatients , doctorCallTokenByNumber } = require("../controllers/opd.controller");
+const {repeatCallPatient, getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, getDoctorNextPatientSkip, getDoctorNextPatientQueue, cancelAllDoctorPatients , doctorCallTokenByNumber,getActiveConsultants,addPatientVitals } = require("../controllers/opd.controller");
 
 router.get("/patients", getTodayDoctorPatients);
 router.get("/doctor-patients/:doctorId", getDoctorPatientsWithStats);
@@ -13,5 +13,7 @@ router.post("/doctor/patient-cancel-all", cancelAllDoctorPatients);
 router.post("/doctor/patient-specific-call", doctorCallTokenByNumber);
 router.post("/doctor/patient-specific-call", doctorCallTokenByNumber);
 router.post("/doctor/patient-repeat-call", repeatCallPatient);
+router.get("/consultants/active", getActiveConsultants);
+router.post("/doctor/patient-vitals/add", addPatientVitals);
 
 module.exports = router;
