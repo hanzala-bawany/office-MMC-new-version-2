@@ -6,14 +6,17 @@ import { base_URL } from "../../utills/baseUrl";
 import { memo, useState } from "react";
 import { toast } from "react-toastify";
 import GetVoice from "./GetVoice";
+import AddVitalsModal from "./AddVitalsModal";
+import VitalCard from "./VitalCard";
 
 const MidSection = ({ patientsData, docPatientData }) => {
+
     const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
     const currentPatientsData = patientsData?.patients?.[0];
+    const currentPatientsVitals = patientsData?.patientVitals?.[0];
     const [isNextLoading, setIsNextLoading] = useState(false);
     const [isSkipLoading, setIsSkipLoading] = useState(false);
     const [isRepeatCallingHandler, setRepeatCallingHandler] = useState(false);
-    // const [isCallSkipLoading, setIsCallSkipLoading] = useState(false);
     const [resetTrigger, setResetTrigger] = useState(false);
     const [specificSearchingToken, setSpecificSearchingToken] = useState(null);
     const [formData, setFormData] = useState({
@@ -22,7 +25,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
         treatment: "",
         primaryComplain: "",
     });
-    let patientToken = Number( specificSearchingToken?.split(" ")[0]?.split("-")[1], );
+    let patientToken = Number(specificSearchingToken?.split(" ")[0]?.split("-")[1],);
     const hasAppointments = patientsData?.todayAppointments > 0;
     const hasCurrentPatient = !!currentPatientsData?.RECEIPTNO;
     const allPatientsDone = patientsData?.todayAppointments === patientsData?.patientsChecked + patientsData?.patientsSkipped;
@@ -31,6 +34,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
     const [selectedDepartment, setSelectedDepartment] = useState(null);
     const [selectedTest, setSelectedTest] = useState(null);
     const [activeVoiceField, setActiveVoiceField] = useState(null);
+    const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
 
     // let patintsW8ing;
 
@@ -38,6 +42,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
     // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
     // console.log(patientsData, "<<<<<<<<<");
     // console.log(loginUserData, "<<<<<<<  loginUserData  ");
+    // console.log(currentPatientsVitals, "<<<<<<<  currentPatientsVitals  ");
 
     // Sample departments data - sirf UI dikhane ke liye
     const departments = [
@@ -137,6 +142,138 @@ const MidSection = ({ patientsData, docPatientData }) => {
         },
     ];
 
+    // const VITALS_CONFIG = [
+    //     {
+    //         currentKey: "CBLOOD_PRESSURE",
+    //         formKey: "bloodPressure",
+    //         lastKey: "LBLOOD_PRESSURE",
+    //         label: "Blood Pressure",
+    //         bgColor: "#FDF2F8",
+    //         borderColor: "#EC4899",
+    //         textColor: "#DB2777",
+    //         subTextColor: "#9D174D",
+    //     },
+    //     {
+    //         currentKey: "CBLOOD_SUGAR",
+    //         formKey: "bloodSugar",
+    //         lastKey: "LBLOOD_SUGAR",
+    //         label: "Blood Sugar",
+    //         bgColor: "#ECFDF5",
+    //         borderColor: "#22C55E",
+    //         textColor: "#15803D",
+    //         subTextColor: "#166534",
+    //     },
+    //     {
+    //         currentKey: "CWEIGHT",
+    //         formKey: "weight",
+    //         lastKey: "LWEIGHT",
+    //         label: "Weight",
+    //         bgColor: "#DBEAFE",
+    //         borderColor: "#2563EB",
+    //         textColor: "#1D4ED8",
+    //         subTextColor: "#1E40AF",
+    //     },
+    //     {
+    //         currentKey: "CHEIGHT",
+    //         formKey: "height",
+    //         lastKey: "LHEIGHT",
+    //         label: "Height",
+    //         bgColor: "#F3F4F6",
+    //         borderColor: "#4B5563",
+    //         textColor: "#374151",
+    //         subTextColor: "#1F2937",
+    //     },
+    //     {
+    //         currentKey: "CTEMPERATURE",
+    //         formKey: "temperature",
+    //         lastKey: "LTEMPERATURE",
+    //         label: "Temp",
+    //         bgColor: "#EDE9FE",
+    //         borderColor: "#7C3AED",
+    //         textColor: "#6D28D9",
+    //         subTextColor: "#5B21B6",
+    //     },
+    //     {
+    //         currentKey: "CPULSE",
+    //         formKey: "pulse",
+    //         lastKey: "LPULSE",
+    //         label: "Pulse",
+    //         bgColor: "#FEF9C3",
+    //         borderColor: "#CA8A04",
+    //         textColor: "#B45309",
+    //         subTextColor: "#92400E",
+    //     },
+    // ];
+    const VITALS_CONFIG = [
+        {
+            currentKey: "CBLOOD_PRESSURE",
+            formKey: "bloodPressure",
+            lastKey: "LBLOOD_PRESSURE",
+            label: "Blood Pressure",
+            unit: "mmHg",
+            bgColor: "#FDF2F8",
+            borderColor: "#EC4899",
+            textColor: "#DB2777",
+            subTextColor: "#9D174D",
+        },
+        {
+            currentKey: "CBLOOD_SUGAR",
+            formKey: "bloodSugar",
+            lastKey: "LBLOOD_SUGAR",
+            label: "Blood Sugar",
+            unit: "mg/dL",
+            bgColor: "#ECFDF5",
+            borderColor: "#22C55E",
+            textColor: "#15803D",
+            subTextColor: "#166534",
+        },
+        {
+            currentKey: "CWEIGHT",
+            formKey: "weight",
+            lastKey: "LWEIGHT",
+            label: "Weight",
+            unit: "kg",
+            bgColor: "#DBEAFE",
+            borderColor: "#2563EB",
+            textColor: "#1D4ED8",
+            subTextColor: "#1E40AF",
+        },
+        {
+            currentKey: "CHEIGHT",
+            formKey: "height",
+            lastKey: "LHEIGHT",
+            label: "Height",
+            unit: "cm",
+            bgColor: "#F3F4F6",
+            borderColor: "#4B5563",
+            textColor: "#374151",
+            subTextColor: "#1F2937",
+        },
+        {
+            currentKey: "CTEMPERATURE",
+            formKey: "temperature",
+            lastKey: "LTEMPERATURE",
+            label: "Temp",
+            unit: "°C",
+            bgColor: "#EDE9FE",
+            borderColor: "#7C3AED",
+            textColor: "#6D28D9",
+            subTextColor: "#5B21B6",
+        },
+        {
+            currentKey: "CPULSE",
+            formKey: "pulse",
+            lastKey: "LPULSE",
+            label: "Pulse",
+            unit: "bpm",
+            bgColor: "#FEF9C3",
+            borderColor: "#CA8A04",
+            textColor: "#B45309",
+            subTextColor: "#92400E",
+        },
+    ];
+
+
     const pieData = [
         {
             name: "Patients Remaining",
@@ -191,6 +328,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
             label: item?.TOKENNO,
         }),
     );
+
+
 
     const nextHandler = async () => {
         try {
@@ -315,16 +454,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
         }, 1200);
     };
 
-    const isPatientApointmentEqualstoChecked = patientsData?.todayAppointments == patientsData?.patientsChecked;
-    // if (specificSearchingToken) {
-    //     patintsW8ing = true
-    // }
-    // else if (patientsData?.todayAppointments && patientsData?.patientsChecked) {
-    //     patintsW8ing = patientsData?.patientsRemaining
-    // }
-    // console.log(patintsW8ing, "<<<<<<<<<<<");
-
-    // console.log(activeVoiceField, "<<<<<<<<<<<<<<<<<<<<<<<");
 
     return (
 
@@ -369,6 +498,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
             {/* Lab management */}
             <div className="order-3 2xl:order-1 z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col max-h-[55vh] 2xl:max-h-none 2xl:min-h-[35vh]  overflow-hidden">
+
                 {/* Header */}
                 <div className="flex-1 p-4 flex justify-between items-center rounded-xl border border-gray-300 xl:bg-gradient-to-r xl:from-indigo-600 xl:to-blue-500">
                     <div>
@@ -533,6 +663,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         className="rounded-lg"
                     />
                 </div>
+
             </div>
 
             {/* Patient Detail & Vitals */}
@@ -542,19 +673,29 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 <div className="z-10 themeBoxShadow rounded-t-[12px] bg-white flex flex-col justify-between transition-all duration-300 hover:shadow-lg 2xl:order-2">
 
                     <div className="flex-1  p-6 xl:p-4 flex items-center justify-between rounded-t-[12px] border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500 2xl:bg-none 2xl:from-transparent 2xl:to-transparent">
+
                         <h2 className="text-lg sm:text-xl font-semibold text-black md:text-white 2xl:text-black">
                             Patient Vitals
                         </h2>
 
                         <div className="flex items-center gap-6">
+
                             {/* TOKEN */}
                             <div
-                                className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full 
-                bg-white text-blue-600 border border-blue-200
-                xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200"
+                                className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full  bg-white text-blue-600 border border-blue-200 xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200"
                             >
                                 {currentPatientsData?.TOKENNO || "Not Yet"}
                             </div>
+
+                            {/* ADD VITALS BUTTON - naya */}
+                            <Button
+                                size="middle"
+                                onClick={() => setIsVitalsModalOpen(true)}
+                                disabled={!currentPatientsData}
+                                className="bg-green-500 border-none text-white hover:opacity-90"
+                            >
+                                + Add Vitals
+                            </Button>
 
                             {/* REPEAT CALL BUTTON */}
                             <Button
@@ -562,13 +703,13 @@ const MidSection = ({ patientsData, docPatientData }) => {
                                 onClick={repeatCallingHandler}
                                 loading={isRepeatCallingHandler}
                                 disabled={!currentPatientsData}
-                                className="bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90
-                    md:bg-none md:bg-white/20 md:border-white/40
-                    xl:bg-gradient-to-r xl:from-indigo-500 xl:to-blue-500"
+                                className="bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90 md:bg-none md:bg-white/20 md:border-white/40 xl:bg-gradient-to-r xl:from-indigo-500 xl:to-blue-500"
                             >
                                 🔁 Repeat Call
                             </Button>
+
                         </div>
+
                     </div>
 
                     <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
@@ -587,107 +728,26 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             </p>
                         </div>
 
-                        {
-                            <div className="mt-3 grid grid-cols-2  sm:grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
-                                {/* Blood Pressure */}
-                                <div
-                                    className="flex flex-col p-3 rounded-lg border"
-                                    style={{ backgroundColor: "#FDF2F8", borderColor: "#EC4899" }}
-                                >
-                                    <span className="text-black font-semibold">
-                                        Blood Pressure
-                                    </span>
+                        <div className="mt-3 grid grid-cols-2  sm:grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
+                            {
 
-                                    <div className="font-bold text-[#DB2777]">
-                                        {patientData?.CbloodPressure}
-                                    </div>
+                                VITALS_CONFIG?.map((vital) => (
+                                    <VitalCard
+                                        key={vital.currentKey}
+                                        label={vital.label}
+                                        currentValue={currentPatientsVitals && currentPatientsVitals[vital.currentKey]}
+                                        // lastValue={currentPatientsVitals[vital.lastKey]}
+                                        bgColor={vital.bgColor}
+                                        borderColor={vital.borderColor}
+                                        textColor={vital.textColor}
+                                        subTextColor={vital.subTextColor}
+                                        unit={vital.unit}
+                                    />
+                                ))
+                            }
 
-                                    <div className="font-medium text-[#9D174D]">
-                                        {patientData?.LbloodPressure}
-                                    </div>
-                                </div>
+                        </div>
 
-                                {/* Blood Sugar */}
-                                <div
-                                    className="flex flex-col p-3 rounded-lg border"
-                                    style={{ backgroundColor: "#ECFDF5", borderColor: "#22C55E" }}
-                                >
-                                    <span className="text-black font-semibold">Blood Sugar</span>
-
-                                    <div className="font-bold text-green-700">
-                                        {patientData?.CbloodSugar}
-                                    </div>
-
-                                    <div className="font-medium text-green-800">
-                                        {patientData?.LbloodSugar}
-                                    </div>
-                                </div>
-
-                                {/* Weight */}
-                                <div
-                                    className="flex flex-col p-3 rounded-lg border"
-                                    style={{ backgroundColor: "#DBEAFE", borderColor: "#2563EB" }}
-                                >
-                                    <span className="text-black font-semibold">Weight</span>
-
-                                    <div className="font-bold text-blue-700">
-                                        {patientData?.Cweight}
-                                    </div>
-
-                                    <div className="font-medium text-blue-800">
-                                        {patientData?.Lweight}
-                                    </div>
-                                </div>
-
-                                {/* Height */}
-                                <div
-                                    className="flex flex-col p-3 rounded-lg border"
-                                    style={{ backgroundColor: "#F3F4F6", borderColor: "#4B5563" }}
-                                >
-                                    <span className="text-black font-semibold">Height</span>
-
-                                    <div className="font-bold text-gray-700">
-                                        {patientData?.Cheight}
-                                    </div>
-
-                                    <div className="font-medium text-gray-800">
-                                        {patientData?.Lheight}
-                                    </div>
-                                </div>
-
-                                {/* Temperature */}
-                                <div
-                                    className="flex flex-col p-3 rounded-lg border"
-                                    style={{ backgroundColor: "#EDE9FE", borderColor: "#7C3AED" }}
-                                >
-                                    <span className="text-black font-semibold">Temp</span>
-
-                                    <div className="font-bold text-purple-700">
-                                        {patientData?.Ctemperature}
-                                    </div>
-
-                                    <div className="font-medium text-purple-800">
-                                        {patientData?.Ltemperature}
-                                    </div>
-                                </div>
-
-                                {/* Pulse */}
-                                <div
-                                    className="flex flex-col p-3 rounded-lg border"
-                                    style={{ backgroundColor: "#FEF9C3", borderColor: "#CA8A04" }}
-                                >
-                                    <span className="text-black font-semibold">Pulse</span>
-
-                                    <div className="font-bold text-yellow-700">
-                                        {patientData?.Cpulse}
-                                    </div>
-
-                                    <div className="font-medium text-yellow-800">
-                                        {patientData?.Lpulse}
-                                    </div>
-                                </div>
-                            </div>
-                        }
                     </div>
 
                     {/* NEXT BUTTON */}
@@ -739,7 +799,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
                 {/* Add Patient Detail */}
                 <div className="z-10 themeBoxShadow border-none outline-none rounded-b-[12px] rounded-t-none 2xl:rounded-xl overflow-hidden bg-white flex flex-col 2xl:order-3">
-     
+
                     <div className="p-4 flex-1 flex justify-between items-center 2xl:bg-gradient-to-r 2xl:from-indigo-600 2xl:to-blue-500">
                         <div>
                             <h2 className="text-lg sm:text-xl font-semibold text-black md:text-black xl:text-black 2xl:text-white">
@@ -902,10 +962,20 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             Skip Patient
                         </Button>
                     </div>
-                    
+
                 </div>
 
             </div>
+
+            {/* ADD VITALS MODAL */}
+            <AddVitalsModal
+                isOpen={isVitalsModalOpen}
+                onClose={ () => setIsVitalsModalOpen(false) }
+                currentPatientsData={currentPatientsData}
+                loginUserData={loginUserData}
+                VITALS_CONFIG={VITALS_CONFIG}
+                currentPatientsVitals={currentPatientsVitals}
+            />
 
         </div>
     );

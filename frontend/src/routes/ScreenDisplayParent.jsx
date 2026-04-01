@@ -47,6 +47,10 @@ const ScreenDisplayParent = () => {
         toast.error("Access Denied")
         return <Navigate to="/doctorDashboard" replace />;
     }
+    else if (loginUserData.role == "medical_assistant") {
+        toast.error("Access Denied")
+        return <Navigate to="/medicalAssistant" replace />;
+    }
 
     const allowedPath = screenAccessMap[loginUserData.username];
     const isAllowed = location.pathname.startsWith(allowedPath);

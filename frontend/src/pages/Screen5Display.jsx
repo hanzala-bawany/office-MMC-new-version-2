@@ -62,7 +62,7 @@ const Screen5Display = () => {
         return;
       }
       console.log(alertAudioRef);
-      
+
       alertAudioRef.current.currentTime = 0;
 
       alertAudioRef.current.play();
@@ -149,6 +149,8 @@ const Screen5Display = () => {
 
     await playAlert();
     setHighlightToken(data?.token?.replace(" ", "-"));
+    console.log(data, "dtaa .......................");
+
     speakToken(data);
   };
 
@@ -171,10 +173,6 @@ const Screen5Display = () => {
       voiceQueueRef?.current?.push({ token: payload?.patientToken?.replace("-", " "), doctor: payload?.doctorName?.replace("DR.", "") });
       playNextVoice();
 
-      // setTimeout(() => {
-      //   setHighlightToken(null);
-      // }, 5000);
-
     }
 
     socket.on("QUEUE_UPDATED", handleQueue);
@@ -191,6 +189,7 @@ const Screen5Display = () => {
   }, []);
 
 
+  console.log(patinetnDocotrsData, "<<<<<<< patinetnDocotrsData", highlightToken, "<<<< highlightToken");
 
 
   return (
