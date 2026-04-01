@@ -24,11 +24,11 @@ const getTodayDoctorPatients = async (req, res) => {
       `,
       {
         VPatientStatus: patientStatus,
-        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
       },
       {
-        outFormat: oracledb.OUT_FORMAT_OBJECT
-      }
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+      },
     );
 
     const resultSet = result.outBinds.cursor;
@@ -38,15 +38,14 @@ const getTodayDoctorPatients = async (req, res) => {
     res.status(200).json({
       status: 200,
       count: rows.length,
-      data: rows
+      data: rows,
     });
-
   } catch (err) {
     console.error("Error:", err);
     res.status(500).json({
       status: 500,
       message: "Internal Server Error",
-      error: err.message
+      error: err.message,
     });
   } finally {
     if (connection) {
@@ -58,9 +57,6 @@ const getTodayDoctorPatients = async (req, res) => {
     }
   }
 };
-
-
-
 
 // const getDoctorPatientsWithStats = async (req, res) => {
 //   let connection;
@@ -140,7 +136,6 @@ const getTodayDoctorPatients = async (req, res) => {
 //   }
 // };
 
-
 //------- NEXT PATIENT API ------------------
 
 // const getDoctorNextPatient = async (req, res) => {
@@ -216,7 +211,7 @@ const getTodayDoctorPatients = async (req, res) => {
 //     io.emit("QUEUE_UPDATED", {
 //       type: "NEXT_PATIENT",
 //       doctorId,
-//       patientToken: currentPatient?.TOKENNO_1,  
+//       patientToken: currentPatient?.TOKENNO_1,
 //       doctorName: currentPatient?.DOCTOR_NAME,
 //       // patient: currentPatient
 //     });
@@ -274,17 +269,17 @@ const getDoctorPatientsWithStats = async (req, res) => {
         doc_id: doctorId,
         status_filter: statusFilter,
         today_total: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        checked:     { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        remaining:   { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        skipped:     { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        canceled:    { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        checked: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        remaining: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        skipped: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        canceled: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         cursor1: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor2: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor4: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-        cursor5: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+        cursor5: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
       },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
     );
 
     const rs1 = result.outBinds.cursor1;
@@ -298,10 +293,10 @@ const getDoctorPatientsWithStats = async (req, res) => {
     //  Sirf status 2 pe
     let diagnosisList, testList, skippedTokens, patientVitals;
     if (statusFilter === 2) {
-      diagnosisList  = await rs2.getRows();
-      testList       = await rs3.getRows();
-      skippedTokens  = await rs4.getRows();
-      patientVitals  = await rs5.getRows();
+      diagnosisList = await rs2.getRows();
+      testList = await rs3.getRows();
+      skippedTokens = await rs4.getRows();
+      patientVitals = await rs5.getRows();
     }
 
     await rs1.close();
@@ -312,37 +307,48 @@ const getDoctorPatientsWithStats = async (req, res) => {
 
     //  Response conditionally build
     const responseData = {
-      todayAppointments:  result.outBinds.today_total,
-      patientsChecked:    result.outBinds.checked,
-      patientsRemaining:  result.outBinds.remaining,
-      patientsSkipped:    result.outBinds.skipped,
-      patientsCanceled:   result.outBinds.canceled,
+      todayAppointments: result.outBinds.today_total,
+      patientsChecked: result.outBinds.checked,
+      patientsRemaining: result.outBinds.remaining,
+      patientsSkipped: result.outBinds.skipped,
+      patientsCanceled: result.outBinds.canceled,
       patients,
     };
 
     if (statusFilter === 2) {
-      responseData.diagnosisList     = diagnosisList;
-      responseData.testList          = testList;
-      responseData.skippedTokenList  = skippedTokens;
-      responseData.patientVitals     = patientVitals;
+      responseData.diagnosisList = diagnosisList;
+      responseData.testList = testList;
+      responseData.skippedTokenList = skippedTokens;
+      responseData.patientVitals = patientVitals;
     }
 
     res.status(200).json({ status: 200, data: responseData });
-
   } catch (err) {
     console.error("getDoctorPatientsWithStats error:", err);
-    res.status(500).json({ status: 500, message: "Internal Server Error", error: err.message });
+    res
+      .status(500)
+      .json({
+        status: 500,
+        message: "Internal Server Error",
+        error: err.message,
+      });
   } finally {
     if (connection) await connection.close();
   }
 };
 
-
 const getDoctorNextPatient = async (req, res) => {
   let connection;
 
   try {
-    let { doctorId, receiptNo, remarks, primaryDiagnosis, medicalTests, treatment } = req.body;
+    let {
+      doctorId,
+      receiptNo,
+      remarks,
+      primaryDiagnosis,
+      medicalTests,
+      treatment,
+    } = req.body;
 
     // ================= NORMALIZE STRINGS ONLY =================
     const normalizeString = (val) =>
@@ -382,13 +388,13 @@ const getDoctorNextPatient = async (req, res) => {
         primary_diag: {
           dir: oracledb.BIND_IN,
           val: primaryDiagnosis,
-          type: "TY_MEDICINE"   // ⚠️ Schema type check
+          type: "TY_MEDICINE", // ⚠️ Schema type check
         },
 
         medical_tests: {
           dir: oracledb.BIND_IN,
           val: medicalTests,
-          type: "TY_MEDICINE"
+          type: "TY_MEDICINE",
         },
 
         // STRING BIND (Correct)
@@ -396,13 +402,13 @@ const getDoctorNextPatient = async (req, res) => {
 
         cursor1: {
           dir: oracledb.BIND_OUT,
-          type: oracledb.CURSOR
-        }
+          type: oracledb.CURSOR,
+        },
       },
       {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
-        autoCommit: true
-      }
+        autoCommit: true,
+      },
     );
 
     // ================= READ CURSOR =================
@@ -426,24 +432,26 @@ const getDoctorNextPatient = async (req, res) => {
 
     res.json({
       success: true,
-      currentPatient
+      currentPatient,
     });
-
   } catch (err) {
     console.error("getDoctorNextPatient error:", err);
 
     res.status(500).json({
       success: false,
       message: "Failed to fetch next patient",
-      error: err.message
+      error: err.message,
     });
   } finally {
     if (connection) {
-      try { await connection.close(); } catch (e) { console.error("Connection close error:", e); }
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
     }
   }
 };
-
 
 // ------- NEXT PATIENT SKIP API with SOCKET { Skip Api } ------------------
 const getDoctorNextPatientSkip = async (req, res) => {
@@ -478,13 +486,13 @@ const getDoctorNextPatientSkip = async (req, res) => {
         // OUT cursor
         cursor1: {
           dir: oracledb.BIND_OUT,
-          type: oracledb.CURSOR
-        }
+          type: oracledb.CURSOR,
+        },
       },
       {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
-        autoCommit: true
-      }
+        autoCommit: true,
+      },
     );
 
     // ================= READ CURSOR =================
@@ -505,34 +513,42 @@ const getDoctorNextPatientSkip = async (req, res) => {
       doctorName: nextPatient?.DOCTOR_NAME,
     });
 
-
     res.json({
       success: true,
-      nextPatient
+      nextPatient,
     });
-
   } catch (err) {
     console.error("getDoctorNextPatientSkip error:", err);
 
     res.status(500).json({
       success: false,
       message: "Failed to fetch next patient (skip)",
-      error: err.message
+      error: err.message,
     });
   } finally {
     if (connection) {
-      try { await connection.close(); } catch (e) { console.error("Connection close error:", e); }
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
     }
   }
 };
-
 
 // ------- NEXT PATIENT QUEUE API with SOCKET { skip call } ------------------
 const getDoctorNextPatientQueue = async (req, res) => {
   let connection;
 
   try {
-    let { doctorId, receiptNo, remarks, primaryDiagnosis, medicalTests, treatment } = req.body;
+    let {
+      doctorId,
+      receiptNo,
+      remarks,
+      primaryDiagnosis,
+      medicalTests,
+      treatment,
+    } = req.body;
 
     // ================= NORMALIZE STRINGS =================
     const normalizeString = (val) =>
@@ -573,13 +589,13 @@ const getDoctorNextPatientQueue = async (req, res) => {
         primary_diag: {
           dir: oracledb.BIND_IN,
           val: primaryDiagnosis,
-          type: "TY_MEDICINE"
+          type: "TY_MEDICINE",
         },
 
         medical_tests: {
           dir: oracledb.BIND_IN,
           val: medicalTests,
-          type: "TY_MEDICINE"
+          type: "TY_MEDICINE",
         },
 
         // STRING BIND
@@ -587,13 +603,13 @@ const getDoctorNextPatientQueue = async (req, res) => {
 
         cursor1: {
           dir: oracledb.BIND_OUT,
-          type: oracledb.CURSOR
-        }
+          type: oracledb.CURSOR,
+        },
       },
       {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
-        autoCommit: true
-      }
+        autoCommit: true,
+      },
     );
 
     // ================= READ CURSOR =================
@@ -602,7 +618,10 @@ const getDoctorNextPatientQueue = async (req, res) => {
     await rs.close();
 
     const nextPatient = rows[0] || null;
-    console.log(nextPatient, "<<<<<<<<<<<<<<<< NEXT Skip Call Api PATIENT QUEUE");
+    console.log(
+      nextPatient,
+      "<<<<<<<<<<<<<<<< NEXT Skip Call Api PATIENT QUEUE",
+    );
 
     // ================= SOCKET EMIT =================
 
@@ -614,27 +633,28 @@ const getDoctorNextPatientQueue = async (req, res) => {
       doctorName: nextPatient?.DOCTOR_NAME,
     });
 
-
     res.json({
       success: true,
-      nextPatient
+      nextPatient,
     });
-
   } catch (err) {
     console.error("getDoctorNextPatientQueue error:", err);
 
     res.status(500).json({
       success: false,
       message: "Failed to fetch next patient from queue",
-      error: err.message
+      error: err.message,
     });
   } finally {
     if (connection) {
-      try { await connection.close(); } catch (e) { console.error("Connection close error:", e); }
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
     }
   }
 };
-
 
 // ------- CANCEL ALL PATIENTS API ------------------
 const cancelAllDoctorPatients = async (req, res) => {
@@ -662,11 +682,11 @@ const cancelAllDoctorPatients = async (req, res) => {
       `,
       {
         doc_id: doctorId,
-        receiptno: receiptNo
+        receiptno: receiptNo,
       },
       {
-        autoCommit: true
-      }
+        autoCommit: true,
+      },
     );
 
     console.log("ALL PATIENTS CANCELLED FOR DOCTOR:", doctorId);
@@ -675,30 +695,31 @@ const cancelAllDoctorPatients = async (req, res) => {
     const io = req.app.get("io");
     io.emit("QUEUE_UPDATED", {
       type: "CANCEL_ALL_PATIENTS",
-      doctorId
+      doctorId,
     });
 
     res.json({
       success: true,
-      message: "All patients cancelled successfully"
+      message: "All patients cancelled successfully",
     });
-
   } catch (err) {
     console.error("cancelAllDoctorPatients error:", err);
 
     res.status(500).json({
       success: false,
       message: "Failed to cancel all patients",
-      error: err.message
+      error: err.message,
     });
   } finally {
     if (connection) {
-      try { await connection.close(); }
-      catch (e) { console.error("Connection close error:", e); }
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
     }
   }
 };
-
 
 // ------- MANUAL TOKEN CALL BY TOKENNO API with SOCKET ------------------
 const doctorCallTokenByNumber = async (req, res) => {
@@ -711,13 +732,13 @@ const doctorCallTokenByNumber = async (req, res) => {
       remarks,
       primaryDiagnosis,
       medicalTests,
-      treatment
+      treatment,
     } = req.body;
 
     if (!doctorId || !tokenNo) {
       return res.status(400).json({
         success: false,
-        message: "doctorId and tokenNo required"
+        message: "doctorId and tokenNo required",
       });
     }
 
@@ -756,26 +777,26 @@ const doctorCallTokenByNumber = async (req, res) => {
         primary_diag: {
           dir: oracledb.BIND_IN,
           val: primaryDiagnosis,
-          type: "TY_MEDICINE"
+          type: "TY_MEDICINE",
         },
 
         medical_tests: {
           dir: oracledb.BIND_IN,
           val: medicalTests,
-          type: "TY_MEDICINE"
+          type: "TY_MEDICINE",
         },
 
         treatment: treatment,
 
         cursor1: {
           dir: oracledb.BIND_OUT,
-          type: oracledb.CURSOR
-        }
+          type: oracledb.CURSOR,
+        },
       },
       {
         outFormat: oracledb.OUT_FORMAT_OBJECT,
-        autoCommit: true
-      }
+        autoCommit: true,
+      },
     );
 
     const rs = result.outBinds.cursor1;
@@ -796,33 +817,33 @@ const doctorCallTokenByNumber = async (req, res) => {
 
     res.json({
       success: true,
-      currentPatient
+      currentPatient,
     });
-
   } catch (err) {
     console.error("doctorCallTokenByNumber error:", err);
 
     res.status(500).json({
       success: false,
       message: "Failed to call token manually",
-      error: err.message
+      error: err.message,
     });
-
   } finally {
     if (connection) {
-      try { await connection.close(); }
-      catch (e) { console.error("Connection close error:", e); }
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
     }
   }
 };
-
 
 // ------- REPEAT CALL  PATIENT BY STATUS API with SOCKET ------------------
 const repeatCallPatient = async (req, res) => {
   let connection;
 
   try {
-    const { doctorId , doctorName , patientToken } = req.body;
+    const { doctorId, doctorName, patientToken } = req.body;
     // console.log(doctorId, "docotr id");
     // console.log(doctorName, "doctorName");
     // console.log(patientToken, "patient Token");
@@ -836,11 +857,9 @@ const repeatCallPatient = async (req, res) => {
       doctorName: doctorName,
     });
 
-
     res.json({
       success: true,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -850,7 +869,6 @@ const repeatCallPatient = async (req, res) => {
     if (connection) await connection.close();
   }
 };
-
 
 // ---------  Active Consultants api -------------
 
@@ -870,11 +888,11 @@ const getActiveConsultants = async (req, res) => {
       END;
       `,
       {
-        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
       },
       {
-        outFormat: oracledb.OUT_FORMAT_OBJECT
-      }
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+      },
     );
 
     // ===== READ CURSOR =====
@@ -885,18 +903,16 @@ const getActiveConsultants = async (req, res) => {
     res.status(200).json({
       status: 200,
       count: rows.length,
-      data: rows
+      data: rows,
     });
-
   } catch (err) {
     console.error("getActiveConsultants error:", err);
 
     res.status(500).json({
       status: 500,
       message: "Failed to fetch consultants",
-      error: err.message
+      error: err.message,
     });
-
   } finally {
     if (connection) {
       try {
@@ -907,10 +923,6 @@ const getActiveConsultants = async (req, res) => {
     }
   }
 };
-
-
-
-
 
 // ------- ADD PATIENT VITALS API --------------------
 const addPatientVitals = async (req, res) => {
@@ -925,7 +937,7 @@ const addPatientVitals = async (req, res) => {
       height,
       temperature,
       pulse,
-      createdBy
+      createdBy,
     } = req.body;
 
     // ================= NORMALIZE STRINGS =================
@@ -943,7 +955,7 @@ const addPatientVitals = async (req, res) => {
     if (!p_receiptno) {
       return res.status(400).json({
         success: false,
-        message: "receiptNo is required"
+        message: "receiptNo is required",
       });
     }
 
@@ -951,10 +963,10 @@ const addPatientVitals = async (req, res) => {
     connection = await pool.getConnection();
 
     // ================= CALL PROCEDURE =================
-    await connection.execute(
+    const result = await connection.execute(
       `
       BEGIN
-        add_patient_vitals(
+        add_edit_patient_vitals(
           p_receiptno      => :receiptNo,
           p_blood_pressure => :bloodPressure,
           p_blood_sugar    => :bloodSugar,
@@ -962,7 +974,8 @@ const addPatientVitals = async (req, res) => {
           p_height         => :height,
           p_temperature    => :temperature,
           p_pulse          => :pulse,
-          p_created_by     => :createdBy
+          p_created_by     => :createdBy,
+          p_action         => :action
         );
       END;
       `,
@@ -974,34 +987,50 @@ const addPatientVitals = async (req, res) => {
         height: p_height,
         temperature: p_temperature,
         pulse: p_pulse,
-        createdBy: p_created_by
+        createdBy: p_created_by,
+        action: { dir: oracledb.BIND_OUT, type: oracledb.STRING },
       },
       {
-        autoCommit: true
-      }
+        autoCommit: true,
+      },
     );
+
+    const action = result.outBinds.action;
 
     res.status(200).json({
       success: true,
-      message: "Patient vitals added successfully"
+      message:
+        action === "UPDATED"
+          ? "Patient vitals updated successfully"
+          : "Patient vitals added successfully",
     });
-
   } catch (err) {
     console.error("addPatientVitals error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to add patient vitals",
-      error: err.message
+      error: err.message,
     });
-
   } finally {
     if (connection) {
-      try { await connection.close(); } catch (e) { console.error("Connection close error:", e); }
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
     }
   }
 };
 
-
 module.exports = {
-  getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, cancelAllDoctorPatients, getDoctorNextPatientQueue, getDoctorNextPatientSkip, doctorCallTokenByNumber , repeatCallPatient,getActiveConsultants,addPatientVitals
+  getTodayDoctorPatients,
+  getDoctorNextPatient,
+  getDoctorPatientsWithStats,
+  cancelAllDoctorPatients,
+  getDoctorNextPatientQueue,
+  getDoctorNextPatientSkip,
+  doctorCallTokenByNumber,
+  repeatCallPatient,
+  getActiveConsultants,
+  addPatientVitals,
 };
