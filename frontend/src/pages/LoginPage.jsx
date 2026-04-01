@@ -40,11 +40,11 @@ const LoginPage = () => {
     try {
       setLoading(true);
       const res = await axios.post(`${base_URL}/api/auth/login`, inputs);
-      // console.log(res, "res <<<<<<<<<<<");
+      console.log(res, "login res <<<<<<<<<<<");
       const token = res.data.token;
       const decoded = jwtDecode(token);
-      // console.log(decoded , "decoded <<<<<<");
-      
+      console.log(decoded, "decoded <<<<<<");
+
 
       localStorage.setItem("loginUserData", JSON.stringify(decoded))
       localStorage.setItem("loginUser", JSON.stringify(token));
@@ -54,8 +54,11 @@ const LoginPage = () => {
       if (decoded.role === "admin") {
         navigate("/");
       }
-      else if(decoded.role === "doctor") {
+      else if (decoded.role === "doctor") {
         navigate("/doctorDashboard");
+      }
+      else if (decoded.role === "medical_assistant") {
+        navigate("/medicalAssistant");
       }
       else {
         const screenAccessMap = {

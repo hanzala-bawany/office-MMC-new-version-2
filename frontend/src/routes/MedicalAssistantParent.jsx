@@ -1,19 +1,24 @@
-import { useEffect } from "react";
-import { Navigate, Outlet } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useEffect } from "react"
+import { Navigate, Outlet } from "react-router-dom"
+import { toast } from "react-toastify"
 
-const DocotorParent = () => {
+const MedicalAssistantParent = () => {
+
 
     const isUserLogin = JSON.parse(localStorage.getItem("loginUser"));
     const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
 
+    console.log(isUserLogin , "isUserLogin");
+    console.log(loginUserData , "loginUserData");
+    
 
-    const isAllow = loginUserData?.role == "doctor"
+
+    const isAllow = loginUserData?.role == "medical_assistant"
 
     useEffect(() => {
         if (!isUserLogin) {
             toast.warning("You have to login first");
-        } else if (loginUserData?.role !== "doctor" && loginUserData?.role !== "admin") {
+        } else if (loginUserData?.role !== "medical_assistant" && loginUserData?.role !== "admin") {
             toast.error("Access denied");
         }
     }, [isUserLogin, loginUserData]);
@@ -25,6 +30,7 @@ const DocotorParent = () => {
             }
         </>
     )
+
 }
 
-export default DocotorParent
+export default MedicalAssistantParent

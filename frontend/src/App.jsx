@@ -24,6 +24,8 @@ import Screen5Display from './pages/Screen5Display'
 import Screen6Display from './pages/Screen6Display'
 import DoctorDashboard from './pages/DoctorDashboard'
 import DocotorParent from './routes/DocotorParent'
+import MedicalAssistant from './pages/MedicalAssistant'
+import MedicalAssistantParent from './routes/MedicalAssistantParent'
 
 
 function App() {
@@ -60,6 +62,10 @@ function App() {
 
         <Route element={<DocotorParent />}>
           <Route path="/doctorDashboard" element={<DoctorDashboard />} />
+        </Route>
+
+        <Route element={<MedicalAssistantParent />}>
+          <Route path="/medicalAssistant" element={<MedicalAssistant />} />
         </Route>
 
 
