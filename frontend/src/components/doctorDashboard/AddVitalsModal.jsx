@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { base_URL } from "../../utills/baseUrl";
 
-const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData, VITALS_CONFIG, currentPatientsData }) => {
+const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData, VITALS_CONFIG, currentPatientsData , docPatientData }) => {
 
     // console.log(currentPatientsData, "<<<<<< currentPatientsData");
     // console.log(currentPatientsVitals, "<<<<<< currentPatientsVitals");
@@ -41,6 +41,7 @@ const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData,
             // setSelectedPatient(null);
             // setSaved(true);
             // setVitals({});
+            await docPatientData();
             toast.success(`Vitals saved successfully!`);
 
         }
