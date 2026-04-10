@@ -4,3 +4,29 @@ node_modules
 /.env
 /oracle
 oracle
+
+
+
+# VOSK Model
+vosk-model-small-en-us-0.15/
+
+# Compiled exe
+backend.exe
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temp audio files
+*.wav
+*.webm
+*.mp3
+
+# PyInstaller
+*.spec
+build/
+dist/
+
+# Logs
+*.log

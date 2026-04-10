@@ -8,6 +8,8 @@ import { toast } from "react-toastify";
 import GetVoice from "./GetVoice";
 import AddVitalsModal from "./AddVitalsModal";
 import VitalCard from "./VitalCard";
+import GetVoice1 from "./GetVoice1";
+import VoiceTextArea from "./VoiceTextArea";
 
 const MidSection = ({ patientsData, docPatientData }) => {
 
@@ -25,7 +27,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
         treatment: "",
         primaryComplain: "",
     });
-    let patientToken = Number(specificSearchingToken?.split(" ")[0]?.split("-")[1],);
+    // let patientToken = Number(specificSearchingToken?.split(" ")[0]?.split("-")[1],);
+    let patientToken = Number(specificSearchingToken?.split(" ")[0]);
     const hasAppointments = patientsData?.todayAppointments > 0;
     const hasCurrentPatient = !!currentPatientsData?.RECEIPTNO;
     const allPatientsDone = patientsData?.todayAppointments === patientsData?.patientsChecked + patientsData?.patientsSkipped;
@@ -674,39 +677,48 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
                     <div className="flex-1  p-6 xl:p-4 flex items-center justify-between rounded-t-[12px] border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500 2xl:bg-none 2xl:from-transparent 2xl:to-transparent">
 
-                        <h2 className="text-lg sm:text-xl font-semibold text-black md:text-white 2xl:text-black">
+                        <h2 className="flex flex-col gap-2 text-lg sm:text-xl font-semibold text-white 2xl:text-black">
                             Patient Vitals
+
+                            <div
+                                className="flex h-fit items-center sm:hidden font-bold gap-2 text-md px-2.5 py-0.5 rounded-full w-fit bg-white text-blue-600 border border-blue-200 xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200"
+                            >
+                                {currentPatientsData?.TOKENNO || "Not Yet"}
+                            </div>
                         </h2>
 
                         <div className="flex items-center gap-6">
 
                             {/* TOKEN */}
                             <div
-                                className="flex items-center gap-2 text-md px-2.5 py-0.5 rounded-full  bg-white text-blue-600 border border-blue-200 xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200"
+                                className="hidden sm:flex items-center font-bold gap-2 text-md px-2.5 py-0.5 rounded-full  bg-white text-blue-600 border border-blue-200 xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200"
                             >
                                 {currentPatientsData?.TOKENNO || "Not Yet"}
                             </div>
 
-                            {/* ADD VITALS BUTTON - naya */}
-                            <Button
-                                size="middle"
-                                onClick={() => setIsVitalsModalOpen(true)}
-                                disabled={!currentPatientsData}
-                                className="bg-green-500 border-none text-white hover:opacity-90"
-                            >
-                                + Add Vitals
-                            </Button>
+                            {/* ADD / repeat VITALS BUTTON */}
+                            <div className="flex flex-col sm:flex-row gap-4">
 
-                            {/* REPEAT CALL BUTTON */}
-                            <Button
-                                size="middle"
-                                onClick={repeatCallingHandler}
-                                loading={isRepeatCallingHandler}
-                                disabled={!currentPatientsData}
-                                className="bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90 md:bg-none md:bg-white/20 md:border-white/40 xl:bg-gradient-to-r xl:from-indigo-500 xl:to-blue-500"
-                            >
-                                🔁 Repeat Call
-                            </Button>
+                                <Button
+                                    size="middle"
+                                    onClick={() => setIsVitalsModalOpen(true)}
+                                    disabled={!currentPatientsData}
+                                    className="bg-green-500 border-none text-white hover:opacity-90 !h-auto !px-0 !py-1 text-xs  sm:!px-4 sm:!py-2 sm:text-sm"
+                                >
+                                    + Add Vitals
+                                </Button>
+
+                                <Button
+                                    size="middle"
+                                    onClick={repeatCallingHandler}
+                                    loading={isRepeatCallingHandler}
+                                    disabled={!currentPatientsData}
+                                    className="w-fit bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90 md:bg-none md:bg-white/20 md:border-white/40 xl:bg-gradient-to-r xl:from-indigo-500 xl:to-blue-500 !h-auto !px-2 !py-1 text-xs  sm:!px-4 sm:!py-2 sm:text-sm"
+                                >
+                                    🔁 Repeat Call
+                                </Button>
+
+                            </div>
 
                         </div>
 
@@ -752,6 +764,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
                     {/* NEXT BUTTON */}
                     <div className="p-4 border-t border-gray-200 hidden 2xl:flex gap-5">
+
                         <Select
                             allowClear
                             showSearch
@@ -859,48 +872,68 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             />
                         </div>
 
-                        {/* TREATMENT */}
-                        <div className="flex flex-col gap-1">
-                            <label
-                                className={`text-sm font-medium  ${activeVoiceField === "treatment" ? "text-blue-500" : "text-gray-500"}`}
-                            >
-                                Treatment / Medication
-                            </label>
-                            <Input.TextArea
-                                rows={3}
-                                placeholder="Prescribed medicines or treatment"
-                                onChange={(e) => formHandler("treatment", e.target.value)}
-                                value={formData.treatment}
-                                className={
-                                    activeVoiceField === "treatment"
-                                        ? "!border-blue-500 !text-blue-500"
-                                        : ""
-                                }
-                            />
-                        </div>
+                        {
+                            // {/* TREATMENT */}
+                            // <div className="flex flex-col gap-1">
+                            //     <label
+                            //         className={`text-sm font-medium  ${activeVoiceField === "treatment" ? "text-blue-500" : "text-gray-500"}`}
+                            //     >
+                            //         Treatment / Medication
+                            //     </label>
+                            //     <Input.TextArea
+                            //         rows={3}
+                            //         placeholder="Prescribed medicines or treatment"
+                            //         onChange={(e) => formHandler("treatment", e.target.value)}
+                            //         value={formData.treatment}
+                            //         className={
+                            //             activeVoiceField === "treatment"
+                            //                 ? "!border-blue-500 !text-blue-500"
+                            //                 : ""
+                            //         }
+                            //     />
+                            // </div>
 
-                        {/* PRIMARY COMPLAINT */}
-                        <div className="flex flex-col gap-1">
-                            <label
-                                className={`text-sm font-medium ${activeVoiceField === "primaryComplain" ? "text-blue-500" : "text-gray-500"}`}
-                            >
-                                Primary Complain
-                            </label>
-                            <Input.TextArea
-                                rows={3}
-                                placeholder="Patient complain / symptoms"
-                                onChange={(e) => formHandler("primaryComplain", e.target.value)}
-                                value={formData.primaryComplain}
-                                className={
-                                    activeVoiceField === "primaryComplain"
-                                        ? "!border-blue-500 !text-blue-500"
-                                        : ""
-                                }
-                            />
-                        </div>
+                            // {/* PRIMARY COMPLAINT */}
+                            // <div className="flex flex-col gap-1">
+                            //     <label
+                            //         className={`text-sm font-medium ${activeVoiceField === "primaryComplain" ? "text-blue-500" : "text-gray-500"}`}
+                            //     >
+                            //         Primary Complain
+                            //     </label>
+                            //     <Input.TextArea
+                            //         rows={3}
+                            //         placeholder="Patient complain / symptoms"
+                            //         onChange={(e) => formHandler("primaryComplain", e.target.value)}
+                            //         value={formData.primaryComplain}
+                            //         className={
+                            //             activeVoiceField === "primaryComplain"
+                            //                 ? "!border-blue-500 !text-blue-500"
+                            //                 : ""
+                            //         }
+                            //     />
+                            // </div>
+                        }
+                   
+                        <VoiceTextArea
+                            label="Treatment / Medication"
+                            fieldKey="treatment"
+                            value={formData.treatment}
+                            onChange={(val) => formHandler('treatment', val)}
+                            placeholder="Prescribed medicines or treatment"
+                        />
+
+                        <VoiceTextArea
+                            label="Primary Complain"
+                            fieldKey="primaryComplain"
+                            value={formData.primaryComplain}
+                            onChange={(val) => formHandler('primaryComplain', val)}
+                            placeholder="Patient complain / symptoms"
+                        />
+
                     </div>
 
-                    <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} />
+                    {/* <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} /> */}
+                    {/* <GetVoice1 formHandler={formHandler} resetTrigger={resetTrigger} /> */}
 
                     {/* NEXT BUTTON */}
                     <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
@@ -970,11 +1003,12 @@ const MidSection = ({ patientsData, docPatientData }) => {
             {/* ADD VITALS MODAL */}
             <AddVitalsModal
                 isOpen={isVitalsModalOpen}
-                onClose={ () => setIsVitalsModalOpen(false) }
+                onClose={() => setIsVitalsModalOpen(false)}
                 currentPatientsData={currentPatientsData}
                 loginUserData={loginUserData}
                 VITALS_CONFIG={VITALS_CONFIG}
                 currentPatientsVitals={currentPatientsVitals}
+                docPatientData={docPatientData}
             />
 
         </div>
