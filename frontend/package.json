@@ -13,6 +13,7 @@
     "@ant-design/icons": "^6.1.0",
     "@reduxjs/toolkit": "^2.9.2",
     "@tailwindcss/vite": "^4.1.13",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
     "antd": "^5.27.4",
     "axios": "^1.12.2",
     "framer-motion": "^12.23.24",

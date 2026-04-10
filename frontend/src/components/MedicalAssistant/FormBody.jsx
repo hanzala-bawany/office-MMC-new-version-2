@@ -223,7 +223,7 @@ const FormBody = ({ selectedPatient, setSelectedPatient }) => {
             console.log(res, "res of save Handler by id");
             console.log(vitals, " vitals  >......");
 
-            setSelectedDoctorId(null); 
+            setSelectedDoctorId(null);
             setSelectedPatient(null);
             setSaved(true);
             setVitals({});
@@ -396,6 +396,7 @@ const FormBody = ({ selectedPatient, setSelectedPatient }) => {
                                     {/* Input */}
                                     <div className="relative">
                                         <Input
+                                            type="number"
                                             placeholder={v.placeholder}
                                             value={vitals[v.key] || ""}
                                             onChange={(e) => handleVitalChange(v.key, e.target.value)}
