@@ -55,13 +55,14 @@ const Screen5Display = () => {
   }
 
   const playAlert = () => {
+
     return new Promise((resolve) => {
 
       if (!alertAudioRef.current) {
         resolve();
         return;
       }
-      console.log(alertAudioRef);
+      // console.log(alertAudioRef);
 
       alertAudioRef.current.currentTime = 0;
 
@@ -73,30 +74,6 @@ const Screen5Display = () => {
 
     });
   };
-
-  // const speakToken = ({ token, doctor }) => {
-
-  //   console.log("speak token chala ", token, doctor);
-  //   console.log(window.speechSynthesis.getVoices(), "voices");
-
-  //   const msg = new SpeechSynthesisUtterance(
-  //     `Token ${token}, please proceed to doctor ${doctor}`
-  //   );
-  //   console.log("msg bhi chala");
-
-
-  //   msg.lang = "hi-IN";
-  //   msg.rate = 0.9;
-
-  //   msg.onend = () => {
-  //     isSpeakingRef.current = false;
-  //     console.log("oned bhi chala", isSpeakingRef.current);
-  //     playNextVoice();
-  //   };
-
-  //   window.speechSynthesis.speak(msg);
-  //   console.log("speak voice ebnd");
-  // };
 
   const loadVoices = () => {
     return new Promise(resolve => {
@@ -111,7 +88,7 @@ const Screen5Display = () => {
 
   const speakToken = async ({ token, doctor }) => {
 
-    // console.log("speak tokenc chala");
+    // console.log("speak tokenc chala" , token , doctor);
     const voices = await loadVoices();
     // console.log(voices, " <<<<<<<< voices");
 
@@ -147,14 +124,17 @@ const Screen5Display = () => {
     isSpeakingRef.current = true;
     const data = voiceQueueRef.current.shift();
 
-    await playAlert();
-    setHighlightToken(data?.token?.replace(" ", "-"));
-    console.log(data, "dtaa .......................");
+    try{
+      await playAlert();
+    }
+    catch(err){
+      console.log(err , "err in buzzer .............");
+    }
+    setHighlightToken(data);
+    // console.log(data, "dtaa .......................");
 
     speakToken(data);
   };
-
-
 
 
   useEffect(() => {
@@ -165,12 +145,13 @@ const Screen5Display = () => {
 
     const handleQueue = (payload) => {
 
-      console.log(" payload ..........", payload);
+      // console.log(" payload ..........", payload);
       getPatientnDoctorInfo()
 
       if (!payload?.patientToken) return;
 
-      voiceQueueRef?.current?.push({ token: payload?.patientToken?.replace("-", " "), doctor: payload?.doctorName?.replace("DR.", "") });
+      voiceQueueRef?.current?.push({ token: payload?.patientToken , doctor: payload?.doctorName?.replace("DR.", "") , doctorId : payload?.doctorId });
+      voiceQueueRef?.current?.push({ token: payload?.patientToken , doctor: payload?.doctorName?.replace("DR.", "") , doctorId : payload?.doctorId });
       playNextVoice();
 
     }
@@ -189,7 +170,7 @@ const Screen5Display = () => {
   }, []);
 
 
-  console.log(patinetnDocotrsData, "<<<<<<< patinetnDocotrsData", highlightToken, "<<<< highlightToken");
+  // console.log(patinetnDocotrsData, "<<<<<<< patinetnDocotrsData", highlightToken, "<<<< highlightToken");
 
 
   return (
@@ -245,7 +226,7 @@ const Screen5Display = () => {
         {
           patinetnDocotrsData.length ?
             <div className={`${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${patinetnDocotrsData.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
-              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken === doc?.TOKENNO} />)}
+              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken?.token === doc?.TOKENNO &&  highlightToken?.doctorId == doc?.CONSULTANTID} />)}
             </div>
             :
             <div className='flex justify-center w-[70%]'>
