@@ -1,10 +1,11 @@
+
+
 node_modules
 /node_modules
 .env
 /.env
 /oracle
 oracle
-
 
 
 # VOSK Model
