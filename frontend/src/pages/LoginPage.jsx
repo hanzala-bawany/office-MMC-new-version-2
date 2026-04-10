@@ -74,7 +74,7 @@ const LoginPage = () => {
       toast.success(res?.data?.message);
     }
     catch (err) {
-      // console.log(err, "error");
+      console.log(err, "error");
       setLoading(false);
       toast.error(err?.response?.data?.message);
     }
