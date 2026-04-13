@@ -35,7 +35,7 @@ const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData,
                 pulse: vitalsForm?.pulse || null,
                 createdBy: loginUserData?.name || null
             });
-            console.log(res, "res of save vital Handler by id");
+            // console.log(res, "res of save vital Handler by id");
 
             // setSelectedDoctorId(null);
             // setSelectedPatient(null);
