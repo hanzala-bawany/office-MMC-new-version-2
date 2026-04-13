@@ -17,6 +17,7 @@ const screenRoutes = require("./routes/screenRoutes.js");
 const headlineRoutes = require("./routes/headlinesRoutes.js");
 const opdRoutes = require("./routes/opd.Routes.js");
 const poolPromise = require("./database.js");
+const voiceRoutes = require("./routes/voiceRoutes.js")
 
 const app = express();
 const PORT = 3000;
@@ -64,6 +65,7 @@ app.use("/api/doctor", doctorRoutes);
 app.use("/api/screen", screenRoutes);
 app.use("/api/headline", headlineRoutes);
 app.use("/api/opd", opdRoutes);
+app.use("/api/voice", voiceRoutes);
 
 let lastCreatedTime = null;
 
@@ -119,78 +121,4 @@ module.exports = app;
 
 
 
-
-// const express = require("express");
-// require("./database.js");
-// const cors = require("cors");
-// const path = require("path");
-// const http = require("http");
-// const { Server } = require("socket.io");
-
-// const authRoutes = require("./routes/authRoutes.js");
-// const facultyRoutes = require("./routes/facultyRoutes.js");
-// const screen2ImagesRoutes = require("./routes/screen2ImagesRoutes.js");
-// const screen3ImagesRoutes = require("./routes/screen3ImagesRoutes.js");
-// const screen4ImagesRoutes = require("./routes/screen4ImagesRoutes.js");
-// const screen1ImagesRoutes = require("./routes/screen1ImagesRoutes.js");
-// const doctorRoutes = require("./routes/doctorRoutes.js");
-// const screenRoutes = require("./routes/screenRoutes.js");
-// const headlineRoutes = require("./routes/headlinesRoutes.js");
-// const opdRoutes = require("./routes/opd.Routes.js")
-
-
-// const app = express();
-// const PORT = 3000;
-
-// // 👇 HTTP server
-// const server = http.createServer(app);
-
-// // 👇 Socket server
-// const io = new Server(server, {
-//   cors: { origin: "*" }
-// });
-
-// io.on("connection", (socket) => {
-//   console.log("🟢 Socket connected:", socket.id);
-//   socket.on("disconnect", () => {
-//     console.log("🔴 Socket disconnected");
-//   });
-// });
-
-// // 👇 make io available in APIs
-// app.set("io", io);
-
-// // Middleware
-// app.use(express.json());
-// app.use(
-//   cors({
-//     origin: "*",
-//     credentials: true,
-//   })
-// );
-
-// // Default route
-// app.get("/", (req, res) => {
-//   res.send("Hello Server  Respose  he .");
-// });
-
-// // Routes
-// // index.js
-// app.use("/assets", express.static(path.join(process.cwd(), "assets")));
-// app.use("/api/auth", authRoutes);
-// app.use("/api/faculty", facultyRoutes);
-// app.use("/api/screen2images", screen2ImagesRoutes);
-// app.use("/api/screen3images", screen3ImagesRoutes);
-// app.use("/api/screen4images", screen4ImagesRoutes);
-// app.use("/api/screen1images", screen1ImagesRoutes);
-// app.use("/api/doctor", doctorRoutes);
-// app.use("/api/screen", screenRoutes);
-// app.use("/api/headline", headlineRoutes);
-// app.use("/api/opd", opdRoutes)
-
-
-// server.listen(PORT, "0.0.0.0", () => {
-//   console.log(`🚀 Server running http://localhost:${PORT}`);
-// });
-//   module.exports = app;
 
