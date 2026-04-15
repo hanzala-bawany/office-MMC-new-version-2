@@ -9,7 +9,9 @@ const dynamicMiddleware = (req, res, next) => {
   const contentType = req.headers["content-type"] || "";
   
   if (contentType.includes("multipart/form-data")) {
+    
     upload.single("image")(req, res, (err) => {
+
       if (err) {
         return res.status(400).json({
           success: false,
@@ -17,10 +19,14 @@ const dynamicMiddleware = (req, res, next) => {
           error: err.message
         });
       }
+
       next();
+
     });
   } else {
+
     express.json()(req, res, next);
+
   }
 };
 

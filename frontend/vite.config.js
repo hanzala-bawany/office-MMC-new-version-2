@@ -9,7 +9,8 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: [
-      "pittsburgh-canberra-clock-contamination.trycloudflare.com",  // frontend url 
+      "included-trek-vids-karma.trycloudflare.com",  // frontend url 
+    
     ]
   }
 })
