@@ -673,7 +673,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             <div className="z-10 rounded-t-[12px] order-1  2xl:contents xl:row-span-2">
 
                 {/* Patient Vitals */}
-                <div className="z-10 themeBoxShadow rounded-t-[12px] bg-white flex flex-col justify-between transition-all duration-300 hover:shadow-lg 2xl:order-2">
+                <div id="vitals-section" className="z-10 themeBoxShadow rounded-t-[12px] bg-white flex flex-col justify-between transition-all duration-300 hover:shadow-lg 2xl:order-2">
 
                     <div className="flex-1  p-6 xl:p-4 flex items-center justify-between rounded-t-[12px] border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500 2xl:bg-none 2xl:from-transparent 2xl:to-transparent">
 
@@ -700,6 +700,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             <div className="flex flex-col sm:flex-row gap-4">
 
                                 <Button
+                                    id="btn-add-vitals"
                                     size="middle"
                                     onClick={() => setIsVitalsModalOpen(true)}
                                     disabled={!currentPatientsData}
@@ -709,6 +710,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                                 </Button>
 
                                 <Button
+                                    id="btn-repeat-call"
                                     size="middle"
                                     onClick={repeatCallingHandler}
                                     loading={isRepeatCallingHandler}
@@ -836,8 +838,9 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
                     {/* BODY */}
                     <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
+
                         {/* PRIMARY DIAGNOSIS */}
-                        <div className="flex flex-col gap-1">
+                        <div id="form-primary-diagnosis" className="flex flex-col gap-1">
                             <label className="text-sm font-medium text-gray-500">
                                 Primary Diagnosis
                             </label>
@@ -856,7 +859,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         </div>
 
                         {/* MEDICAL TESTS */}
-                        <div className="flex flex-col gap-1">
+                        <div id="form-recommended-tests" className="flex flex-col gap-1">
+
                             <label className="text-sm font-medium text-gray-500">
                                 Recommended Tests
                             </label>
@@ -871,48 +875,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
                                 value={formData.medicalTests}
                             />
                         </div>
-
-                        {
-                            // {/* TREATMENT */}
-                            // <div className="flex flex-col gap-1">
-                            //     <label
-                            //         className={`text-sm font-medium  ${activeVoiceField === "treatment" ? "text-blue-500" : "text-gray-500"}`}
-                            //     >
-                            //         Treatment / Medication
-                            //     </label>
-                            //     <Input.TextArea
-                            //         rows={3}
-                            //         placeholder="Prescribed medicines or treatment"
-                            //         onChange={(e) => formHandler("treatment", e.target.value)}
-                            //         value={formData.treatment}
-                            //         className={
-                            //             activeVoiceField === "treatment"
-                            //                 ? "!border-blue-500 !text-blue-500"
-                            //                 : ""
-                            //         }
-                            //     />
-                            // </div>
-
-                            // {/* PRIMARY COMPLAINT */}
-                            // <div className="flex flex-col gap-1">
-                            //     <label
-                            //         className={`text-sm font-medium ${activeVoiceField === "primaryComplain" ? "text-blue-500" : "text-gray-500"}`}
-                            //     >
-                            //         Primary Complain
-                            //     </label>
-                            //     <Input.TextArea
-                            //         rows={3}
-                            //         placeholder="Patient complain / symptoms"
-                            //         onChange={(e) => formHandler("primaryComplain", e.target.value)}
-                            //         value={formData.primaryComplain}
-                            //         className={
-                            //             activeVoiceField === "primaryComplain"
-                            //                 ? "!border-blue-500 !text-blue-500"
-                            //                 : ""
-                            //         }
-                            //     />
-                            // </div>
-                        }
                    
                         <VoiceTextArea
                             label="Treatment / Medication"
@@ -920,9 +882,11 @@ const MidSection = ({ patientsData, docPatientData }) => {
                             value={formData.treatment}
                             onChange={(val) => formHandler('treatment', val)}
                             placeholder="Prescribed medicines or treatment"
+                            driverId="form-treatment"
                         />
 
                         <VoiceTextArea
+                            driverId="form-primary-complain"
                             label="Primary Complain"
                             fieldKey="primaryComplain"
                             value={formData.primaryComplain}
@@ -937,8 +901,9 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
                     {/* NEXT BUTTON */}
                     <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
+
                         {/* TOKEN SELECT */}
-                        <div className="flex-1">
+                        <div id="dropdown-select-token" className="flex-1">
                             <Select
                                 allowClear
                                 showSearch
@@ -952,7 +917,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         </div>
 
                         {/* MAIN ACTION BUTTON */}
-                        <div className="flex-1">
+                        <div id="btn-start" className="flex-1">
                             <Button
                                 type="primary"
                                 block
@@ -968,10 +933,11 @@ const MidSection = ({ patientsData, docPatientData }) => {
                                         ? "Next Patient"
                                         : "START"}
                             </Button>
+
                         </div>
 
                         {/* SKIP BUTTON */}
-                        <div className="flex-1 hidden md:block">
+                        <div id="btn-skip" className="flex-1 hidden md:block">
                             <Button
                                 block
                                 className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
@@ -984,7 +950,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                         </div>
                     </div>
 
-                    <div className="border-t p-4 border-gray-200 gap-4 flex md:hidden">
+                    <div id="btn-skip" className="border-t p-4 border-gray-200 gap-4 flex md:hidden">
                         <Button
                             block
                             className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
@@ -1003,7 +969,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             {/* ADD VITALS MODAL */}
             <AddVitalsModal
                 isOpen={isVitalsModalOpen}
-                onClose={() => setIsVitalsModalOpen(false)}
+                onClose={ () => setIsVitalsModalOpen(false) }
                 currentPatientsData={currentPatientsData}
                 loginUserData={loginUserData}
                 VITALS_CONFIG={VITALS_CONFIG}

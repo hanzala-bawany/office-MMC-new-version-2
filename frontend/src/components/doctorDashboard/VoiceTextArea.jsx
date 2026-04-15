@@ -13,7 +13,7 @@ const MicIcon = ({ color = 'currentColor' }) => (
     </svg>
 )
 
-const VoiceTextArea = ({ label, fieldKey, value, onChange, placeholder, rows = 3 }) => {
+const VoiceTextArea = ({ label, fieldKey, value, onChange, placeholder, rows = 3 , driverId }) => {
 
     const [isRecording, setIsRecording] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
@@ -98,7 +98,7 @@ const VoiceTextArea = ({ label, fieldKey, value, onChange, placeholder, rows = 3
 
     return (
 
-        <div className="flex flex-col gap-1">
+        <div id={driverId} className="flex flex-col gap-1">
             <label className={`text-sm font-medium transition-colors duration-200 ${isRecording ? 'text-red-500' : 'text-gray-500'
                 }`}>
                 {label}

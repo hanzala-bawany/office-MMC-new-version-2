@@ -7,34 +7,184 @@ import HistoryTable from "../components/doctorDashboard/HistoryTable.jsx";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { socket } from "../socket/socket.js";
-
-
-
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 const DoctorDashboard = () => {
 
 
   const [patientsData, setPatientsData] = useState([]);
   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
-  const isCancelClick = useSelector(state => state?.doctorSlice?.refreshPatients);
+  const isCancelClick = useSelector(
+    (state) => state?.doctorSlice?.refreshPatients,
+  );
+  const driverObj = driver({
+    showProgress: true,
+    animate: true,
+    overlayColor: "#0052cc",
+    overlayOpacity: 0.5,
+    smoothScroll: true,
+    stagePadding: 8,
+    popoverClass: "custom-driver-popover",
+    steps: [
+      {
+        element: "#stat-today-appointments",
+        popover: {
+          title: "📅 Today's Appointments",
+          description: "Total appointments booked by patients for today.",
+          side: "bottom",
+        },
+      },
+      {
+        element: "#stat-patients-checked",
+        popover: {
+          title: "✅ Patients Checked",
+          description:
+            "Patients who have been seen and their status is Completed.",
+          side: "bottom",
+        },
+      },
+      {
+        element: "#stat-patients-waiting",
+        popover: {
+          title: "⏳ Patients Waiting",
+          description: "Patients currently sitting in the waiting room.",
+          side: "bottom",
+        },
+      },
+      {
+        element: "#stat-patients-skipped",
+        popover: {
+          title: "⏭️ Patients Skipped",
+          description:
+            "Patients who were skipped — doctor can call them again later.",
+          side: "bottom",
+        },
+      },
+      {
+        element: "#vitals-section",
+        popover: {
+          title: "🩺 Patient Vitals",
+          description:
+            "Once a patient starts, their BP, Sugar, Weight, Height, Temp and Pulse appear here.",
+          side: "top",
+        },
+      },
+      {
+        element: "#btn-start",
+        popover: {
+          title: "▶️ START Button",
+          description:
+            "Press START to call the first patient. After that, it turns into a NEXT button.",
+          side: "top",
+        },
+      },
+      {
+        element: "#btn-skip",
+        popover: {
+          title: "🔀 Skip Patient",
+          description:
+            "Skip the current patient — they move to the Skipped list and the next waiting patient is called.",
+          side: "top",
+        },
+      },
+      {
+        element: "#dropdown-select-token",
+        popover: {
+          title: "🎯 Select Token",
+          description:
+            "Directly call any waiting or skipped patient — regardless of their position in the queue.",
+          side: "top",
+        },
+      },
+      {
+        element: "#btn-repeat-call",
+        popover: {
+          title: "🔁 Repeat Call",
+          description:
+            "Announce the current patient again on the display screen — in case they didn't hear the first time.",
+          side: "top",
+        },
+      },
+      {
+        element: "#btn-add-vitals",
+        popover: {
+          title: "📊 Add / Edit Vitals",
+          description:
+            "Enter or update patient vitals — Blood Pressure, Sugar, Weight, and more.",
+          side: "bottom",
+        },
+      },
+      {
+        element: "#form-primary-diagnosis",
+        popover: {
+          title: "🏥 Primary Diagnosis",
+          description:
+            "Type or speak the diagnosis. Once saved, it shows up in the dropdown next time automatically.",
+          side: "left",
+        },
+      },
+      {
+        element: "#form-recommended-tests",
+        popover: {
+          title: "🔬 Recommended Tests",
+          description:
+            "Select or type tests. Previously used tests appear in the dropdown for quick selection.",
+          side: "left",
+        },
+      },
+      {
+        element: "#form-treatment",
+        popover: {
+          title: "💊 Treatment / Medication",
+          description:
+            "Write medicines or treatment — use keyboard or press the mic button to speak it.",
+          side: "left",
+        },
+      },
+      {
+        element: "#form-primary-complain",
+        popover: {
+          title: "📝 Patient Complaint",
+          description:
+            "Record what the patient is complaining about — voice input is available here too.",
+          side: "left",
+        },
+      },
+      {
+        element: "#doctor-name-btn",
+        popover: {
+          title: "👨‍⚕️ Doctor Options",
+          description:
+            "Click your name to see two options: 'Cancel All' removes all waiting/skipped patients, and 'Logout' signs you out.",
+          side: "bottom",
+        },
+      },
+    ],
+  });
+  
   // console.log(isCancelClick, "<<<<<<< isCancelClick");
   // console.log(loginUserData, "<<<<<<< loginUserData");
   // console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
+  // console.log(driverObj, "<<<<<<< driverObj");
 
 
-  const foo = useCallback(
-    async () => {
-      try {
-        const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
-        // console.log(res, "res of get DocotrDetail by id");
-        setPatientsData(res?.data?.data);
-      }
-      catch (err) {
-        // console.log(err, "error in get faculty");
-        toast.error(err?.message)
-      }
-    }, [loginUserData?.doctorId]
-  );
+  const foo = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,
+      );
+      // console.log(res, "res of get DocotrDetail by id");
+      setPatientsData(res?.data?.data);
+    } catch (err) {
+      // console.log(err, "error in get faculty");
+      toast.error(err?.message);
+    }
+  }, [loginUserData?.doctorId]);
+
+  const startTour = () => {
+    driverObj.drive();
+  };
 
 
   useEffect(() => {
@@ -45,12 +195,8 @@ const DoctorDashboard = () => {
   }, [isCancelClick]);
 
 
-
   return (
-
     <div className="flex flex-col min-h-screen  bg-gradient-to-br from-[#e3f1ff] via-[#e3efff] to-[#FFFFFF] p-4 md:p-8 relative ">
-
-
       <div
         className="absolute inset-0 opacity-10 pointer-events-none"
         style={{
@@ -60,31 +206,21 @@ const DoctorDashboard = () => {
 
       <div className="absolute top-0 left-0 w-full h-27 bg-gradient-to-r from-[#0052cc] to-[#00b0ff] z-0 rounded-b-[40px]" />
 
-
       {/* Header */}
-      <Header doctorData={loginUserData} patientsData={patientsData} />
+      <Header
+        onStartTour={startTour}
+        doctorData={loginUserData}
+        patientsData={patientsData}
+      />
 
       {/* Middle Section */}
       <MidSection patientsData={patientsData} docPatientData={foo} />
 
       {/* History */}
-      <HistoryTable />
-
+      {/* <HistoryTable /> */}
+      
     </div>
   );
 };
 
 export default DoctorDashboard;
-
-
-
-
-
-
-
-
-
-
-
-
-
