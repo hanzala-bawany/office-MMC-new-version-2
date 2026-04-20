@@ -393,13 +393,24 @@ const FormBody = ({ selectedPatient, setSelectedPatient }) => {
                                         </span>
                                     </div>
 
+
                                     {/* Input */}
                                     <div className="relative">
                                         <Input
-                                            type="number"
+                                            type={v.key === "bloodPressure" ? "text" : "number"}
                                             placeholder={v.placeholder}
                                             value={vitals[v.key] || ""}
-                                            onChange={(e) => handleVitalChange(v.key, e.target.value)}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+
+                                                if (v.key === "bloodPressure") {
+                                                    if (val === "" || /^[\d/]*$/.test(val)) {
+                                                        handleVitalChange(v.key, val);
+                                                    } 
+                                                } else {
+                                                    handleVitalChange(v.key, val);
+                                                }
+                                            }}
                                             style={{ borderColor: filled ? v.border : undefined, paddingRight: filled ? 32 : undefined }}
                                         />
                                         {filled && (
@@ -413,6 +424,8 @@ const FormBody = ({ selectedPatient, setSelectedPatient }) => {
                                 </div>
                             );
                         })}
+
+
                 </div>
 
                 {/* Action buttons */}

@@ -10,975 +10,1053 @@ import AddVitalsModal from "./AddVitalsModal";
 import VitalCard from "./VitalCard";
 import GetVoice1 from "./GetVoice1";
 import VoiceTextArea from "./VoiceTextArea";
+import VoiceTextAreaOnline from "./VoiceTextAreaOnline";
+import AiAssistant from "./AiAssistant";
+import { BulbOutlined } from "@ant-design/icons";
 
 const MidSection = ({ patientsData, docPatientData }) => {
 
-    const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
-    const currentPatientsData = patientsData?.patients?.[0];
-    const currentPatientsVitals = patientsData?.patientVitals?.[0];
-    const [isNextLoading, setIsNextLoading] = useState(false);
-    const [isSkipLoading, setIsSkipLoading] = useState(false);
-    const [isRepeatCallingHandler, setRepeatCallingHandler] = useState(false);
-    const [resetTrigger, setResetTrigger] = useState(false);
-    const [specificSearchingToken, setSpecificSearchingToken] = useState(null);
-    const [formData, setFormData] = useState({
+  const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
+  const currentPatientsData = patientsData?.patients?.[0];
+  const currentPatientsVitals = patientsData?.patientVitals?.[0];
+  const [isNextLoading, setIsNextLoading] = useState(false);
+  const [isSkipLoading, setIsSkipLoading] = useState(false);
+  const [isRepeatCallingHandler, setRepeatCallingHandler] = useState(false);
+  const [resetTrigger, setResetTrigger] = useState(false);
+  const [specificSearchingToken, setSpecificSearchingToken] = useState(null);
+  const [formData, setFormData] = useState({
+    primaryDiagnosis: [],
+    medicalTests: [],
+    treatment: "",
+    primaryComplain: "",
+  });
+  // let patientToken = Number(specificSearchingToken?.split(" ")[0]?.split("-")[1],);
+  let patientToken = Number(specificSearchingToken?.split(" ")[0]);
+  const hasAppointments = patientsData?.todayAppointments > 0;
+  const hasCurrentPatient = !!currentPatientsData?.RECEIPTNO;
+  const allPatientsDone =
+    patientsData?.todayAppointments ===
+    patientsData?.patientsChecked + patientsData?.patientsSkipped;
+  const disableNext =
+    isNextLoading ||
+    !hasAppointments ||
+    (!specificSearchingToken && allPatientsDone);
+  const disableSkip = isSkipLoading || !hasCurrentPatient;
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [activeVoiceField, setActiveVoiceField] = useState(null);
+  const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
+  const [voiceMode, setVoiceMode] = useState("offline");
+  const [showAIAssistant, setShowAIAssistant] = useState(false); // for AI 
+  const [aiResponse, setAiResponse] = useState(null);
+  const [aiVitalAlerts, setAiVitalAlerts] = useState([]);
+
+  // let patintsW8ing;
+
+  // console.log(specificSearchingToken, "<<<<<<<  specificSearchingToken  ");
+  // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
+  // console.log(patientsData, "<<<<<<<<<");
+  // console.log(loginUserData, "<<<<<<<  loginUserData  ");
+  // console.log(currentPatientsVitals, "<<<<<<<  currentPatientsVitals  ");
+
+  // Sample departments data - sirf UI dikhane ke liye
+  const departments = [
+    { id: "1", name: "General", type: "1" },
+    { id: "2", name: "BIOCHEMISTRY", type: "2" },
+    { id: "3", name: "HEAMOTOLOGY", type: "2" },
+    { id: "4", name: "SEROLOGY", type: "2" },
+    { id: "5", name: "HORMONES", type: "2" },
+    { id: "6", name: "URINE EXAMINATION", type: "2" },
+    { id: "7", name: "BLOOD BANK", type: "2" },
+    { id: "8", name: "FLUIDS", type: "2" },
+    { id: "9", name: "MICROBIOLOGY", type: "2" },
+    { id: "10", name: "STOOL EXAMINATION", type: "2" },
+    { id: "11", name: "SEMEN ANALYSIS", type: "2" },
+    { id: "12", name: "HEPATITIS", type: "2" },
+    { id: "14", name: "HISTROPATHOLOGY", type: "2" },
+    { id: "15", name: "ECHOCARDIOGRAPHY", type: "19" },
+    { id: "16", name: "SPECIAL CHEMISTRY-1", type: "2" },
+    { id: "17", name: "SPECIAL CHEMISTRY-2", type: "2" },
+  ];
+
+  // Sample tests data - sirf UI dikhane ke liye
+  const sampleTests = [
+    { id: "101", name: "Complete Blood Count", department: "2" },
+    { id: "102", name: "Blood Sugar Fasting", department: "2" },
+    { id: "103", name: "Lipid Profile", department: "2" },
+    { id: "104", name: "Liver Function Test", department: "2" },
+    { id: "105", name: "Thyroid Profile", department: "5" },
+    { id: "106", name: "Urine Routine", department: "6" },
+  ];
+
+  // Sample lab patients data - sirf UI dikhane ke liye
+  const sampleLabPatients = [
+    {
+      id: 1,
+      patientName: "Ahmed Khan",
+      tokenNo: "T-101",
+      testName: "Complete Blood Count",
+      department: "HEAMOTOLOGY",
+      status: "pending",
+    },
+    {
+      id: 2,
+      patientName: "Fatima Ali",
+      tokenNo: "T-102",
+      testName: "Blood Sugar Fasting",
+      department: "BIOCHEMISTRY",
+      status: "in progress",
+    },
+    {
+      id: 3,
+      patientName: "Usman Tariq",
+      tokenNo: "T-103",
+      testName: "Lipid Profile",
+      department: "BIOCHEMISTRY",
+      status: "completed",
+    },
+    {
+      id: 4,
+      patientName: "Ayesha Malik",
+      tokenNo: "T-104",
+      testName: "Thyroid Profile",
+      department: "HORMONES",
+      status: "pending",
+    },
+    {
+      id: 5,
+      patientName: "Bilal Ahmed",
+      tokenNo: "T-105",
+      testName: "Urine Routine",
+      department: "URINE EXAMINATION",
+      status: "in progress",
+    },
+    {
+      id: 6,
+      patientName: "Hassan Raza",
+      tokenNo: "T-106",
+      testName: "Liver Function Test",
+      department: "BIOCHEMISTRY",
+      status: "completed",
+    },
+    {
+      id: 7,
+      patientName: "Sara Khan",
+      tokenNo: "T-107",
+      testName: "Hepatitis Screening",
+      department: "HEPATITIS",
+      status: "pending",
+    },
+    {
+      id: 8,
+      patientName: "Ali Hamza",
+      tokenNo: "T-108",
+      testName: "Stool Routine",
+      department: "STOOL EXAMINATION",
+      status: "pending",
+    },
+  ];
+
+  const VITALS_CONFIG = [
+    {
+      currentKey: "CBLOOD_PRESSURE",
+      formKey: "bloodPressure",
+      lastKey: "LBLOOD_PRESSURE",
+      label: "Blood Pressure",
+      unit: "mmHg",
+      bgColor: "#FDF2F8",
+      borderColor: "#EC4899",
+      textColor: "#DB2777",
+      subTextColor: "#9D174D",
+    },
+    {
+      currentKey: "CBLOOD_SUGAR",
+      formKey: "bloodSugar",
+      lastKey: "LBLOOD_SUGAR",
+      label: "Blood Sugar",
+      unit: "mg/dL",
+      bgColor: "#ECFDF5",
+      borderColor: "#22C55E",
+      textColor: "#15803D",
+      subTextColor: "#166534",
+    },
+    {
+      currentKey: "CWEIGHT",
+      formKey: "weight",
+      lastKey: "LWEIGHT",
+      label: "Weight",
+      unit: "kg",
+      bgColor: "#DBEAFE",
+      borderColor: "#2563EB",
+      textColor: "#1D4ED8",
+      subTextColor: "#1E40AF",
+    },
+    {
+      currentKey: "CHEIGHT",
+      formKey: "height",
+      lastKey: "LHEIGHT",
+      label: "Height",
+      unit: "cm",
+      bgColor: "#F3F4F6",
+      borderColor: "#4B5563",
+      textColor: "#374151",
+      subTextColor: "#1F2937",
+    },
+    {
+      currentKey: "CTEMPERATURE",
+      formKey: "temperature",
+      lastKey: "LTEMPERATURE",
+      label: "Temp",
+      unit: "°F",
+      bgColor: "#EDE9FE",
+      borderColor: "#7C3AED",
+      textColor: "#6D28D9",
+      subTextColor: "#5B21B6",
+    },
+    {
+      currentKey: "CPULSE",
+      formKey: "pulse",
+      lastKey: "LPULSE",
+      label: "Pulse",
+      unit: "bpm",
+      bgColor: "#FEF9C3",
+      borderColor: "#CA8A04",
+      textColor: "#B45309",
+      subTextColor: "#92400E",
+    },
+  ];
+
+  const pieData = [
+    {
+      name: "Patients Remaining",
+      uv: patientsData?.patientsRemaining,
+      fill: "#60A5FA",
+    }, // blue-400
+    {
+      name: "Patients Checked",
+      uv: patientsData?.patientsChecked,
+      fill: "#A855F7",
+    }, // purple-500
+  ];
+
+  const patientData = {
+    name: "Ali Raza",
+    age: 32,
+    gender: "Male",
+    opdId: "A - 20",
+
+    CbloodPressure: "120/80 mmHg",
+    LbloodPressure: "130/85 mmHg",
+
+    CbloodSugar: "95 mg/dL",
+    LbloodSugar: "105 mg/dL",
+
+    Cweight: "72 kg",
+    Lweight: "74 kg",
+
+    Cheight: "5.8 ft",
+    Lheight: "5.8 ft",
+
+    Ctemperature: "98.4°F",
+    Ltemperature: "99.1°F",
+
+    Cpulse: "78 bpm",
+    Lpulse: "82 bpm",
+  };
+
+  const diagnosisOptions = patientsData?.diagnosisList?.map((item) => ({
+    value: item.DIAGNOSIS,
+    label: item.DIAGNOSIS,
+  }));
+
+  const testOptions = patientsData?.testList?.map((item) => ({
+    value: item?.TEST_NAME,
+    label: item?.TEST_NAME,
+  }));
+
+  const skippedTokenListOptions = patientsData?.skippedTokenList?.map(
+    (item) => ({
+      value: item?.TOKENNO,
+      label: item?.TOKENNO,
+    }),
+  );
+
+  const nextHandler = async () => {
+    try {
+      setIsNextLoading(true);
+      const res = await axios.post(`${base_URL}/api/opd/doctor/next-patient`, {
+        doctorId: loginUserData?.doctorId,
+        receiptNo: currentPatientsData?.RECEIPTNO || null,
+        remarks: formData?.primaryComplain || null,
+        primaryDiagnosis: formData?.primaryDiagnosis || null,
+        medicalTests: formData?.medicalTests || null,
+        treatment: formData?.treatment || null,
+      });
+      // console.log(res, "res of next Handler by id");
+      await docPatientData();
+      if (patientsData?.patientsRemaining > 0) {
+        toast.success(`Next Patient is Coming`);
+      } else {
+        toast.info(`Patient Not yet`);
+      }
+      setFormData({
         primaryDiagnosis: [],
         medicalTests: [],
         treatment: "",
         primaryComplain: "",
-    });
-    // let patientToken = Number(specificSearchingToken?.split(" ")[0]?.split("-")[1],);
-    let patientToken = Number(specificSearchingToken?.split(" ")[0]);
-    const hasAppointments = patientsData?.todayAppointments > 0;
-    const hasCurrentPatient = !!currentPatientsData?.RECEIPTNO;
-    const allPatientsDone = patientsData?.todayAppointments === patientsData?.patientsChecked + patientsData?.patientsSkipped;
-    const disableNext = isNextLoading || !hasAppointments || (!specificSearchingToken && allPatientsDone);
-    const disableSkip = isSkipLoading || !hasCurrentPatient;
-    const [selectedDepartment, setSelectedDepartment] = useState(null);
-    const [selectedTest, setSelectedTest] = useState(null);
-    const [activeVoiceField, setActiveVoiceField] = useState(null);
-    const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
+      });
+      setResetTrigger((prev) => !prev);
+    } catch (err) {
+      console.log(err, "error in next Handler");
+      toast.error(err?.message);
+    } finally {
+      setIsNextLoading(false);
+    }
+  };
 
-    // let patintsW8ing;
-
-    // console.log(specificSearchingToken, "<<<<<<<  specificSearchingToken  ");
-    // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
-    // console.log(patientsData, "<<<<<<<<<");
-    // console.log(loginUserData, "<<<<<<<  loginUserData  ");
-    // console.log(currentPatientsVitals, "<<<<<<<  currentPatientsVitals  ");
-
-    // Sample departments data - sirf UI dikhane ke liye
-    const departments = [
-        { id: "1", name: "General", type: "1" },
-        { id: "2", name: "BIOCHEMISTRY", type: "2" },
-        { id: "3", name: "HEAMOTOLOGY", type: "2" },
-        { id: "4", name: "SEROLOGY", type: "2" },
-        { id: "5", name: "HORMONES", type: "2" },
-        { id: "6", name: "URINE EXAMINATION", type: "2" },
-        { id: "7", name: "BLOOD BANK", type: "2" },
-        { id: "8", name: "FLUIDS", type: "2" },
-        { id: "9", name: "MICROBIOLOGY", type: "2" },
-        { id: "10", name: "STOOL EXAMINATION", type: "2" },
-        { id: "11", name: "SEMEN ANALYSIS", type: "2" },
-        { id: "12", name: "HEPATITIS", type: "2" },
-        { id: "14", name: "HISTROPATHOLOGY", type: "2" },
-        { id: "15", name: "ECHOCARDIOGRAPHY", type: "19" },
-        { id: "16", name: "SPECIAL CHEMISTRY-1", type: "2" },
-        { id: "17", name: "SPECIAL CHEMISTRY-2", type: "2" },
-    ];
-
-    // Sample tests data - sirf UI dikhane ke liye
-    const sampleTests = [
-        { id: "101", name: "Complete Blood Count", department: "2" },
-        { id: "102", name: "Blood Sugar Fasting", department: "2" },
-        { id: "103", name: "Lipid Profile", department: "2" },
-        { id: "104", name: "Liver Function Test", department: "2" },
-        { id: "105", name: "Thyroid Profile", department: "5" },
-        { id: "106", name: "Urine Routine", department: "6" },
-    ];
-
-    // Sample lab patients data - sirf UI dikhane ke liye
-    const sampleLabPatients = [
+  const specificCallingHandler = async () => {
+    try {
+      setIsNextLoading(true);
+      const res = await axios.post(
+        `${base_URL}/api/opd/doctor/patient-specific-call`,
         {
-            id: 1,
-            patientName: "Ahmed Khan",
-            tokenNo: "T-101",
-            testName: "Complete Blood Count",
-            department: "HEAMOTOLOGY",
-            status: "pending",
+          doctorId: loginUserData?.doctorId,
+          tokenNo: patientToken || null,
+          remarks: formData?.primaryComplain || null,
+          primaryDiagnosis: formData?.primaryDiagnosis || null,
+          medicalTests: formData?.medicalTests || null,
+          treatment: formData?.treatment || null,
         },
+      );
+      // console.log(res, "res of specific Calling Handler by id");
+      await docPatientData();
+      if (
+        patientsData?.patientsRemaining > 0 ||
+        patientsData?.patientsSkipped > 0
+      ) {
+        toast.success(`Next Patient is Coming`);
+      } else {
+        toast.info(`Patient Not yet`);
+      }
+
+      setSpecificSearchingToken(null);
+    } catch (err) {
+      console.log(err, "error in specific Calling Handler");
+      toast.error(err?.message);
+    } finally {
+      setIsNextLoading(false);
+    }
+  };
+
+  const skipHandler = async () => {
+    // console.log(formData, ">>>>>>>>>>>>>");
+
+    try {
+      setIsSkipLoading(true);
+      const res = await axios.post(
+        `${base_URL}/api/opd/doctor/patient-skipped`,
         {
-            id: 2,
-            patientName: "Fatima Ali",
-            tokenNo: "T-102",
-            testName: "Blood Sugar Fasting",
-            department: "BIOCHEMISTRY",
-            status: "in progress",
+          doctorId: loginUserData?.doctorId,
+          receiptNo: null,
         },
+      );
+      // console.log(res, "res of skip Handler by id");
+      await docPatientData();
+      if (patientsData?.patientsRemaining > 0) {
+        toast.success(`Next Patient is Coming`);
+      } else {
+        toast.info(`Patient Not yet`);
+      }
+    } catch (err) {
+      console.log(err, "error in skip Handler");
+      toast.error(err?.message);
+    } finally {
+      setIsSkipLoading(false);
+    }
+  };
+
+  const repeatCallingHandler = async () => {
+    try {
+      setRepeatCallingHandler(true);
+      const res = await axios.post(
+        `${base_URL}/api/opd/doctor/patient-repeat-call`,
         {
-            id: 3,
-            patientName: "Usman Tariq",
-            tokenNo: "T-103",
-            testName: "Lipid Profile",
-            department: "BIOCHEMISTRY",
-            status: "completed",
+          doctorId: loginUserData?.doctorId,
+          doctorName: loginUserData?.name,
+          patientToken: currentPatientsData?.TOKENNO,
         },
-        {
-            id: 4,
-            patientName: "Ayesha Malik",
-            tokenNo: "T-104",
-            testName: "Thyroid Profile",
-            department: "HORMONES",
-            status: "pending",
-        },
-        {
-            id: 5,
-            patientName: "Bilal Ahmed",
-            tokenNo: "T-105",
-            testName: "Urine Routine",
-            department: "URINE EXAMINATION",
-            status: "in progress",
-        },
-        {
-            id: 6,
-            patientName: "Hassan Raza",
-            tokenNo: "T-106",
-            testName: "Liver Function Test",
-            department: "BIOCHEMISTRY",
-            status: "completed",
-        },
-        {
-            id: 7,
-            patientName: "Sara Khan",
-            tokenNo: "T-107",
-            testName: "Hepatitis Screening",
-            department: "HEPATITIS",
-            status: "pending",
-        },
-        {
-            id: 8,
-            patientName: "Ali Hamza",
-            tokenNo: "T-108",
-            testName: "Stool Routine",
-            department: "STOOL EXAMINATION",
-            status: "pending",
-        },
-    ];
+      );
+      // console.log(res, "res of repeat Calling Handler");
 
-    // const VITALS_CONFIG = [
-    //     {
-    //         currentKey: "CBLOOD_PRESSURE",
-    //         formKey: "bloodPressure",
-    //         lastKey: "LBLOOD_PRESSURE",
-    //         label: "Blood Pressure",
-    //         bgColor: "#FDF2F8",
-    //         borderColor: "#EC4899",
-    //         textColor: "#DB2777",
-    //         subTextColor: "#9D174D",
-    //     },
-    //     {
-    //         currentKey: "CBLOOD_SUGAR",
-    //         formKey: "bloodSugar",
-    //         lastKey: "LBLOOD_SUGAR",
-    //         label: "Blood Sugar",
-    //         bgColor: "#ECFDF5",
-    //         borderColor: "#22C55E",
-    //         textColor: "#15803D",
-    //         subTextColor: "#166534",
-    //     },
-    //     {
-    //         currentKey: "CWEIGHT",
-    //         formKey: "weight",
-    //         lastKey: "LWEIGHT",
-    //         label: "Weight",
-    //         bgColor: "#DBEAFE",
-    //         borderColor: "#2563EB",
-    //         textColor: "#1D4ED8",
-    //         subTextColor: "#1E40AF",
-    //     },
-    //     {
-    //         currentKey: "CHEIGHT",
-    //         formKey: "height",
-    //         lastKey: "LHEIGHT",
-    //         label: "Height",
-    //         bgColor: "#F3F4F6",
-    //         borderColor: "#4B5563",
-    //         textColor: "#374151",
-    //         subTextColor: "#1F2937",
-    //     },
-    //     {
-    //         currentKey: "CTEMPERATURE",
-    //         formKey: "temperature",
-    //         lastKey: "LTEMPERATURE",
-    //         label: "Temp",
-    //         bgColor: "#EDE9FE",
-    //         borderColor: "#7C3AED",
-    //         textColor: "#6D28D9",
-    //         subTextColor: "#5B21B6",
-    //     },
-    //     {
-    //         currentKey: "CPULSE",
-    //         formKey: "pulse",
-    //         lastKey: "LPULSE",
-    //         label: "Pulse",
-    //         bgColor: "#FEF9C3",
-    //         borderColor: "#CA8A04",
-    //         textColor: "#B45309",
-    //         subTextColor: "#92400E",
-    //     },
-    // ];
-    const VITALS_CONFIG = [
-        {
-            currentKey: "CBLOOD_PRESSURE",
-            formKey: "bloodPressure",
-            lastKey: "LBLOOD_PRESSURE",
-            label: "Blood Pressure",
-            unit: "mmHg",
-            bgColor: "#FDF2F8",
-            borderColor: "#EC4899",
-            textColor: "#DB2777",
-            subTextColor: "#9D174D",
-        },
-        {
-            currentKey: "CBLOOD_SUGAR",
-            formKey: "bloodSugar",
-            lastKey: "LBLOOD_SUGAR",
-            label: "Blood Sugar",
-            unit: "mg/dL",
-            bgColor: "#ECFDF5",
-            borderColor: "#22C55E",
-            textColor: "#15803D",
-            subTextColor: "#166534",
-        },
-        {
-            currentKey: "CWEIGHT",
-            formKey: "weight",
-            lastKey: "LWEIGHT",
-            label: "Weight",
-            unit: "kg",
-            bgColor: "#DBEAFE",
-            borderColor: "#2563EB",
-            textColor: "#1D4ED8",
-            subTextColor: "#1E40AF",
-        },
-        {
-            currentKey: "CHEIGHT",
-            formKey: "height",
-            lastKey: "LHEIGHT",
-            label: "Height",
-            unit: "cm",
-            bgColor: "#F3F4F6",
-            borderColor: "#4B5563",
-            textColor: "#374151",
-            subTextColor: "#1F2937",
-        },
-        {
-            currentKey: "CTEMPERATURE",
-            formKey: "temperature",
-            lastKey: "LTEMPERATURE",
-            label: "Temp",
-            unit: "°C",
-            bgColor: "#EDE9FE",
-            borderColor: "#7C3AED",
-            textColor: "#6D28D9",
-            subTextColor: "#5B21B6",
-        },
-        {
-            currentKey: "CPULSE",
-            formKey: "pulse",
-            lastKey: "LPULSE",
-            label: "Pulse",
-            unit: "bpm",
-            bgColor: "#FEF9C3",
-            borderColor: "#CA8A04",
-            textColor: "#B45309",
-            subTextColor: "#92400E",
-        },
-    ];
+      toast.success(`Repeat Calling`);
+    } catch (err) {
+      console.log(err, "error in call Repeat Handler");
+      toast.error(err?.message);
+    } finally {
+      setRepeatCallingHandler(false);
+    }
+  };
+
+  const formHandler = (key, value) => {
+    setFormData({ ...formData, [key]: value });
+
+    setActiveVoiceField(key);
+
+    setTimeout(() => {
+      setActiveVoiceField(null);
+    }, 1200);
+  };
 
 
-    const pieData = [
-        {
-            name: "Patients Remaining",
-            uv: patientsData?.patientsRemaining,
-            fill: "#60A5FA",
-        }, // blue-400
-        {
-            name: "Patients Checked",
-            uv: patientsData?.patientsChecked,
-            fill: "#A855F7",
-        }, // purple-500
-    ];
+  // for AI
 
-    const patientData = {
-        name: "Ali Raza",
-        age: 32,
-        gender: "Male",
-        opdId: "A - 20",
+  const handleAddMedicinesFromAI = (medicines) => {
+    const currentTreatment = formData.treatment || "";
+    const medicineText = medicines.map(m => m).join(", ");
+    const newTreatment = currentTreatment
+      ? `${currentTreatment}\n💊 ${medicineText}`
+      : `💊 ${medicineText}`;
+    formHandler("treatment", newTreatment);
+    toast.success(`${medicines.length} medicine(s) added to Treatment`);
+  };
 
-        CbloodPressure: "120/80 mmHg",
-        LbloodPressure: "130/85 mmHg",
+  const handleAddTreatmentFromAI = (treatmentText) => {
+    const currentTreatment = formData.treatment || "";
+    const newTreatment = currentTreatment
+      ? `${currentTreatment}\n📋 ${treatmentText}`
+      : `📋 ${treatmentText}`;
+    formHandler("treatment", newTreatment);
+    toast.success("Treatment plan added");
+  };
 
-        CbloodSugar: "95 mg/dL",
-        LbloodSugar: "105 mg/dL",
+  return (
 
-        Cweight: "72 kg",
-        Lweight: "74 kg",
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:gap-6 2xl:grid-cols-3 mb-8 h-auto xl:grid-rows-1">
 
-        Cheight: "5.8 ft",
-        Lheight: "5.8 ft",
+      {/* Pie Chart - sirf xl/laptop pe */}
+      <div className="hidden xl:flex 2xl:hidden order-3 xl:order-3 themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex-col justify-between max-h-[40vh] h-[30vh]">
+        <div className="flex-1 p-2 px-4 sm:p-4 flex justify-between gap-4 sm:gap-8 items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
+          <h2 className="text-lg sm:text-xl font-semibold text-black">
+            Patient Progress
+          </h2>
+          <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-6 text-sm">
+            <span className="text-[#60A5FA]">● Patients Remaining</span>
+            <span className="text-[#A855F7]">● Patients Checked</span>
+          </div>
+        </div>
 
-        Ctemperature: "98.4°F",
-        Ltemperature: "99.1°F",
+        <div
+          className={`flex-7 ${!(patientsData?.patientsRemaining || patientsData?.patientsChecked) && "p-6"}`}
+        >
+          {patientsData?.patientsRemaining || patientsData?.patientsChecked ? (
+            <MyCircleChart piData={pieData} active="dd" />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full rounded-xl border-2 border-dashed border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 text-center transition-all">
+              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-3">
+                <span className="text-3xl">📊</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-blue-700">
+                No Patients Checked Today
+              </h3>
+              <p className="text-sm text-blue-500 mt-1 max-w-[220px]">
+                Patient visit data will appear here once appointments are
+                scheduled
+              </p>
+              <div className="mt-3 px-4 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
+                Waiting for OPD entries
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-        Cpulse: "78 bpm",
-        Lpulse: "82 bpm",
-    };
+      {/* Lab management */}
+      <div className="order-3 2xl:order-1 z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col max-h-[55vh] 2xl:max-h-none 2xl:min-h-[35vh]  overflow-hidden">
+        {/* Header */}
+        <div className="flex-1 p-4 flex justify-between items-center rounded-xl border border-gray-300 xl:bg-gradient-to-r xl:from-indigo-600 xl:to-blue-500">
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold text-black xl:text-white">
+              Lab Management
+            </h2>
+            <p className="text-xs text-blue-600 xl:text-blue-100">
+              Assign & Monitor Patient Lab Tests
+            </p>
+          </div>
 
-    const diagnosisOptions = patientsData?.diagnosisList?.map((item) => ({
-        value: item.DIAGNOSIS,
-        label: item.DIAGNOSIS,
-    }));
+          <div className=" flex items-center gap-2 bg-gray-100 xl:bg-white/20 px-3 py-1 rounded-full">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+            </span>
+            <span className="text-xs text-black  xl:text-white">Live</span>
+          </div>
+        </div>
 
-    const testOptions = patientsData?.testList?.map((item) => ({
-        value: item?.TEST_NAME,
-        label: item?.TEST_NAME,
-    }));
+        {/* Department + Test Selection */}
+        <div className="p-4 border-b border-gray-200 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Select
+              placeholder="Select Department"
+              value={selectedDepartment}
+              onChange={setSelectedDepartment}
+              showSearch
+              optionFilterProp="children"
+              className="w-full"
+              size="middle"
+            >
+              {departments.map((dept) => (
+                <Option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </Option>
+              ))}
+            </Select>
 
-    const skippedTokenListOptions = patientsData?.skippedTokenList?.map(
-        (item) => ({
-            value: item?.TOKENNO,
-            label: item?.TOKENNO,
-        }),
-    );
+            <Select
+              placeholder="Select Test"
+              value={selectedTest}
+              onChange={setSelectedTest}
+              disabled={!selectedDepartment}
+              showSearch
+              optionFilterProp="children"
+              className="w-full"
+              size="middle"
+            >
+              {selectedDepartment &&
+                sampleTests
+                  .filter((test) => test.department === selectedDepartment)
+                  .map((test) => (
+                    <Option key={test.id} value={test.id}>
+                      {test.name}
+                    </Option>
+                  ))}
+            </Select>
 
+            <Button
+              type="primary"
+              size="middle"
+              className="bg-gradient-to-r from-blue-500 to-indigo-500 border-none hover:opacity-90"
+              onClick={() => {
+                if (selectedTest && currentPatientsData) {
+                  toast.success(
+                    `Test assigned to ${currentPatientsData.PATIENTNAME}`,
+                  );
+                  setSelectedTest(null);
+                } else {
+                  toast.warning(
+                    "Please select test and ensure patient available",
+                  );
+                }
+              }}
+              disabled={!selectedTest || !currentPatientsData}
+            >
+              Assign Test
+            </Button>
+          </div>
+        </div>
 
+        {/* Lab Patients Table */}
+        <div className="flex-6 p-4 overflow-auto hide-scrollbar">
+          <div className="mb-3 flex justify-between items-center">
+            <h3 className="font-semibold text-gray-700">
+              Today's Lab Patients
+            </h3>
 
-    const nextHandler = async () => {
-        try {
-            setIsNextLoading(true);
-            const res = await axios.post(`${base_URL}/api/opd/doctor/next-patient`, {
-                doctorId: loginUserData?.doctorId,
-                receiptNo: currentPatientsData?.RECEIPTNO || null,
-                remarks: formData?.primaryComplain || null,
-                primaryDiagnosis: formData?.primaryDiagnosis || null,
-                medicalTests: formData?.medicalTests || null,
-                treatment: formData?.treatment || null,
-            });
-            // console.log(res, "res of next Handler by id");
-            await docPatientData();
-            if (patientsData?.patientsRemaining > 0) {
-                toast.success(`Next Patient is Coming`);
-            } else {
-                toast.info(`Patient Not yet`);
-            }
-            setFormData({
-                primaryDiagnosis: [],
-                medicalTests: [],
-                treatment: "",
-                primaryComplain: "",
-            });
-            setResetTrigger((prev) => !prev);
-        } catch (err) {
-            console.log(err, "error in next Handler");
-            toast.error(err?.message);
-        } finally {
-            setIsNextLoading(false);
-        }
-    };
+            <Badge
+              count={sampleLabPatients?.length}
+              style={{ backgroundColor: "#3b82f6" }}
+            />
+          </div>
 
-    const specificCallingHandler = async () => {
-        try {
-            setIsNextLoading(true);
-            const res = await axios.post(
-                `${base_URL}/api/opd/doctor/patient-specific-call`,
-                {
-                    doctorId: loginUserData?.doctorId,
-                    tokenNo: patientToken || null,
-                    remarks: formData?.primaryComplain || null,
-                    primaryDiagnosis: formData?.primaryDiagnosis || null,
-                    medicalTests: formData?.medicalTests || null,
-                    treatment: formData?.treatment || null,
+          <Table
+            columns={[
+              {
+                title: "Patient",
+                dataIndex: "patientName",
+                key: "patientName",
+                render: (text) => (
+                  <span className="font-medium text-gray-800">{text}</span>
+                ),
+              },
+              {
+                title: "Token",
+                dataIndex: "tokenNo",
+                key: "tokenNo",
+                render: (text) => <Tag color="blue">{text}</Tag>,
+              },
+              {
+                title: "Test",
+                dataIndex: "testName",
+                key: "testName",
+                render: (text) => <span className="text-gray-600">{text}</span>,
+              },
+              {
+                title: "Department",
+                dataIndex: "department",
+                key: "department",
+                render: (text) => (
+                  <span className="text-gray-600 text-xs font-medium">
+                    {text}
+                  </span>
+                ),
+              },
+              {
+                title: "Status",
+                dataIndex: "status",
+                key: "status",
+                render: (status) => {
+                  const style =
+                    status === "completed"
+                      ? "bg-green-100 text-green-700"
+                      : status === "pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-blue-100 text-blue-700";
+
+                  const label =
+                    status === "completed"
+                      ? "Completed"
+                      : status === "pending"
+                        ? "Pending"
+                        : "Processing";
+
+                  return (
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${style}`}
+                    >
+                      {label}
+                    </span>
+                  );
                 },
-            );
-            // console.log(res, "res of specific Calling Handler by id");
-            await docPatientData();
-            if (patientsData?.patientsRemaining > 0 || patientsData?.patientsSkipped > 0) {
-                toast.success(`Next Patient is Coming`);
-            } else {
-                toast.info(`Patient Not yet`);
-            }
+              },
+            ]}
+            dataSource={sampleLabPatients}
+            rowKey="id"
+            size="middle"
+            pagination={false}
+            scroll={{ y: 270, x: "max-content" }}
+            className="rounded-lg"
+          />
+        </div>
+      </div>
 
-            setSpecificSearchingToken(null);
-        } catch (err) {
-            console.log(err, "error in specific Calling Handler");
-            toast.error(err?.message);
-        } finally {
-            setIsNextLoading(false);
-        }
-    };
+      {/* ADD Patient Detail & Patient Vitals */}
+      <div className="z-10 rounded-t-[12px] order-1  2xl:contents xl:row-span-2">
 
-    const skipHandler = async () => {
-        // console.log(formData, ">>>>>>>>>>>>>");
+        {/* Patient Vitals */}
+        <div
+          id="vitals-section"
+          className="flex-1 z-10 themeBoxShadow rounded-t-[12px] bg-white flex flex-col justify-between transition-all duration-300 hover:shadow-lg 2xl:order-2"
+        >
+          <div className="flex-1  p-6 xl:p-4 flex items-center justify-between rounded-t-[12px] border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500 2xl:bg-none 2xl:from-transparent 2xl:to-transparent">
+            <h2 className="flex flex-col gap-2 text-lg sm:text-xl font-semibold text-white 2xl:text-black">
+              Patient Vitals
+              <div className="flex h-fit items-center sm:hidden font-bold gap-2 text-md px-2.5 py-0.5 rounded-full w-fit bg-white text-blue-600 border border-blue-200 xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200">
+                {currentPatientsData?.TOKENNO || "Not Yet"}
+              </div>
+            </h2>
 
-        try {
-            setIsSkipLoading(true);
-            const res = await axios.post(
-                `${base_URL}/api/opd/doctor/patient-skipped`,
-                {
-                    doctorId: loginUserData?.doctorId,
-                    receiptNo: null,
-                },
-            );
-            // console.log(res, "res of skip Handler by id");
-            await docPatientData();
-            if (patientsData?.patientsRemaining > 0) {
-                toast.success(`Next Patient is Coming`);
-            } else {
-                toast.info(`Patient Not yet`);
-            }
-        } catch (err) {
-            console.log(err, "error in skip Handler");
-            toast.error(err?.message);
-        } finally {
-            setIsSkipLoading(false);
-        }
-    };
+            <div className="flex items-center gap-6">
+              {/* TOKEN */}
+              <div className="hidden sm:flex items-center font-bold gap-2 text-md px-2.5 py-0.5 rounded-full  bg-white text-blue-600 border border-blue-200 xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200">
+                {currentPatientsData?.TOKENNO || "Not Yet"}
+              </div>
 
-    const repeatCallingHandler = async () => {
-        try {
-            setRepeatCallingHandler(true);
-            const res = await axios.post(
-                `${base_URL}/api/opd/doctor/patient-repeat-call`,
-                {
-                    doctorId: loginUserData?.doctorId,
-                    doctorName: loginUserData?.name,
-                    patientToken: currentPatientsData?.TOKENNO,
-                },
-            );
-            // console.log(res, "res of repeat Calling Handler");
-
-            toast.success(`Repeat Calling`);
-        } catch (err) {
-            console.log(err, "error in call Repeat Handler");
-            toast.error(err?.message);
-        } finally {
-            setRepeatCallingHandler(false);
-        }
-    };
-
-    const formHandler = (key, value) => {
-        setFormData({ ...formData, [key]: value });
-
-        setActiveVoiceField(key);
-
-        setTimeout(() => {
-            setActiveVoiceField(null);
-        }, 1200);
-    };
-
-
-    return (
-
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:gap-6 2xl:grid-cols-3 mb-8 h-auto xl:grid-rows-1">
-
-            {/* Pie Chart - sirf xl/laptop pe */}
-            <div className="hidden xl:flex 2xl:hidden order-3 xl:order-3 themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex-col justify-between max-h-[55vh]">
-                <div className="flex-1 p-2 px-4 sm:p-4 flex justify-between gap-4 sm:gap-8 items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
-                    <h2 className="text-lg sm:text-xl font-semibold text-black">
-                        Patient Progress
-                    </h2>
-                    <div className="flex flex-col sm:flex-row justify-center gap-1 sm:gap-6 text-sm">
-                        <span className="text-[#60A5FA]">● Patients Remaining</span>
-                        <span className="text-[#A855F7]">● Patients Checked</span>
-                    </div>
-                </div>
-
-                <div
-                    className={`flex-7 ${!(patientsData?.patientsRemaining || patientsData?.patientsChecked) && "p-6"}`}
+              {/* ADD / repeat VITALS BUTTON */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  id="btn-add-vitals"
+                  size="middle"
+                  onClick={() => setIsVitalsModalOpen(true)}
+                  disabled={!currentPatientsData}
+                  className="bg-green-500 border-none text-white hover:opacity-90 !h-auto !px-0 !py-1 text-xs  sm:!px-4 sm:!py-2 sm:text-sm"
                 >
-                    {patientsData?.patientsRemaining || patientsData?.patientsChecked ? (
-                        <MyCircleChart piData={pieData} active="dd" />
-                    ) : (
-                        <div className="flex flex-col items-center justify-center h-full rounded-xl border-2 border-dashed border-blue-300 bg-gradient-to-br from-blue-50 to-cyan-50 text-center transition-all">
-                            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-3">
-                                <span className="text-3xl">📊</span>
-                            </div>
-                            <h3 className="text-base sm:text-lg font-semibold text-blue-700">
-                                No Patients Checked Today
-                            </h3>
-                            <p className="text-sm text-blue-500 mt-1 max-w-[220px]">
-                                Patient visit data will appear here once appointments are
-                                scheduled
-                            </p>
-                            <div className="mt-3 px-4 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
-                                Waiting for OPD entries
-                            </div>
-                        </div>
-                    )}
-                </div>
+                  + Add Vitals
+                </Button>
+
+                <Button
+                  id="btn-repeat-call"
+                  size="middle"
+                  onClick={repeatCallingHandler}
+                  loading={isRepeatCallingHandler}
+                  disabled={!currentPatientsData}
+                  className="w-fit bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90 md:bg-none md:bg-white/20 md:border-white/40 xl:bg-gradient-to-r xl:from-indigo-500 xl:to-blue-500 !h-auto !px-2 !py-1 text-xs  sm:!px-4 sm:!py-2 sm:text-sm"
+                >
+                  🔁 Repeat Call
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
+            <div className="font-semibold  py-1 flex justify-between text-gray-600">
+              <p>
+                <span className="font-semibold text-gray-800">Name :</span>{" "}
+                {currentPatientsData?.PATIENTNAME || "Not Yet"}
+              </p>
+              <p>
+                <span className="font-semibold text-gray-800">Age :</span>{" "}
+                {currentPatientsData?.AGE || "Not Yet"}
+              </p>
+              <p>
+                <span className="font-semibold text-gray-800">Gender :</span>{" "}
+                {currentPatientsData?.GENDER || "Not Yet"}
+              </p>
             </div>
 
-            {/* Lab management */}
-            <div className="order-3 2xl:order-1 z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col max-h-[55vh] 2xl:max-h-none 2xl:min-h-[35vh]  overflow-hidden">
-
-                {/* Header */}
-                <div className="flex-1 p-4 flex justify-between items-center rounded-xl border border-gray-300 xl:bg-gradient-to-r xl:from-indigo-600 xl:to-blue-500">
-                    <div>
-                        <h2 className="text-lg sm:text-xl font-semibold text-black xl:text-white">
-                            Lab Management
-                        </h2>
-                        <p className="text-xs text-blue-600 xl:text-blue-100">
-                            Assign & Monitor Patient Lab Tests
-                        </p>
-                    </div>
-
-                    <div className=" flex items-center gap-2 bg-gray-100 xl:bg-white/20 px-3 py-1 rounded-full">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
-                        </span>
-                        <span className="text-xs text-black  xl:text-white">Live</span>
-                    </div>
-                </div>
-
-                {/* Department + Test Selection */}
-                <div className="p-4 border-b border-gray-200 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <Select
-                            placeholder="Select Department"
-                            value={selectedDepartment}
-                            onChange={setSelectedDepartment}
-                            showSearch
-                            optionFilterProp="children"
-                            className="w-full"
-                            size="middle"
-                        >
-                            {departments.map((dept) => (
-                                <Option key={dept.id} value={dept.id}>
-                                    {dept.name}
-                                </Option>
-                            ))}
-                        </Select>
-
-                        <Select
-                            placeholder="Select Test"
-                            value={selectedTest}
-                            onChange={setSelectedTest}
-                            disabled={!selectedDepartment}
-                            showSearch
-                            optionFilterProp="children"
-                            className="w-full"
-                            size="middle"
-                        >
-                            {selectedDepartment &&
-                                sampleTests
-                                    .filter((test) => test.department === selectedDepartment)
-                                    .map((test) => (
-                                        <Option key={test.id} value={test.id}>
-                                            {test.name}
-                                        </Option>
-                                    ))}
-                        </Select>
-
-                        <Button
-                            type="primary"
-                            size="middle"
-                            className="bg-gradient-to-r from-blue-500 to-indigo-500 border-none hover:opacity-90"
-                            onClick={() => {
-                                if (selectedTest && currentPatientsData) {
-                                    toast.success(
-                                        `Test assigned to ${currentPatientsData.PATIENTNAME}`,
-                                    );
-                                    setSelectedTest(null);
-                                } else {
-                                    toast.warning(
-                                        "Please select test and ensure patient available",
-                                    );
-                                }
-                            }}
-                            disabled={!selectedTest || !currentPatientsData}
-                        >
-                            Assign Test
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Lab Patients Table */}
-                <div className="flex-6 p-4 overflow-auto hide-scrollbar">
-                    <div className="mb-3 flex justify-between items-center">
-                        <h3 className="font-semibold text-gray-700">
-                            Today's Lab Patients
-                        </h3>
-
-                        <Badge
-                            count={sampleLabPatients?.length}
-                            style={{ backgroundColor: "#3b82f6" }}
-                        />
-                    </div>
-
-                    <Table
-                        columns={[
-                            {
-                                title: "Patient",
-                                dataIndex: "patientName",
-                                key: "patientName",
-                                render: (text) => (
-                                    <span className="font-medium text-gray-800">{text}</span>
-                                ),
-                            },
-                            {
-                                title: "Token",
-                                dataIndex: "tokenNo",
-                                key: "tokenNo",
-                                render: (text) => <Tag color="blue">{text}</Tag>,
-                            },
-                            {
-                                title: "Test",
-                                dataIndex: "testName",
-                                key: "testName",
-                                render: (text) => <span className="text-gray-600">{text}</span>,
-                            },
-                            {
-                                title: "Department",
-                                dataIndex: "department",
-                                key: "department",
-                                render: (text) => (
-                                    <span className="text-gray-600 text-xs font-medium">
-                                        {text}
-                                    </span>
-                                ),
-                            },
-                            {
-                                title: "Status",
-                                dataIndex: "status",
-                                key: "status",
-                                render: (status) => {
-                                    const style =
-                                        status === "completed"
-                                            ? "bg-green-100 text-green-700"
-                                            : status === "pending"
-                                                ? "bg-yellow-100 text-yellow-700"
-                                                : "bg-blue-100 text-blue-700";
-
-                                    const label =
-                                        status === "completed"
-                                            ? "Completed"
-                                            : status === "pending"
-                                                ? "Pending"
-                                                : "Processing";
-
-                                    return (
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-medium ${style}`}
-                                        >
-                                            {label}
-                                        </span>
-                                    );
-                                },
-                            },
-                        ]}
-                        dataSource={sampleLabPatients}
-                        rowKey="id"
-                        size="middle"
-                        pagination={false}
-                        scroll={{ y: 270, x: "max-content" }}
-                        className="rounded-lg"
-                    />
-                </div>
-
+            <div className="mt-3 grid grid-cols-2  sm:grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
+              {VITALS_CONFIG?.map((vital) => (
+                <VitalCard
+                  key={vital.currentKey}
+                  label={vital.label}
+                  currentValue={
+                    currentPatientsVitals &&
+                    currentPatientsVitals[vital.currentKey]
+                  }
+                  // lastValue={currentPatientsVitals[vital.lastKey]}
+                  bgColor={vital.bgColor}
+                  borderColor={vital.borderColor}
+                  textColor={vital.textColor}
+                  subTextColor={vital.subTextColor}
+                  unit={vital.unit}
+                />
+              ))}
             </div>
+          </div>
 
-            {/* Patient Detail & Vitals */}
-            <div className="z-10 rounded-t-[12px] order-1  2xl:contents xl:row-span-2">
-
-                {/* Patient Vitals */}
-                <div id="vitals-section" className="z-10 themeBoxShadow rounded-t-[12px] bg-white flex flex-col justify-between transition-all duration-300 hover:shadow-lg 2xl:order-2">
-
-                    <div className="flex-1  p-6 xl:p-4 flex items-center justify-between rounded-t-[12px] border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500 2xl:bg-none 2xl:from-transparent 2xl:to-transparent">
-
-                        <h2 className="flex flex-col gap-2 text-lg sm:text-xl font-semibold text-white 2xl:text-black">
-                            Patient Vitals
-
-                            <div
-                                className="flex h-fit items-center sm:hidden font-bold gap-2 text-md px-2.5 py-0.5 rounded-full w-fit bg-white text-blue-600 border border-blue-200 xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200"
-                            >
-                                {currentPatientsData?.TOKENNO || "Not Yet"}
-                            </div>
-                        </h2>
-
-                        <div className="flex items-center gap-6">
-
-                            {/* TOKEN */}
-                            <div
-                                className="hidden sm:flex items-center font-bold gap-2 text-md px-2.5 py-0.5 rounded-full  bg-white text-blue-600 border border-blue-200 xl:bg-blue-50 xl:text-blue-600 xl:border-blue-200"
-                            >
-                                {currentPatientsData?.TOKENNO || "Not Yet"}
-                            </div>
-
-                            {/* ADD / repeat VITALS BUTTON */}
-                            <div className="flex flex-col sm:flex-row gap-4">
-
-                                <Button
-                                    id="btn-add-vitals"
-                                    size="middle"
-                                    onClick={() => setIsVitalsModalOpen(true)}
-                                    disabled={!currentPatientsData}
-                                    className="bg-green-500 border-none text-white hover:opacity-90 !h-auto !px-0 !py-1 text-xs  sm:!px-4 sm:!py-2 sm:text-sm"
-                                >
-                                    + Add Vitals
-                                </Button>
-
-                                <Button
-                                    id="btn-repeat-call"
-                                    size="middle"
-                                    onClick={repeatCallingHandler}
-                                    loading={isRepeatCallingHandler}
-                                    disabled={!currentPatientsData}
-                                    className="w-fit bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90 md:bg-none md:bg-white/20 md:border-white/40 xl:bg-gradient-to-r xl:from-indigo-500 xl:to-blue-500 !h-auto !px-2 !py-1 text-xs  sm:!px-4 sm:!py-2 sm:text-sm"
-                                >
-                                    🔁 Repeat Call
-                                </Button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
-                        <div className="font-semibold  py-1 flex justify-between text-gray-600">
-                            <p>
-                                <span className="font-semibold text-gray-800">Name :</span>{" "}
-                                {currentPatientsData?.PATIENTNAME || "Not Yet"}
-                            </p>
-                            <p>
-                                <span className="font-semibold text-gray-800">Age :</span>{" "}
-                                {currentPatientsData?.AGE || "Not Yet"}
-                            </p>
-                            <p>
-                                <span className="font-semibold text-gray-800">Gender :</span>{" "}
-                                {currentPatientsData?.GENDER || "Not Yet"}
-                            </p>
-                        </div>
-
-                        <div className="mt-3 grid grid-cols-2  sm:grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
-                            {
-
-                                VITALS_CONFIG?.map((vital) => (
-                                    <VitalCard
-                                        key={vital.currentKey}
-                                        label={vital.label}
-                                        currentValue={currentPatientsVitals && currentPatientsVitals[vital.currentKey]}
-                                        // lastValue={currentPatientsVitals[vital.lastKey]}
-                                        bgColor={vital.bgColor}
-                                        borderColor={vital.borderColor}
-                                        textColor={vital.textColor}
-                                        subTextColor={vital.subTextColor}
-                                        unit={vital.unit}
-                                    />
-                                ))
-                            }
-
-                        </div>
-
-                    </div>
-
-                    {/* NEXT BUTTON */}
-                    <div className="p-4 border-t border-gray-200 hidden 2xl:flex gap-5">
-
-                        <Select
-                            allowClear
-                            showSearch
-                            placeholder="Select Token"
-                            optionFilterProp="label"
-                            style={{ width: "40%" }}
-                            options={skippedTokenListOptions}
-                            onChange={(value) => setSpecificSearchingToken(value)}
-                            value={specificSearchingToken}
-                        />
-
-                        <Button
-                            type="primary"
-                            block
-                            onClick={
-                                specificSearchingToken ? specificCallingHandler : nextHandler
-                            }
-                            loading={isNextLoading}
-                            // disabled={disableNext || !patintsW8ing}
-                            disabled={disableNext}
-                        >
-                            {specificSearchingToken
-                                ? "Specific Calling"
-                                : currentPatientsData?.RECEIPTNO
-                                    ? "Next Patient"
-                                    : "START"}
-                        </Button>
-                    </div>
-
-                    {/* Skip Buttons */}
-                    <div className="p-4 border-t  border-gray-200 hidden 2xl:flex gap-3">
-                        <Button
-                            block
-                            className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
-                            onClick={skipHandler}
-                            loading={isSkipLoading}
-                            disabled={disableSkip}
-                        >
-                            Skip Patient
-                        </Button>
-
-                    </div>
-
-                </div>
-
-                {/* Add Patient Detail */}
-                <div className="z-10 themeBoxShadow border-none outline-none rounded-b-[12px] rounded-t-none 2xl:rounded-xl overflow-hidden bg-white flex flex-col 2xl:order-3">
-
-                    <div className="p-4 flex-1 flex justify-between items-center 2xl:bg-gradient-to-r 2xl:from-indigo-600 2xl:to-blue-500">
-                        <div>
-                            <h2 className="text-lg sm:text-xl font-semibold text-black md:text-black xl:text-black 2xl:text-white">
-                                Add Patient Detail
-                            </h2>
-                            <p className="text-xs text-gray-400 md:text-gray-400 xl:text-gray-700 2xl:text-blue-100">
-                                Assign & Monitor
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full md:bg-blue-50 md:border md:border-blue-200 xl:bg-white/20 xl:border-0">
-                            <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
-                            </span>
-                            <span className="text-xs text-blue-600 md:text-blue-600 xl:text-blue-600 2xl:text-white">
-                                OPD Entry
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* BODY */}
-                    <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
-
-                        {/* PRIMARY DIAGNOSIS */}
-                        <div id="form-primary-diagnosis" className="flex flex-col gap-1">
-                            <label className="text-sm font-medium text-gray-500">
-                                Primary Diagnosis
-                            </label>
-                            <Select
-                                // mode="multiple"
-                                mode="tags"
-                                allowClear
-                                showSearch
-                                placeholder="Select primary diagnosis"
-                                optionFilterProp="label"
-                                style={{ width: "100%" }}
-                                options={diagnosisOptions}
-                                onChange={(value) => formHandler("primaryDiagnosis", value)}
-                                value={formData.primaryDiagnosis}
-                            />
-                        </div>
-
-                        {/* MEDICAL TESTS */}
-                        <div id="form-recommended-tests" className="flex flex-col gap-1">
-
-                            <label className="text-sm font-medium text-gray-500">
-                                Recommended Tests
-                            </label>
-                            <Select
-                                // mode="multiple"
-                                mode="tags"
-                                allowClear
-                                placeholder="Select medical tests"
-                                style={{ width: "100%" }}
-                                options={testOptions}
-                                onChange={(value) => formHandler("medicalTests", value)}
-                                value={formData.medicalTests}
-                            />
-                        </div>
-                   
-                        <VoiceTextArea
-                            label="Treatment / Medication"
-                            fieldKey="treatment"
-                            value={formData.treatment}
-                            onChange={(val) => formHandler('treatment', val)}
-                            placeholder="Prescribed medicines or treatment"
-                            driverId="form-treatment"
-                        />
-
-                        <VoiceTextArea
-                            driverId="form-primary-complain"
-                            label="Primary Complain"
-                            fieldKey="primaryComplain"
-                            value={formData.primaryComplain}
-                            onChange={(val) => formHandler('primaryComplain', val)}
-                            placeholder="Patient complain / symptoms"
-                        />
-
-                    </div>
-
-                    {/* <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} /> */}
-                    {/* <GetVoice1 formHandler={formHandler} resetTrigger={resetTrigger} /> */}
-
-                    {/* NEXT BUTTON */}
-                    <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
-
-                        {/* TOKEN SELECT */}
-                        <div id="dropdown-select-token" className="flex-1">
-                            <Select
-                                allowClear
-                                showSearch
-                                placeholder="Select Token"
-                                optionFilterProp="label"
-                                className="w-full"
-                                options={skippedTokenListOptions}
-                                onChange={(value) => setSpecificSearchingToken(value)}
-                                value={specificSearchingToken}
-                            />
-                        </div>
-
-                        {/* MAIN ACTION BUTTON */}
-                        <div id="btn-start" className="flex-1">
-                            <Button
-                                type="primary"
-                                block
-                                onClick={
-                                    specificSearchingToken ? specificCallingHandler : nextHandler
-                                }
-                                loading={isNextLoading}
-                                disabled={disableNext}
-                            >
-                                {specificSearchingToken
-                                    ? "Specific Calling"
-                                    : currentPatientsData?.RECEIPTNO
-                                        ? "Next Patient"
-                                        : "START"}
-                            </Button>
-
-                        </div>
-
-                        {/* SKIP BUTTON */}
-                        <div id="btn-skip" className="flex-1 hidden md:block">
-                            <Button
-                                block
-                                className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
-                                onClick={skipHandler}
-                                loading={isSkipLoading}
-                                disabled={disableSkip}
-                            >
-                                Skip Patient
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div id="btn-skip" className="border-t p-4 border-gray-200 gap-4 flex md:hidden">
-                        <Button
-                            block
-                            className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
-                            onClick={skipHandler}
-                            loading={isSkipLoading}
-                            disabled={disableSkip}
-                        >
-                            Skip Patient
-                        </Button>
-                    </div>
-
-                </div>
-
-            </div>
-
-            {/* ADD VITALS MODAL */}
-            <AddVitalsModal
-                isOpen={isVitalsModalOpen}
-                onClose={ () => setIsVitalsModalOpen(false) }
-                currentPatientsData={currentPatientsData}
-                loginUserData={loginUserData}
-                VITALS_CONFIG={VITALS_CONFIG}
-                currentPatientsVitals={currentPatientsVitals}
-                docPatientData={docPatientData}
+          {/* NEXT BUTTON */}
+          <div className="p-4 border-t border-gray-200 hidden 2xl:flex gap-5">
+            <Select
+              allowClear
+              showSearch
+              placeholder="Select Token"
+              optionFilterProp="label"
+              style={{ width: "40%" }}
+              options={skippedTokenListOptions}
+              onChange={(value) => setSpecificSearchingToken(value)}
+              value={specificSearchingToken}
             />
 
+            <Button
+              type="primary"
+              block
+              onClick={
+                specificSearchingToken ? specificCallingHandler : nextHandler
+              }
+              loading={isNextLoading}
+              // disabled={disableNext || !patintsW8ing}
+              disabled={disableNext}
+            >
+              {specificSearchingToken
+                ? "Specific Calling"
+                : currentPatientsData?.RECEIPTNO
+                  ? "Next Patient"
+                  : "START"}
+            </Button>
+          </div>
+
+          {/* Skip Buttons */}
+          <div className="p-4 border-t  border-gray-200 hidden 2xl:flex gap-3">
+            <Button
+              block
+              className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
+              onClick={skipHandler}
+              loading={isSkipLoading}
+              disabled={disableSkip}
+            >
+              Skip Patient
+            </Button>
+          </div>
         </div>
-    );
+
+        {/* Add Patient Detail */}
+        <div className="flex-1 z-10 themeBoxShadow border-none outline-none rounded-b-[12px] rounded-t-none 2xl:rounded-xl overflow-hidden bg-white flex flex-col 2xl:order-3">
+
+          <div className="p-4 flex-1 flex justify-between items-center 2xl:bg-gradient-to-r 2xl:from-indigo-600 2xl:to-blue-500">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-black md:text-black xl:text-black 2xl:text-white">
+                Add Patient Detail
+              </h2>
+              <p className="text-xs text-gray-400 md:text-gray-400 xl:text-gray-700 2xl:text-blue-100">
+                Assign & Monitor
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Voice Mode Toggle */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1 border border-gray-200">
+
+
+                <button
+                  type="button"
+                  onClick={() => setVoiceMode("offline")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200
+          ${voiceMode === "offline"
+                      ? "bg-white text-gray-700 shadow-sm border border-gray-200"
+                      : "text-gray-400 hover:text-gray-600"
+                    }`}
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  >
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                    <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+                    <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+                    <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+                    <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                    <line x1="12" y1="20" x2="12.01" y2="20" />
+                  </svg>
+                  Offline
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setVoiceMode("online")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200 ${voiceMode === "online" ? "bg-white text-blue-600 shadow-sm border border-blue-200" : "text-gray-400 hover:text-gray-600"}`}
+                >
+                  <span
+                    className={`relative flex h-1.5 w-1.5 ${voiceMode === "online" ? "visible" : "invisible"}`}
+                  >
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500"></span>
+                  </span>
+                  Online
+                </button>
+
+              </div>
+
+              {/* OPD Badge */}
+              <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full md:bg-blue-50 md:border md:border-blue-200 xl:bg-white/20 xl:border-0">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+                </span>
+                <span className="text-xs text-blue-600 md:text-blue-600 xl:text-blue-600 2xl:text-white">
+                  OPD Entry
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* BODY */}
+          <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
+            {/* PRIMARY DIAGNOSIS */}
+            <div id="form-primary-diagnosis" className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-500">
+                Primary Diagnosis
+              </label>
+              <Select
+                // mode="multiple"
+                mode="tags"
+                allowClear
+                showSearch
+                placeholder="Select primary diagnosis"
+                optionFilterProp="label"
+                style={{ width: "100%" }}
+                options={diagnosisOptions}
+                onChange={(value) => formHandler("primaryDiagnosis", value)}
+                value={formData.primaryDiagnosis}
+              />
+            </div>
+
+            {/* MEDICAL TESTS */}
+            <div id="form-recommended-tests" className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-500">
+                Recommended Tests
+              </label>
+              <Select
+                // mode="multiple"
+                mode="tags"
+                allowClear
+                placeholder="Select medical tests"
+                style={{ width: "100%" }}
+                options={testOptions}
+                onChange={(value) => formHandler("medicalTests", value)}
+                value={formData.medicalTests}
+              />
+            </div>
+
+            {voiceMode === "online" ? (
+              <>
+                <VoiceTextAreaOnline
+                  label="Treatment / Medication"
+                  fieldKey="treatment"
+                  value={formData.treatment}
+                  onChange={(val) => formHandler("treatment", val)}
+                  formHandler={formHandler}
+                  placeholder="Prescribed medicines or treatment"
+                  driverId="form-treatment"
+                  resetTrigger={resetTrigger}
+                />
+                <VoiceTextAreaOnline
+                  driverId="form-primary-complain"
+                  label="Primary Complain"
+                  fieldKey="primaryComplain"
+                  value={formData.primaryComplain}
+                  onChange={(val) => formHandler("primaryComplain", val)}
+                  formHandler={formHandler}
+                  placeholder="Patient complain / symptoms"
+                  resetTrigger={resetTrigger}
+                />
+              </>
+            ) : (
+              <>
+                <VoiceTextArea
+                  label="Treatment / Medication"
+                  fieldKey="treatment"
+                  value={formData.treatment}
+                  onChange={(val) => formHandler("treatment", val)}
+                  placeholder="Prescribed medicines or treatment"
+                  driverId="form-treatment"
+                />
+                <VoiceTextArea
+                  driverId="form-primary-complain"
+                  label="Primary Complain"
+                  fieldKey="primaryComplain"
+                  value={formData.primaryComplain}
+                  onChange={(val) => formHandler("primaryComplain", val)}
+                  placeholder="Patient complain / symptoms"
+                />
+              </>
+            )}
+
+
+            {/* {(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== "")) && ( */}
+              <Button
+                type="dashed"
+                icon={<BulbOutlined />}
+                onClick={() => setShowAIAssistant(true)}
+                className="w-full border-purple-400 text-purple-600 hover:bg-purple-50 hover:border-purple-500"
+                style={{ borderRadius: "12px" }}
+                disabled={!(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== ""))}
+              >
+                ✨ Get AI Suggestion for Diagnosis & Tests
+              </Button>
+            {/* )} */}
+          </div>
+
+          {/* <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} /> */}
+          {/* <GetVoice1 formHandler={formHandler} resetTrigger={resetTrigger} /> */}
+
+          {/* NEXT BUTTON */}
+          <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
+            {/* TOKEN SELECT */}
+            <div id="dropdown-select-token" className="flex-1">
+              <Select
+                allowClear
+                showSearch
+                placeholder="Select Token"
+                optionFilterProp="label"
+                className="w-full"
+                options={skippedTokenListOptions}
+                onChange={(value) => setSpecificSearchingToken(value)}
+                value={specificSearchingToken}
+              />
+            </div>
+
+            {/* MAIN ACTION BUTTON */}
+            <div id="btn-start" className="flex-1">
+              <Button
+                type="primary"
+                block
+                onClick={
+                  specificSearchingToken ? specificCallingHandler : nextHandler
+                }
+                loading={isNextLoading}
+                disabled={disableNext}
+              >
+                {specificSearchingToken
+                  ? "Specific Calling"
+                  : currentPatientsData?.RECEIPTNO
+                    ? "Next Patient"
+                    : "START"}
+              </Button>
+            </div>
+
+            {/* SKIP BUTTON */}
+            <div id="btn-skip" className="flex-1 hidden md:block">
+              <Button
+                block
+                className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
+                onClick={skipHandler}
+                loading={isSkipLoading}
+                disabled={disableSkip}
+              >
+                Skip Patient
+              </Button>
+            </div>
+          </div>
+
+          <div
+            id="btn-skip"
+            className="border-t p-4 border-gray-200 gap-4 flex md:hidden"
+          >
+            <Button
+              block
+              className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
+              onClick={skipHandler}
+              loading={isSkipLoading}
+              disabled={disableSkip}
+            >
+              Skip Patient
+            </Button>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* ADD VITALS MODAL */}
+      <AddVitalsModal
+        isOpen={isVitalsModalOpen}
+        onClose={() => setIsVitalsModalOpen(false)}
+        currentPatientsData={currentPatientsData}
+        loginUserData={loginUserData}
+        VITALS_CONFIG={VITALS_CONFIG}
+        currentPatientsVitals={currentPatientsVitals}
+        docPatientData={docPatientData}
+      />
+
+
+       {/* AiAssistant component ko is tarah call karo: */}
+      <AiAssistant
+        visible={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
+        complaint={formData.primaryComplain}
+        primaryDiagnosis={formData.primaryDiagnosis}
+        currentPatient={currentPatientsData}
+        currentVitals={{
+          bloodPressure: currentPatientsVitals?.CBLOOD_PRESSURE,
+          bloodSugar: currentPatientsVitals?.CBLOOD_SUGAR,
+          weight: currentPatientsVitals?.CWEIGHT,
+          height: currentPatientsVitals?.CHEIGHT,
+          temperature: currentPatientsVitals?.CTEMPERATURE,
+          pulse: currentPatientsVitals?.CPULSE,
+          age: currentPatientsData?.AGE,
+        }}
+        // ✅ Lifted state
+        aiResponse={aiResponse}
+        setAiResponse={setAiResponse}
+        aiVitalAlerts={aiVitalAlerts}
+        setAiVitalAlerts={setAiVitalAlerts}
+        onAddTests={(tests) => {
+          const currentTests = formData.medicalTests || [];
+          const uniqueTests = [...new Set([...currentTests, ...tests])];
+          formHandler("medicalTests", uniqueTests);
+          toast.success(`${tests.length} test(s) added`);
+        }}
+        onAddMedicines={handleAddMedicinesFromAI}
+        onAddTreatment={handleAddTreatmentFromAI}
+      />
+
+    </div>
+
+  );
 };
 
 export default memo(MidSection);

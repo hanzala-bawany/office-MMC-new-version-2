@@ -1,10 +1,10 @@
 
 import { ImageUploadPage } from "../Index";
 import { Button } from "antd";
-import { base_URL } from "../../utills/baseUrl";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { base_URL } from "../../utills/baseUrl";
 
 const Screen2 = () => {
 
