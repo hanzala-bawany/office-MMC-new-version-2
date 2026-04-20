@@ -1,10 +1,10 @@
-import { Modal, Input, Button  } from "antd";
+import { Modal, Input, Button } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { base_URL } from "../../utills/baseUrl";
 
-const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData, VITALS_CONFIG, currentPatientsData , docPatientData }) => {
+const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData, VITALS_CONFIG, currentPatientsData, docPatientData }) => {
 
     // console.log(currentPatientsData, "<<<<<< currentPatientsData");
     // console.log(currentPatientsVitals, "<<<<<< currentPatientsVitals");
@@ -26,7 +26,7 @@ const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData,
         try {
             setLoading(true);
             const res = await axios.post(`${base_URL}/api/opd/doctor/patient-vitals/add`, {
-                receiptNo: currentPatientsVitals?.RECEIPTNO || null,
+                receiptNo: currentPatientsData?.RECEIPTNO || null,
                 bloodPressure: vitalsForm?.bloodPressure || null,
                 bloodSugar: vitalsForm?.bloodSugar || null,
                 weight: vitalsForm?.weight || null,
@@ -61,7 +61,7 @@ const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData,
 
     useEffect(() => {
 
-        if (!currentPatientsVitals) return;
+        // if (!currentPatientsVitals) return;
 
         setVitalsForm({
             bloodPressure: currentPatientsVitals?.CBLOOD_PRESSURE || "",
@@ -88,9 +88,6 @@ const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData,
             onCancel={handleClose}
             footer={null}
             centered
-            // closeIcon={
-            //     <IoClose style={{ color: "#ef4444", fontSize: "16px" }} />
-            // }
             styles={{
                 header: {
                     background: "linear-gradient(135deg, #4f46e5, #3b82f6)",
@@ -151,10 +148,22 @@ const AddVitalsModal = ({ isOpen, onClose, currentPatientsVitals, loginUserData,
 
                             <Input
                                 // placeholder={placeholder}
+                                type={formKey === "bloodPressure" ? "text" : "number"}
                                 suffix={<span className="text-xs text-gray-400">{unit}</span>}
                                 value={vitalsForm[formKey]}
-                                onChange={(e) => setVitalsForm({ ...vitalsForm, [formKey]: e.target.value, })}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+
+                                    if (formKey === "bloodPressure") {
+                                        if (val === "" || /^[\d/]*$/.test(val)) {
+                                            setVitalsForm({ ...vitalsForm, [formKey]: val, })
+                                        }
+                                    } else {
+                                        setVitalsForm({ ...vitalsForm, [formKey]: val, })
+                                    }
+                                }}
                             />
+
                         </div>
 
                     ))
