@@ -478,10 +478,10 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
   return (
 
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:gap-6 2xl:grid-cols-3 mb-8 h-auto xl:grid-rows-1">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:gap-6 2xl:grid-cols-2 mb-8 h-auto xl:grid-rows-1 ">
 
       {/* Pie Chart - sirf xl/laptop pe */}
-      <div className="hidden xl:flex 2xl:hidden order-3 xl:order-3 themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex-col justify-between max-h-[40vh] h-[30vh]">
+      <div className="hidden xl:flex 2xl:hidden order-3 xl:order-3 themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex-col justify-between min-h-40">
         <div className="flex-1 p-2 px-4 sm:p-4 flex justify-between gap-4 sm:gap-8 items-center border-b border-gray-300 text-[18px] text-gray-500 font-medium">
           <h2 className="text-lg sm:text-xl font-semibold text-black">
             Patient Progress
@@ -517,8 +517,33 @@ const MidSection = ({ patientsData, docPatientData }) => {
         </div>
       </div>
 
-      {/* Lab management */}
-      <div className="order-3 2xl:order-1 z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col max-h-[55vh] 2xl:max-h-none 2xl:min-h-[35vh]  overflow-hidden">
+      {/* Coming Soon Lab Management */}
+      <div className="order-3 2xl:col-span-2 2xl:order-4 z-10 themeBoxShadow border-none outline-none rounded-xl bg-white flex flex-col max-h-[55vh] 2xl:max-h-none 2xl:min-h-[35vh] overflow-hidden relative">
+
+        {/* Gray Overlay with Coming Soon Text */}
+        <div className="absolute inset-0 bg-gray-800/30 backdrop-blur-xs z-20 flex items-center justify-center rounded-xl">
+
+          <div className="text-center">
+            {/* Coming Soon Badge */}
+            <div className="bg-white/95 backdrop-blur rounded-2xl p-6 shadow-2xl mx-4">
+              <div className="text-5xl mb-3">
+                🚧
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                Coming Soon
+              </h2>
+              <p className="text-gray-600 text-sm max-w-xs">
+                This feature is under development and will be available soon
+              </p>
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
+                <span className="text-xs text-gray-500">In Progress</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
         {/* Header */}
         <div className="flex-1 p-4 flex justify-between items-center rounded-xl border border-gray-300 xl:bg-gradient-to-r xl:from-indigo-600 xl:to-blue-500">
           <div>
@@ -683,6 +708,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             className="rounded-lg"
           />
         </div>
+
       </div>
 
       {/* ADD Patient Detail & Patient Vitals */}
@@ -891,7 +917,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
           </div>
 
           {/* BODY */}
-          <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
+          <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-2  gap-5 p-4 ">
 
             {/* PRIMARY DIAGNOSIS */}
             <div id="form-primary-diagnosis" className="flex flex-col gap-1">
@@ -991,6 +1017,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 options={medicinesOptions}  // You need to create this from API
                 onChange={(value) => formHandler("medicines", value)}
                 value={formData.medicines}
+
               />
             </div>
 
@@ -1017,19 +1044,32 @@ const MidSection = ({ patientsData, docPatientData }) => {
               />
             )}
 
-
-            {/* {(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== "")) && ( */}
+            {/* AI Suggestion Button - Professional Floating Button */}
             <Button
-              type="dashed"
+              type="primary"
               icon={<BulbOutlined />}
               onClick={() => setShowAIAssistant(true)}
-              className="w-full border-purple-400 text-purple-600 hover:bg-purple-50 hover:border-purple-500"
-              style={{ borderRadius: "12px" }}
+              className="fixed! top-10 z-50 right-10 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-4 py-2 bg-linear-to-r from-purple-500 to-indigo-500 border-none text-white font-medium"
+              style={{
+                borderRadius: "16px",
+                transform: "translateY(-50%)",
+                zIndex: 10,
+                padding: "10px 24px",
+                background: "linear-gradient(120deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)"
+              }}
               disabled={!(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== ""))}
             >
-              ✨ Get AI Suggestion for Diagnosis & Tests
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline">AI Suggestion</span>
+                <span className="sm:hidden">AI</span>
+              </div>
             </Button>
-            {/* )} */}
+
+
+
           </div>
 
           {/* <GetVoice formHandler={formHandler} resetTrigger={resetTrigger} /> */}
@@ -1150,6 +1190,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
     </div>
 
   );
+
 };
 
 export default memo(MidSection);

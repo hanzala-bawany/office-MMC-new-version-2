@@ -111,7 +111,9 @@ const VoiceTextAreaOnline = ({ label, fieldKey, value, formHandler, placeholder,
 
 
   return (
-    <div id={driverId} className="flex flex-col gap-1">
+
+    <div id={driverId} className="flex flex-col gap-1 ">
+
       <label
         className={`text-sm font-medium transition-colors duration-200 ${isRecording ? "text-red-500" : "text-gray-500"}`}
       >
@@ -146,7 +148,9 @@ const VoiceTextAreaOnline = ({ label, fieldKey, value, formHandler, placeholder,
           <MicIcon color={isRecording ? "#fff" : "#6b7280"} />
         </button>
       </div>
+
     </div>
+    
   );
 };
 

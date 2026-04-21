@@ -162,7 +162,7 @@ const DoctorDashboard = () => {
       },
     ],
   });
-  
+
   // console.log(isCancelClick, "<<<<<<< isCancelClick");
   // console.log(loginUserData, "<<<<<<< loginUserData");
   // console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
@@ -175,7 +175,7 @@ const DoctorDashboard = () => {
       const res = await axios.get(
         `${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,
       );
-      console.log(res, "res of get DocotrDetail by id");
+      // console.log(res, "res of get DocotrDetail by id");
       setPatientsData(res?.data?.data);
     } catch (err) {
       // console.log(err, "error in get faculty");
@@ -215,11 +215,11 @@ const DoctorDashboard = () => {
       />
 
       {/* Middle Section */}
-      <MidSection patientsData={patientsData} docPatientData={foo} />
+        <MidSection patientsData={patientsData} docPatientData={foo} />
 
       {/* History */}
       {/* <HistoryTable /> */}
-      
+
     </div>
   );
 };

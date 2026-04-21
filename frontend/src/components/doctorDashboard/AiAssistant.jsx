@@ -1042,7 +1042,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                                     <div className="w-20 bg-gray-200 rounded-full h-1.5">
                                         <div className="h-1.5 rounded-full bg-purple-500" style={{ width: `${d.percentage}%` }} />
                                     </div>
-                                    <span className="text-sm font-semibold text-purple-600 min-w-[36px] text-right">{d.percentage}%</span>
+                                    <span className="text-sm font-semibold text-purple-600 min-w-9 text-right">{d.percentage}%</span>
                                 </div>
                             </div>
                         ))}
@@ -1191,7 +1191,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                         type="primary"
                         disabled={selectedMedicines.length === 0}
                         onClick={handleAddMedicines}
-                        className="mt-2 w-full bg-blue-500 hover:bg-blue-600 text-sm !p-4"
+                        className="mt-2 w-full bg-blue-500 hover:bg-blue-600 text-sm p-4!"
                         size="small"
                     >
                         + Add Selected Medicines {selectedMedicines.length > 0 ? `(${selectedMedicines.length})` : ""}
@@ -1215,7 +1215,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                             <Button
                                 type="dashed"
                                 onClick={handleAddMedicinePlan}
-                                className="mt-2 w-full border-teal-400 text-teal-600 text-xs hover:bg-teal-50 !p-4"
+                                className="mt-2 w-full border-teal-400 text-teal-600 text-xs hover:bg-teal-50 p-4!"
                                 size="small"
                             >
                                 Copy to Medicine Plan Field
@@ -1258,7 +1258,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
 
     return (
 
-        <div className="fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 z-1000 flex items-center justify-center p-4">
 
             <div
                 className="w-full max-w-2xl bg-white shadow-2xl flex flex-col"
@@ -1266,7 +1266,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
             >
 
                 {/* Header */}
-                <div className="flex justify-between items-center px-5 py-4 bg-gradient-to-r from-purple-600 to-blue-500 text-white flex-shrink-0">
+                <div className="flex justify-between items-center px-5 py-4 bg-linear-to-r from-purple-600 to-blue-500 text-white shrink-0">
                     <div className="flex items-center gap-2 flex-wrap">
                         <BulbOutlined style={{ fontSize: "20px" }} />
                         <h2 className="text-lg font-semibold m-0">AI Smart Assistant</h2>
@@ -1281,7 +1281,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                                     size="small"
                                     icon={<ReloadOutlined />}
                                     onClick={handleNewResponse}
-                                    className="text-white border-white/40 hover:!bg-white/20 hover:!text-white text-xs"
+                                    className="text-white border-white/40 hover:bg-white/20! hover:text-white! text-xs"
                                     type="text"
                                 >
                                     New
@@ -1290,7 +1290,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                                     size="small"
                                     icon={<DeleteOutlined />}
                                     onClick={handleReset}
-                                    className="text-white border-white/40 hover:!bg-white/20 hover:!text-white text-xs"
+                                    className="text-white border-white/40 hover:bg-white/20! hover:text-white! text-xs"
                                     type="text"
                                 >
                                     Reset
@@ -1301,7 +1301,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                             type="text"
                             icon={<CloseOutlined />}
                             onClick={onClose}
-                            className="text-white hover:!text-white hover:!bg-white/20"
+                            className="text-white hover:text-white! hover:bg-white/20!"
                         />
                     </div>
                 </div>
@@ -1338,7 +1338,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 py-2 bg-gray-50 border-t text-center flex-shrink-0">
+                <div className="px-4 py-2 bg-gray-50 border-t text-center shrink-0">
                     <p className="text-xs text-gray-400 m-0">
                         AI suggestions are for the doctor's guidance — the final decision will be made by the doctor.
                     </p>
