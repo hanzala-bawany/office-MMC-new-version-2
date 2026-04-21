@@ -58,183 +58,6 @@ const getTodayDoctorPatients = async (req, res) => {
   }
 };
 
-// const getDoctorPatientsWithStats = async (req, res) => {
-//   let connection;
-//   try {
-//     const { doctorId } = req.params;
-
-//     const pool = await poolPromise;
-//     connection = await pool.getConnection();
-
-//     const result = await connection.execute(
-//       `
-//       BEGIN
-//         get_doctor_patients_with_stats(
-//           p_doc_id      => :doc_id,
-//           p_today_total => :today_total,
-//           p_checked     => :checked,
-//           p_remaining   => :remaining,
-//           p_skipped     => :skipped,
-//           p_cancel      => :canceled,
-//           retval         => :cursor1,
-//           retval1        => :cursor2,
-//           retval2        => :cursor3
-//         );
-//       END;
-//       `,
-//       {
-//         doc_id: doctorId,
-//         today_total: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-//         checked: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-//         remaining: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-//         skipped: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-//         canceled: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-
-//         cursor1: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-//         cursor2: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-//         cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
-//       },
-//       { outFormat: oracledb.OUT_FORMAT_OBJECT }
-//     );
-
-//     // ===== READ CURSORS =====
-//     const rs1 = result.outBinds.cursor1; // patients
-//     const rs2 = result.outBinds.cursor2; // diagnosis
-//     const rs3 = result.outBinds.cursor3; // tests
-
-//     const patients = await rs1.getRows();
-//     const diagnosisList = await rs2.getRows();
-//     const testList = await rs3.getRows();
-
-//     await rs1.close();
-//     await rs2.close();
-//     await rs3.close();
-
-//     res.status(200).json({
-//       status: 200,
-//       data: {
-//         todayAppointments: result.outBinds.today_total,
-//         patientsChecked: result.outBinds.checked,
-//         patientsRemaining: result.outBinds.remaining,
-//         patientsSkipped: result.outBinds.skipped,
-//         patientsCanceled: result.outBinds.canceled,
-//         patients,
-//         diagnosisList,
-//         testList
-//       }
-//     });
-
-//   } catch (err) {
-//     console.error("getDoctorPatientsWithStats error:", err);
-//     res.status(500).json({
-//       status: 500,
-//       message: "Internal Server Error",
-//       error: err.message
-//     });
-//   } finally {
-//     if (connection) await connection.close();
-//   }
-// };
-
-//------- NEXT PATIENT API ------------------
-
-// const getDoctorNextPatient = async (req, res) => {
-//   let connection;
-//   try {
-//     let { doctorId, receiptNo, remarks, primaryDiagnosis, medicalTests, treatment } = req.body;
-
-//     // Normalize empty strings to null
-//     const normalize = val => (val && val.trim() !== "" ? val : null);
-//     receiptNo = normalize(receiptNo);
-//     remarks = normalize(remarks);
-//     primaryDiagnosis = normalize(primaryDiagnosis);
-//     medicalTests = normalize(medicalTests);
-//     treatment = normalize(treatment);
-
-//     const pool = await poolPromise;
-//     connection = await pool.getConnection();
-
-//     const result = await connection.execute(
-//       `
-//       BEGIN
-//         get_doctor_next_patient(
-//           p_doc_id        => :doc_id,
-//           p_receiptno     => :receiptno,
-//           p_remarks       => :remarks,
-//           p_primary_diag  => :primary_diag,
-//           p_medical_tests => :medical_tests,
-//           p_treatment     => :treatment,
-//           retval          => :cursor1,
-//           retval1         => :cursor2,
-//           retval2         => :cursor3
-//         );
-//       END;
-//       `,
-//       {
-//         doc_id: doctorId,
-//         receiptno: receiptNo,
-//         remarks,
-//         primary_diag: primaryDiagnosis,
-//         medical_tests: medicalTests,
-//         treatment,
-//         cursor1: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-//         cursor2: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-//         cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR }
-//       },
-//       { outFormat: oracledb.OUT_FORMAT_OBJECT, autoCommit: true }
-//     );
-
-//     // ===== READ CURSORS =====
-//     const rs1 = result.outBinds.cursor1;
-//     const rs2 = result.outBinds.cursor2;
-//     const rs3 = result.outBinds.cursor3;
-
-//     const patients = await rs1.getRows();
-//     const diagnosisList = await rs2.getRows();
-//     const testList = await rs3.getRows();
-
-//     await rs1.close();
-//     await rs2.close();
-//     await rs3.close();
-
-//     // Next patient (SQL already returns current patient)
-//     const currentPatient = patients[0];
-
-//     if (!currentPatient) {
-//       console.log(" No current patient found");
-//     } else {
-//       console.log(" Current Patient:", currentPatient);
-//     }
-
-//     // SOCKET EMIT
-//     const io = req.app.get("io");
-//     io.emit("QUEUE_UPDATED", {
-//       type: "NEXT_PATIENT",
-//       doctorId,
-//       patientToken: currentPatient?.TOKENNO_1,
-//       doctorName: currentPatient?.DOCTOR_NAME,
-//       // patient: currentPatient
-//     });
-
-//     res.json({
-//       success: true,
-//       currentPatient,
-//       diagnosisList,
-//       testList
-//     });
-
-//   } catch (err) {
-//     console.error("getDoctorNextPatient error:", err);
-//     res.status(500).json({
-//       success: false,
-//       message: "Failed to fetch next patient",
-//       error: err.message
-//     });
-//   } finally {
-//     if (connection) await connection.close();
-//   }
-// };
-// ------- NEXT PATIENT API with SOCKET ------------------
 
 const getDoctorPatientsWithStats = async (req, res) => {
   let connection;
@@ -261,7 +84,8 @@ const getDoctorPatientsWithStats = async (req, res) => {
           retval1          => :cursor2,
           retval2          => :cursor3,
           p_skipped_tokens => :cursor4,
-          retval3          => :cursor5 
+          retval3          => :cursor5,
+          retval4          => :cursor6
         );
       END;
       `,
@@ -278,6 +102,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
         cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor4: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor5: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+        cursor6: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT },
     );
@@ -287,16 +112,18 @@ const getDoctorPatientsWithStats = async (req, res) => {
     const rs3 = result.outBinds.cursor3;
     const rs4 = result.outBinds.cursor4;
     const rs5 = result.outBinds.cursor5;
+    const rs6 = result.outBinds.cursor6;
 
     const patients = await rs1.getRows();
 
     //  Sirf status 2 pe
-    let diagnosisList, testList, skippedTokens, patientVitals;
+    let diagnosisList, testList, skippedTokens, patientVitals, medicineList;
     if (statusFilter === 2) {
       diagnosisList = await rs2.getRows();
       testList = await rs3.getRows();
       skippedTokens = await rs4.getRows();
       patientVitals = await rs5.getRows();
+       medicineList = await rs6.getRows();
     }
 
     await rs1.close();
@@ -318,6 +145,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
     if (statusFilter === 2) {
       responseData.diagnosisList = diagnosisList;
       responseData.testList = testList;
+      responseData.medicineList = medicineList;
       responseData.skippedTokenList = skippedTokens;
       responseData.patientVitals = patientVitals;
     }
@@ -348,6 +176,8 @@ const getDoctorNextPatient = async (req, res) => {
       primaryDiagnosis,
       medicalTests,
       treatment,
+      medicalPlan,
+      medicine,
     } = req.body;
 
     // ================= NORMALIZE STRINGS ONLY =================
@@ -357,10 +187,12 @@ const getDoctorNextPatient = async (req, res) => {
     receiptNo = normalizeString(receiptNo);
     remarks = normalizeString(remarks);
     treatment = normalizeString(treatment);
+    medicalPlan = normalizeString(medicalPlan);
 
     // ================= ENSURE ARRAYS =================
     primaryDiagnosis = Array.isArray(primaryDiagnosis) ? primaryDiagnosis : [];
     medicalTests = Array.isArray(medicalTests) ? medicalTests : [];
+    medicine = Array.isArray(medicine) ? medicine : [];
 
     const pool = await poolPromise;
     connection = await pool.getConnection();
@@ -375,6 +207,8 @@ const getDoctorNextPatient = async (req, res) => {
           p_primary_diag  => :primary_diag,
           p_medical_tests => :medical_tests,
           p_treatment     => :treatment,
+          p_medical_plan  => :medical_plan,
+          p_medicine      => :medicine,
           retval          => :cursor1
         );
       END;
@@ -399,6 +233,14 @@ const getDoctorNextPatient = async (req, res) => {
 
         // STRING BIND (Correct)
         treatment: treatment,
+
+        medical_plan: medicalPlan,
+
+        medicine: {
+          dir: oracledb.BIND_IN,
+          val: medicine,
+          type: "TY_MEDICINE",
+        },
 
         cursor1: {
           dir: oracledb.BIND_OUT,
@@ -733,6 +575,8 @@ const doctorCallTokenByNumber = async (req, res) => {
       primaryDiagnosis,
       medicalTests,
       treatment,
+      medicalPlan,
+      medicine,
     } = req.body;
 
     if (!doctorId || !tokenNo) {
@@ -748,9 +592,11 @@ const doctorCallTokenByNumber = async (req, res) => {
 
     remarks = normalizeString(remarks);
     treatment = normalizeString(treatment);
+    medicalPlan = normalizeString(medicalPlan);
 
     primaryDiagnosis = Array.isArray(primaryDiagnosis) ? primaryDiagnosis : [];
     medicalTests = Array.isArray(medicalTests) ? medicalTests : [];
+    medicalPlan = normalizeString(medicalPlan);
 
     const pool = await poolPromise;
     connection = await pool.getConnection();
@@ -765,6 +611,8 @@ const doctorCallTokenByNumber = async (req, res) => {
           p_primary_diag  => :primary_diag,
           p_medical_tests => :medical_tests,
           p_treatment     => :treatment,
+              p_medical_plan  => :medical_plan,
+          p_medicine      => :medicine,
           retval          => :cursor1
         );
       END;
@@ -787,6 +635,15 @@ const doctorCallTokenByNumber = async (req, res) => {
         },
 
         treatment: treatment,
+
+
+        medical_plan: medicalPlan,
+
+        medicine: {
+          dir: oracledb.BIND_IN,
+          val: medicine,
+          type: "TY_MEDICINE",
+        },
 
         cursor1: {
           dir: oracledb.BIND_OUT,
@@ -1034,3 +891,18 @@ module.exports = {
   getActiveConsultants,
   addPatientVitals,
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

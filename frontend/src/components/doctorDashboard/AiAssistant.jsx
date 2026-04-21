@@ -11,7 +11,7 @@ import {
     DeleteOutlined,
 } from "@ant-design/icons";
 
-const AiAssistant = ({ complaint, primaryDiagnosis, onAddTests, onAddMedicines, onAddTreatment, visible, onClose, currentPatient, currentVitals, aiResponse, setAiResponse, aiVitalAlerts, setAiVitalAlerts }) => {
+const AiAssistant = ({ complaint, primaryDiagnosis, onAddTests, onAddMedicines, onAddMedicinePlan, onAddTreatment, visible, onClose, currentPatient, currentVitals, aiResponse, setAiResponse, aiVitalAlerts, setAiVitalAlerts }) => {
 
     // console.log(complaint, "... complaint");
     // console.log(primaryDiagnosis, "... primaryDiagnosis");
@@ -160,6 +160,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
     {"name": "Generic Medicine 1", "dosage": "Dosage instructions", "duration": "Duration"},
     {"name": "Generic Medicine 2", "dosage": "Dosage instructions", "duration": "Duration"}
   ],
+  "medicinePlan": "Detailed medicine plan: Take Paracetamol 500mg every 6 hours for fever. Complete antibiotic course of 5 days.",
   "treatment": "Roman Urdu treatment advice here. Keep it practical and easy to understand.",
   "vitalAlerts": [
     { "vital": "Blood Pressure", "value": "180/120 mmHg", "type": "critical", 
@@ -176,6 +177,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
 
 
         const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
         const response = await fetch(url,
             {
                 method: "POST",
@@ -861,6 +863,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
     // ==================== HANDLERS ====================
 
     const fetchAISuggestion = async () => {
+
         setLoading(true);
         setUsingGemini(false);
         try {
@@ -888,6 +891,7 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
         } finally {
             setLoading(false);
         }
+
     };
 
 
@@ -933,6 +937,13 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
         if (selectedMedicines.length > 0 && onAddMedicines) {
             onAddMedicines(selectedMedicines);
             setSelectedMedicines([]);
+        }
+    };
+
+    const handleAddMedicinePlan = () => {
+        if (aiResponse?.medicinePlan && onAddMedicinePlan) {
+            onAddMedicinePlan(aiResponse.medicinePlan);
+            toast.success("Medicine plan copied");
         }
     };
 
@@ -1093,14 +1104,74 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
         ),
     });
 
+    // tabs.push({
+    //     key: "medicines",
+    //     label: <span><MedicineBoxOutlined /> Medicines</span>,
+    //     children: (
+    //         <div className="space-y-4">
+
+    //             {/* Medicines */}
+    //             <div>
+    //                 <p className="text-xs font-semibold text-gray-500 m-0 mb-2 uppercase tracking-wide">Recommended Medicines</p>
+    //                 <div className="space-y-2">
+    //                     {aiResponse?.medicines.map((med, i) => (
+    //                         <label key={i} className="flex items-start gap-3 px-3 py-2.5 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors">
+    //                             <Checkbox
+    //                                 checked={selectedMedicines.includes(med.name)}
+    //                                 onChange={() => toggle(selectedMedicines, setSelectedMedicines, med.name)}
+    //                                 className="mt-0.5"
+    //                             />
+    //                             <div className="flex-1">
+    //                                 <p className="font-semibold text-sm text-gray-800 m-0">{med.name}</p>
+    //                                 <p className="text-xs text-gray-500 mt-0.5 m-0">{med.dosage} &bull; {med.duration}</p>
+    //                             </div>
+    //                         </label>
+    //                     ))}
+    //                 </div>
+    //                 <Button
+    //                     type="primary"
+    //                     disabled={selectedMedicines.length === 0}
+    //                     onClick={handleAddMedicines}
+    //                     className="mt-2 w-full bg-blue-500 hover:bg-blue-600 text-sm !p-4"
+    //                     size="small"
+    //                 >
+    //                     Add Selected Medicines {selectedMedicines.length > 0 ? `(${selectedMedicines.length})` : ""}
+    //                 </Button>
+    //             </div>
+
+    //             <Divider className="my-1" />
+
+    //             {/* Treatment Plan */}
+    //             <div>
+    //                 <p className="text-xs font-semibold text-gray-500 m-0 mb-2 uppercase tracking-wide">Treatment Plan</p>
+    //                 <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+    //                     <p className="text-sm text-gray-700 m-0 leading-relaxed">{aiResponse?.treatment}</p>
+    //                 </div>
+    //                 <Button
+    //                     type="dashed"
+    //                     onClick={() => onAddTreatment && onAddTreatment(aiResponse?.treatment)}
+    //                     className="mt-2 w-full border-indigo-400 text-indigo-600 text-xs hover:bg-indigo-50 !p-4"
+    //                     size="small"
+    //                 >
+    //                     Copy to Treatment Field
+    //                 </Button>
+    //             </div>
+
+    //         </div>
+    //     ),
+    // });
+
     tabs.push({
         key: "medicines",
         label: <span><MedicineBoxOutlined /> Medicines</span>,
         children: (
             <div className="space-y-4">
-                {/* Medicines */}
+
+                {/* ========== SECTION 1: MEDICINES LIST (for Select dropdown) ========== */}
                 <div>
-                    <p className="text-xs font-semibold text-gray-500 m-0 mb-2 uppercase tracking-wide">Recommended Medicines</p>
+                    <p className="text-xs font-semibold text-gray-500 m-0 mb-2 uppercase tracking-wide">
+                        💊 Recommended Medicines
+                    </p>
                     <div className="space-y-2">
                         {aiResponse?.medicines.map((med, i) => (
                             <label key={i} className="flex items-start gap-3 px-3 py-2.5 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors">
@@ -1123,15 +1194,45 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                         className="mt-2 w-full bg-blue-500 hover:bg-blue-600 text-sm !p-4"
                         size="small"
                     >
-                        Add Selected Medicines {selectedMedicines.length > 0 ? `(${selectedMedicines.length})` : ""}
+                        + Add Selected Medicines {selectedMedicines.length > 0 ? `(${selectedMedicines.length})` : ""}
                     </Button>
+                    <p className="text-xs text-gray-400 mt-1 text-center">
+                        These medicines will be added to the "Medicines" select dropdown
+                    </p>
                 </div>
 
-                <Divider className="my-1" />
+                {/* ========== SECTION 2: MEDICINE PLAN (NEW) ========== */}
+                {aiResponse?.medicinePlan && (
+                    <>
+                        <Divider className="my-2" />
+                        <div>
+                            <p className="text-xs font-semibold text-gray-500 m-0 mb-2 uppercase tracking-wide">
+                                📋 AI Medicine Plan
+                            </p>
+                            <div className="p-3 bg-teal-50 rounded-lg border border-teal-200">
+                                <p className="text-sm text-gray-700 m-0 leading-relaxed">{aiResponse.medicinePlan}</p>
+                            </div>
+                            <Button
+                                type="dashed"
+                                onClick={handleAddMedicinePlan}
+                                className="mt-2 w-full border-teal-400 text-teal-600 text-xs hover:bg-teal-50 !p-4"
+                                size="small"
+                            >
+                                Copy to Medicine Plan Field
+                            </Button>
+                            <p className="text-xs text-gray-400 mt-1 text-center">
+                                This will be added to the "Medicine Plan" text area
+                            </p>
+                        </div>
+                    </>
+                )}
 
-                {/* Treatment Plan */}
+                {/* ========== SECTION 3: TREATMENT PLAN (Existing) ========== */}
+                <Divider className="my-2" />
                 <div>
-                    <p className="text-xs font-semibold text-gray-500 m-0 mb-2 uppercase tracking-wide">Treatment Plan</p>
+                    <p className="text-xs font-semibold text-gray-500 m-0 mb-2 uppercase tracking-wide">
+                        🏥 Treatment Plan (General Advice)
+                    </p>
                     <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                         <p className="text-sm text-gray-700 m-0 leading-relaxed">{aiResponse?.treatment}</p>
                     </div>
@@ -1143,11 +1244,14 @@ Respond ONLY with this examplae of exact JSON format (no extra text, no markdown
                     >
                         Copy to Treatment Field
                     </Button>
+                    <p className="text-xs text-gray-400 mt-1 text-center">
+                        This will be added to the "Treatment" text area
+                    </p>
                 </div>
+
             </div>
         ),
     });
-
 
 
 

@@ -25,26 +25,27 @@ const MicIcon = ({ color = "currentColor" }) => (
 );
 
 
-const VoiceTextAreaOnline = ({ label, fieldKey, value , formHandler , placeholder, rows = 3, driverId ,resetTrigger , onChange }) => {
+const VoiceTextAreaOnline = ({ label, fieldKey, value, formHandler, placeholder, rows = 3, driverId, resetTrigger, onChange }) => {
 
-  const { transcript, browserSupportsSpeechRecognition, resetTranscript } =  useSpeechRecognition();
+
+  const { transcript, browserSupportsSpeechRecognition, resetTranscript } = useSpeechRecognition();
   const [isRecording, setIsRecording] = useState(false);
   const micBtnStyle = {
-  position: "absolute",
-  bottom: "10px",
-  right: "10px",
-  width: "28px",
-  height: "28px",
-  borderRadius: "50%",
-  border: isRecording ? "1px solid #ef4444" : "1px solid #d1d5db",
-  background: isRecording ? "#ef4444" : "#fff",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-  transition: "all 0.2s",
-  zIndex: 1,
-};
+    position: "absolute",
+    bottom: "10px",
+    right: "10px",
+    width: "28px",
+    height: "28px",
+    borderRadius: "50%",
+    border: isRecording ? "1px solid #ef4444" : "1px solid #d1d5db",
+    background: isRecording ? "#ef4444" : "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    transition: "all 0.2s",
+    zIndex: 1,
+  };
 
   //   console.log(transcript, "<<<<<<<<<<<<");
 
@@ -68,7 +69,7 @@ const VoiceTextAreaOnline = ({ label, fieldKey, value , formHandler , placeholde
       else {
         await SpeechRecognition.stopListening();
         // setTimeout(() => {
-          resetTranscript();
+        resetTranscript();
         // }, 100);
         setIsRecording(false);
       }
@@ -85,12 +86,14 @@ const VoiceTextAreaOnline = ({ label, fieldKey, value , formHandler , placeholde
 
     const lower = text.toLowerCase();
 
-    if (fieldKey == "treatment") {
-      formHandler("treatment", lower.trim());
-    }
-    else if (fieldKey == "primaryComplain") {
-      formHandler("primaryComplain", lower.trim());
-    }
+    // if (fieldKey == "treatment") {
+    //   formHandler("treatment", lower.trim());
+    // }
+    // else if (fieldKey == "primaryComplain") {
+    //   formHandler("primaryComplain", lower.trim());
+    // }
+
+    formHandler(fieldKey, lower.trim());
   };
 
 
@@ -127,11 +130,10 @@ const VoiceTextAreaOnline = ({ label, fieldKey, value , formHandler , placeholde
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={`w-full resize-none rounded-md border px-3 py-2 text-sm transition-all duration-200 outline-none
-                        ${
-                          isRecording
-                            ? "border-red-400 ring-2 ring-red-100"
-                            : "border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                        }`}
+                        ${isRecording
+              ? "border-red-400 ring-2 ring-red-100"
+              : "border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            }`}
           style={{ paddingRight: "44px" }}
         />
 

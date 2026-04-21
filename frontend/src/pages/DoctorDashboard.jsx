@@ -167,6 +167,7 @@ const DoctorDashboard = () => {
   // console.log(loginUserData, "<<<<<<< loginUserData");
   // console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
   // console.log(driverObj, "<<<<<<< driverObj");
+  // console.log(isCancelClick, "<<<<<<< isCancelClick");
 
 
   const foo = useCallback(async () => {
@@ -174,7 +175,7 @@ const DoctorDashboard = () => {
       const res = await axios.get(
         `${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,
       );
-      // console.log(res, "res of get DocotrDetail by id");
+      console.log(res, "res of get DocotrDetail by id");
       setPatientsData(res?.data?.data);
     } catch (err) {
       // console.log(err, "error in get faculty");

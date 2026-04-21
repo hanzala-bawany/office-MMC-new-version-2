@@ -29,6 +29,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
     medicalTests: [],
     treatment: "",
     primaryComplain: "",
+    medicines: [],
+    medicinePlan: "",
   });
   // let patientToken = Number(specificSearchingToken?.split(" ")[0]?.split("-")[1],);
   let patientToken = Number(specificSearchingToken?.split(" ")[0]);
@@ -281,6 +283,13 @@ const MidSection = ({ patientsData, docPatientData }) => {
     }),
   );
 
+  const medicinesOptions = patientsData?.medicineList?.map(
+    (item) => ({
+      value: item?.MEDICINE_NAME,
+      label: item?.MEDICINE_NAME,
+    }),
+  );
+
   const nextHandler = async () => {
     try {
       setIsNextLoading(true);
@@ -291,6 +300,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
         primaryDiagnosis: formData?.primaryDiagnosis || null,
         medicalTests: formData?.medicalTests || null,
         treatment: formData?.treatment || null,
+        medicine: formData?.medicines || null,
+        medicalPlan: formData?.medicinePlan || null,
       });
       // console.log(res, "res of next Handler by id");
       await docPatientData();
@@ -304,6 +315,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
         medicalTests: [],
         treatment: "",
         primaryComplain: "",
+        medicines: [],
+        medicinePlan: "",
       });
       setResetTrigger((prev) => !prev);
     } catch (err) {
@@ -326,6 +339,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
           primaryDiagnosis: formData?.primaryDiagnosis || null,
           medicalTests: formData?.medicalTests || null,
           treatment: formData?.treatment || null,
+          medicine: formData?.medicines || null,
+          medicalPlan: formData?.medicinePlan || null,
         },
       );
       // console.log(res, "res of specific Calling Handler by id");
@@ -338,6 +353,15 @@ const MidSection = ({ patientsData, docPatientData }) => {
       } else {
         toast.info(`Patient Not yet`);
       }
+
+      setFormData({
+        primaryDiagnosis: [],
+        medicalTests: [],
+        treatment: "",
+        primaryComplain: "",
+        medicines: [],
+        medicinePlan: "",
+      });
 
       setSpecificSearchingToken(null);
     } catch (err) {
@@ -410,15 +434,15 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
   // for AI
 
-  const handleAddMedicinesFromAI = (medicines) => {
-    const currentTreatment = formData.treatment || "";
-    const medicineText = medicines.map(m => m).join(", ");
-    const newTreatment = currentTreatment
-      ? `${currentTreatment}\n💊 ${medicineText}`
-      : `💊 ${medicineText}`;
-    formHandler("treatment", newTreatment);
-    toast.success(`${medicines.length} medicine(s) added to Treatment`);
-  };
+  // const handleAddMedicinesFromAI = (medicines) => {
+  //   const currentTreatment = formData.treatment || "";
+  //   const medicineText = medicines.map(m => m).join(", ");
+  //   const newTreatment = currentTreatment
+  //     ? `${currentTreatment}\n💊 ${medicineText}`
+  //     : `💊 ${medicineText}`;
+  //   formHandler("treatment", newTreatment);
+  //   toast.success(`${medicines.length} medicine(s) added to Treatment`);
+  // };
 
   const handleAddTreatmentFromAI = (treatmentText) => {
     const currentTreatment = formData.treatment || "";
@@ -428,6 +452,29 @@ const MidSection = ({ patientsData, docPatientData }) => {
     formHandler("treatment", newTreatment);
     toast.success("Treatment plan added");
   };
+
+  const handleAddMedicinesFromAI = (medicinesList) => {
+    // medicinesList is array of medicine names from AI
+    const currentMedicines = formData.medicines || [];
+    const newMedicines = [...new Set([...currentMedicines, ...medicinesList])];
+    formHandler("medicines", newMedicines);
+    toast.success(`${medicinesList.length} medicine(s) added to Medicines list`);
+  };
+
+  // Handle medicine plan from AI (for Medicine Plan textarea)
+  const handleAddMedicinePlanFromAI = (planText) => {
+    const currentPlan = formData.medicinePlan || "";
+    const newPlan = currentPlan
+      ? `${currentPlan}\n📋 ${planText}`
+      : `📋 ${planText}`;
+    formHandler("medicinePlan", newPlan);
+    toast.success("Medicine plan added");
+  };
+
+
+
+
+
 
   return (
 
@@ -845,8 +892,10 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
           {/* BODY */}
           <div className="flex-6 grid grid-cols-1  md:grid-cols-2  2xl:grid-cols-1  gap-5 p-4 ">
+
             {/* PRIMARY DIAGNOSIS */}
             <div id="form-primary-diagnosis" className="flex flex-col gap-1">
+
               <label className="text-sm font-medium text-gray-500">
                 Primary Diagnosis
               </label>
@@ -862,6 +911,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 onChange={(value) => formHandler("primaryDiagnosis", value)}
                 value={formData.primaryDiagnosis}
               />
+
             </div>
 
             {/* MEDICAL TESTS */}
@@ -884,7 +934,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             {voiceMode === "online" ? (
               <>
                 <VoiceTextAreaOnline
-                  label="Treatment / Medication"
+                  label="Treatment"
                   fieldKey="treatment"
                   value={formData.treatment}
                   onChange={(val) => formHandler("treatment", val)}
@@ -907,7 +957,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
             ) : (
               <>
                 <VoiceTextArea
-                  label="Treatment / Medication"
+                  label="Treatment"
                   fieldKey="treatment"
                   value={formData.treatment}
                   onChange={(val) => formHandler("treatment", val)}
@@ -926,17 +976,59 @@ const MidSection = ({ patientsData, docPatientData }) => {
             )}
 
 
+            {/*  MEDICINE SELECT (Dropdown) */}
+            <div id="form-medicines" className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-gray-500">
+                Medicines
+              </label>
+              <Select
+                mode="tags"
+                allowClear
+                showSearch
+                placeholder="Select or type medicine name"
+                optionFilterProp="label"
+                style={{ width: "100%" }}
+                options={medicinesOptions}  // You need to create this from API
+                onChange={(value) => formHandler("medicines", value)}
+                value={formData.medicines}
+              />
+            </div>
+
+            {/*  MEDICINE PLAN (Voice/Text Area) */}
+            {voiceMode === "online" ? (
+              <VoiceTextAreaOnline
+                label="Medicine Plan"
+                fieldKey="medicinePlan"
+                value={formData.medicinePlan}
+                onChange={(val) => formHandler("medicinePlan", val)}
+                formHandler={formHandler}
+                placeholder="E.g.: Take 1 tablet after breakfast daily for 5 days"
+                driverId="form-medicine-plan"
+                resetTrigger={resetTrigger}
+              />
+            ) : (
+              <VoiceTextArea
+                label="Medicine Plan"
+                fieldKey="medicinePlan"
+                value={formData.medicinePlan}
+                onChange={(val) => formHandler("medicinePlan", val)}
+                placeholder="E.g.: Take 1 tablet after breakfast daily for 5 days"
+                driverId="form-medicine-plan"
+              />
+            )}
+
+
             {/* {(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== "")) && ( */}
-              <Button
-                type="dashed"
-                icon={<BulbOutlined />}
-                onClick={() => setShowAIAssistant(true)}
-                className="w-full border-purple-400 text-purple-600 hover:bg-purple-50 hover:border-purple-500"
-                style={{ borderRadius: "12px" }}
-                disabled={!(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== ""))}
-              >
-                ✨ Get AI Suggestion for Diagnosis & Tests
-              </Button>
+            <Button
+              type="dashed"
+              icon={<BulbOutlined />}
+              onClick={() => setShowAIAssistant(true)}
+              className="w-full border-purple-400 text-purple-600 hover:bg-purple-50 hover:border-purple-500"
+              style={{ borderRadius: "12px" }}
+              disabled={!(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== ""))}
+            >
+              ✨ Get AI Suggestion for Diagnosis & Tests
+            </Button>
             {/* )} */}
           </div>
 
@@ -1023,7 +1115,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
       />
 
 
-       {/* AiAssistant component ko is tarah call karo: */}
+      {/* AiAssistant component ko is tarah call karo: */}
       <AiAssistant
         visible={showAIAssistant}
         onClose={() => setShowAIAssistant(false)}
@@ -1051,6 +1143,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
           toast.success(`${tests.length} test(s) added`);
         }}
         onAddMedicines={handleAddMedicinesFromAI}
+        onAddMedicinePlan={handleAddMedicinePlanFromAI}
         onAddTreatment={handleAddTreatmentFromAI}
       />
 
