@@ -1030,7 +1030,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 onChange={(val) => formHandler("medicinePlan", val)}
                 formHandler={formHandler}
                 placeholder="E.g.: Take 1 tablet after breakfast daily for 5 days"
-                driverId="form-medicine-plan"
+                driverId="form-medicines-plan"
                 resetTrigger={resetTrigger}
               />
             ) : (
@@ -1040,33 +1040,37 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 value={formData.medicinePlan}
                 onChange={(val) => formHandler("medicinePlan", val)}
                 placeholder="E.g.: Take 1 tablet after breakfast daily for 5 days"
-                driverId="form-medicine-plan"
+                driverId="form-medicines-plan"
               />
             )}
 
             {/* AI Suggestion Button - Professional Floating Button */}
-            <Button
-              type="primary"
-              icon={<BulbOutlined />}
-              onClick={() => setShowAIAssistant(true)}
-              className="fixed! top-10 z-50 right-10 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-4 py-2 bg-linear-to-r from-purple-500 to-indigo-500 border-none text-white font-medium"
-              style={{
-                borderRadius: "16px",
-                transform: "translateY(-50%)",
-                zIndex: 10,
-                padding: "10px 24px",
-                background: "linear-gradient(120deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%)",
-                backdropFilter: "blur(10px)",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)"
-              }}
-              disabled={!(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== ""))}
-            >
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline">AI Suggestion</span>
-                <span className="sm:hidden">AI</span>
-              </div>
-            </Button>
+            {
+              (formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== "")) && (
+                <Button
+                  type="primary"
+                  icon={<BulbOutlined />}
+                  onClick={() => setShowAIAssistant(true)}
+                  className="fixed! top-10 z-50 right-10 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-4 py-2 bg-linear-to-r from-purple-500 to-indigo-500 border-none text-white font-medium"
+                  style={{
+                    borderRadius: "16px",
+                    transform: "translateY(-50%)",
+                    zIndex: 10,
+                    padding: "10px 24px",
+                    background: "linear-gradient(120deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%)",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)"
+                  }}
+                // disabled={!(formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== ""))}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="hidden sm:inline">AI Suggestion</span>
+                    <span className="sm:hidden">AI</span>
+                  </div>
+                </Button>
+              )
+            }
 
 
 

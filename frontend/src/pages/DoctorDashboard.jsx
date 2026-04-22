@@ -152,6 +152,24 @@ const DoctorDashboard = () => {
         },
       },
       {
+        element: "#form-medicines",
+        popover: {
+          title: "📝 Patient Medicines",
+          description:
+            "Add or select the medicines prescribed to the patient. You can also type to create new entries.",
+          side: "left",
+        },
+      },
+      {
+        element: "#form-medicines-plan",
+        popover: {
+          title: "📝 Medicines Plan",
+          description:
+            "Define the treatment plan . voice input is available here too.",
+          side: "left",
+        },
+      },
+      {
         element: "#doctor-name-btn",
         popover: {
           title: "👨‍⚕️ Doctor Options",
@@ -215,7 +233,7 @@ const DoctorDashboard = () => {
       />
 
       {/* Middle Section */}
-        <MidSection patientsData={patientsData} docPatientData={foo} />
+      <MidSection patientsData={patientsData} docPatientData={foo} />
 
       {/* History */}
       {/* <HistoryTable /> */}
