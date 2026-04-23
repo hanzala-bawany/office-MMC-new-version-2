@@ -9,6 +9,8 @@ import { useSelector } from "react-redux";
 import { socket } from "../socket/socket.js";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
+import Footer from "../components/doctorDashboard/Footer.jsx";
+
 
 const DoctorDashboard = () => {
 
@@ -237,6 +239,8 @@ const DoctorDashboard = () => {
 
       {/* History */}
       {/* <HistoryTable /> */}
+
+      <Footer />
 
     </div>
   );

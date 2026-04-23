@@ -1051,11 +1051,10 @@ const MidSection = ({ patientsData, docPatientData }) => {
                   type="primary"
                   icon={<BulbOutlined />}
                   onClick={() => setShowAIAssistant(true)}
-                  className="fixed! top-10 z-50 right-10 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-4 py-2 bg-linear-to-r from-purple-500 to-indigo-500 border-none text-white font-medium"
+                  className="fixed! top-10 z-500 right-10 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-4 py-2 bg-linear-to-r from-purple-500 to-indigo-500 border-none text-white font-medium"
                   style={{
                     borderRadius: "16px",
                     transform: "translateY(-50%)",
-                    zIndex: 10,
                     padding: "10px 24px",
                     background: "linear-gradient(120deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%)",
                     backdropFilter: "blur(10px)",
