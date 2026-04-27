@@ -72,7 +72,7 @@ const PatientCard = ({ doc, isTwo, highlight }) => {
               className="text-lg 4xl:text-xl font-semibold"
             >
               <div
-                className="relative bg-gradient-to-br from-cyan-500 to-blue-600
+                className="relative bg-linear-to-br from-cyan-500 to-blue-600
               text-white rounded-full px-4 py-6
                4xl:px-6 4xl:py-8  
               flex items-center justify-center
