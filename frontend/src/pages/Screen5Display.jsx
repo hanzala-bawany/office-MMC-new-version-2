@@ -13,24 +13,22 @@ import { updatePatinetnDocotrsData } from '../reduxToolKit/doctorSlice';
 import ImageLoader from '../utills/ImageLoader';
 import { socket } from '../socket/socket';
 import VidioSlideShow from '../components/screen5/VidioSlideShow';
+import EmptyPatientMessage from '../components/screen5/EmptyPatientMessage';
 
 
 
 
 const Screen5Display = () => {
 
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const patinetnDocotrsData = useSelector((state) => state?.doctorSlice?.patinetnDocotrData);
+  const [isLoading, setIsLoading] = useState(true);
   const voiceQueueRef = useRef([]);
   const isSpeakingRef = useRef(false);
   const alertAudioRef = useRef(null);
   const currentSpeakingTokenRef = useRef(null);
   const [highlightToken, setHighlightToken] = useState(null);
-
-
-  // console.log(patinetnDocotrsData, "<<<<<<<<<<");
 
 
   const logoutHandler = () => {
@@ -41,17 +39,18 @@ const Screen5Display = () => {
 
   const getPatientnDoctorInfo = async () => {
 
+    setIsLoading(true); // Start loading
+
     try {
       const res = await axios.get(`${base_URL}/api/opd/patients`);
-      // console.log(res, "res of get Patient for screen");
       const data = res?.data?.data?.filter((i) => i?.PATIENT_STATUS_ID == 2);
       dispatch(updatePatinetnDocotrsData(data));
+    } catch (err) {
+      console.log(err, "error in get Doctor info");
+    } finally {
+      setIsLoading(false); // Stop loading regardless of success/error
+    }
 
-    }
-    catch (err) {
-      // console.log(err, "error in get Doctor info");
-      // toast.error(err?.message)
-    }
   }
 
   const playAlert = () => {
@@ -75,6 +74,23 @@ const Screen5Display = () => {
     });
   };
 
+  // voice work 
+  // START
+
+  const cleanDoctorName = (name) => {
+    if (!name) return '';
+
+    return name
+      .replace(/\(.*?\)/g, '')          // (Anesthetist), (RMO) etc remove
+      .replace(/\bDR\.?\b/gi, '')       // DR. ya DR word remove
+      .replace(/-/g, ' ')               // hyphen → space
+      .replace(/\./g, ' ')              // dots → space
+      .replace(/,/g, ' ')               // comma → space
+      .replace(/\s+/g, ' ')             // multiple spaces → single
+      .trim()
+      .toLowerCase();
+  }; // ye banaya he take name alag alag word me call na kare
+
   const loadVoices = () => {
     return new Promise(resolve => {
       let voices = speechSynthesis.getVoices();
@@ -93,7 +109,7 @@ const Screen5Display = () => {
     // console.log(voices, " <<<<<<<< voices");
 
     const msg = new SpeechSynthesisUtterance(
-      token === "System" ? "Voice service is ready." : `Token ${token}, please proceed to doctor ${doctor}`
+      token === "System" ? "Voice service is ready." : `Token ${token} , Aap doctor  ${doctor} ke pass tashreef le jaen`  // SHAHZAIB
     );
 
     msg.voice = voices.find(v => v?.lang?.includes("hi")) || voices?.find(v => v?.lang?.includes("en")) || voices[0];
@@ -108,11 +124,16 @@ const Screen5Display = () => {
       playNextVoice();
     };
 
+    msg.onerror = (e) => {
+      console.log("Speech error:", e);
+      isSpeakingRef.current = false;
+      currentSpeakingTokenRef.current = null;
+      setHighlightToken(null);
+      playNextVoice();
+    };
+
     window.speechSynthesis.resume();
-    // console.log(msg, " >>>>>> msg");
     window.speechSynthesis.speak(msg);
-    // isSpeakingRef.current = false;
-    // console.log("voice ebnd");
 
   };
 
@@ -124,17 +145,19 @@ const Screen5Display = () => {
     isSpeakingRef.current = true;
     const data = voiceQueueRef.current.shift();
 
-    try{
+    try {
       await playAlert();
     }
-    catch(err){
-      console.log(err , "err in buzzer .............");
+    catch (err) {
+      console.log(err, "err in buzzer .............");
     }
     setHighlightToken(data);
     // console.log(data, "dtaa .......................");
 
     speakToken(data);
   };
+
+  // END
 
 
   useEffect(() => {
@@ -147,11 +170,16 @@ const Screen5Display = () => {
 
       // console.log(" payload ..........", payload);
       getPatientnDoctorInfo()
-
+      
       if (!payload?.patientToken) return;
 
-      voiceQueueRef?.current?.push({ token: payload?.patientToken , doctor: payload?.doctorName?.replace("DR.", "") , doctorId : payload?.doctorId });
-      voiceQueueRef?.current?.push({ token: payload?.patientToken , doctor: payload?.doctorName?.replace("DR.", "") , doctorId : payload?.doctorId });
+      const cleanName = cleanDoctorName(payload?.doctorName?.replace("DR", ""))
+
+      voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: cleanName, doctorId: payload?.doctorId });
+      voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: cleanName, doctorId: payload?.doctorId });
+
+      // voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: payload?.doctorName?.replace("DR", ""), doctorId: payload?.doctorId });
+      // voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: payload?.doctorName?.replace("DR", ""), doctorId: payload?.doctorId });
       playNextVoice();
 
     }
@@ -169,13 +197,34 @@ const Screen5Display = () => {
     alertAudioRef.current = new Audio("/buffer3.mp3.wav");
   }, []);
 
+  useEffect(() => {
+    let unlocked = false;
+
+    const unlock = () => {
+      if (unlocked) return;
+      const msg = new SpeechSynthesisUtterance(" ");
+      msg.volume = 0;
+      window.speechSynthesis.speak(msg);
+      unlocked = true;
+    };
+
+    setTimeout(unlock, 1000);
+    document.addEventListener("keydown", unlock);
+    document.addEventListener("click", unlock);
+
+    return () => {
+      document.removeEventListener("keydown", unlock);
+      document.removeEventListener("click", unlock);
+    };
+  }, []);   // for icon click skip
+
 
   // console.log(patinetnDocotrsData, "<<<<<<< patinetnDocotrsData", highlightToken, "<<<< highlightToken");
 
 
   return (
 
-    <div className="h-[100vh] w-full flex flex-col bg-gradient-to-br from-[#e0f7fa] to-[#fff]">
+    <div className="h-screen w-full flex flex-col bg-gradient-to-br from-[#e0f7fa] to-[#fff]">
 
       <div
         className="absolute inset-0 opacity-10 pointer-events-none"
@@ -186,7 +235,7 @@ const Screen5Display = () => {
 
       {
         // <button className='bg-amber-300'  onClick={() => {
-        //   voiceQueueRef.current.push({ token: "A-4", doctor: "hanzala bawany" });
+        //   voiceQueueRef.current.push({ token: "4", doctor: "Ubaid ur rehman" });
         //   playNextVoice();
         // }}>
         //   Test Voice
@@ -197,9 +246,11 @@ const Screen5Display = () => {
         voiceQueueRef.current.push({ token: "System", doctor: "hanzala bawany" });
         playNextVoice();
       }} className="cursor-pointer flex absolute top-4 4xl:top-8 [@media(min-width:3200px)]:top-12 left-4 4xl:left-8 [@media(min-width:4200px)]:left-12 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
+
         <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-blue-500 " >
           <img src={logo} alt="logo" className="h-12 min-[2000px]:h-16 [@media(min-width:3000px)]:h-18  [@media(min-width:4400px)]:h-30 w-12 min-[2000px]:w-16 [@media(min-width:3000px)]:w-18 [@media(min-width:4400px)]:w-30 object-contain" />
         </div>
+
         <div>
           <h1 className="text-blue-500 text-3xl font-bold min-[2000px]:text-5xl [@media(min-width:3200px)]:text-6xl  [@media(min-width:4400px)]:text-7xl  tracking-wide drop-shadow">
             Memon Medical Complex
@@ -208,6 +259,7 @@ const Screen5Display = () => {
             “Serving with Excellence & Care”
           </p>
         </div>
+
       </div>
 
       <div className="flex justify-center items-center pt-3  relative flex-2 invisible">
@@ -224,20 +276,28 @@ const Screen5Display = () => {
       <div className='flex-13 flex '>
 
         {
-          patinetnDocotrsData.length ?
-            <div className={`${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${patinetnDocotrsData.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
-              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken?.token === doc?.TOKENNO &&  highlightToken?.doctorId == doc?.CONSULTANTID} />)}
+          patinetnDocotrsData?.length > 0 ?
+
+            // <div className={`${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${patinetnDocotrsData.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
+            //   {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken?.token === doc?.TOKENNO && highlightToken?.doctorId == doc?.CONSULTANTID} />)}
+            // </div>
+            <div className={` ${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid ${patinetnDocotrsData.length <= 6 ? "grid-cols-2" : "grid-cols-3"} gap-8 4xl:gap-12 px-6`}>
+              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken?.token === doc?.TOKENNO && highlightToken?.doctorId == doc?.CONSULTANTID} />)}
             </div>
-            :
-            <div className='flex justify-center w-[70%]'>
-              <ImageLoader />
-            </div>
+
+            : isLoading ?
+
+              <div className='flex justify-center w-full'>
+                <ImageLoader />
+              </div>
+              :
+              <EmptyPatientMessage />
         }
 
         {
-          patinetnDocotrsData.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
-            <VidioSlideShow />
-          </div>
+          // patinetnDocotrsData.length <= 6 && <div className='w-[30%] h-full px-6 overflow-hidden '>
+          //   <VidioSlideShow />
+          // </div>
         }
 
       </div>

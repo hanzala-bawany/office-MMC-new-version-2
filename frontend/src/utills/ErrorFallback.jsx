@@ -14,6 +14,9 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
         dispatch(logoutUser());
         toast.success("Logout Successful");
         navigate("/login");
+        setTimeout(() => {
+            resetErrorBoundary();
+        }, 0);
     };
 
     return (
