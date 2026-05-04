@@ -2,6 +2,7 @@
 import { Layout, Menu, Breadcrumb, theme, Flex } from 'antd';
 import React, { useEffect, useState } from 'react';
 import NavImg from '../assets/MMC logo.png';
+import hospitraxLogo from '../assets/productLogoBgRemove.png';
 import { UserOutlined, LaptopOutlined } from '@ant-design/icons';
 import { FaChalkboardTeacher, FaTextWidth } from 'react-icons/fa';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -48,6 +49,15 @@ const AppLayout = () => {
 
         >
           Add Consultant
+        </NavLink>
+    },
+    {
+      key: "3", icon: FaChalkboardTeacher, label:
+        <NavLink
+          to={`/pronunciation `}
+
+        >
+          Add Doctor Pronounciation
         </NavLink>
     },
     {
@@ -155,7 +165,7 @@ const AppLayout = () => {
       icon: LaptopOutlined,
       label: "Screen 5",
       children: [
- 
+
         {
           key: "5-2", label:
             <NavLink
@@ -228,6 +238,7 @@ const AppLayout = () => {
   return (
 
     <Layout style={{ height: "100vh", width: "100%", display: "flex", backgroundColor: "red", overflowX: "hidden" }}>
+
       {/* HEADER */}
       <Header
         style={{
@@ -241,18 +252,33 @@ const AppLayout = () => {
           height: "8vh"
         }}
       >
+
         <NavLink to="/">
-          <img
-            src={NavImg}
-            alt="logo"
-            style={{ borderRadius: "50%" }}
-            className='w-15 h-15 sm:h-15 sm:w-20'
-          />
+          <div className="cursor-pointer flex items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12 group">
+
+            {/* Logo with gradient border */}
+            <div className="relative ">
+              {/* Animated gradient ring */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full blur-md opacity-75 group-hover:opacity-100 transition duration-300"></div>
+              <img
+                src={hospitraxLogo}
+                alt="Hospitrax Logo"
+                className="bg-amber-50 relative w-16 object-contain rounded-full p-2 border border-blue-400 shadow-xl"
+              />
+            </div>
+
+            <div>
+              <h1 className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 text-2xl font-bold min-[2000px]:text-4xl [@media(min-width:3200px)]:text-5xl [@media(min-width:4400px)]:text-6xl tracking-wide drop-shadow-lg">
+                Hospitrax
+              </h1>
+              <p className="text-gray-400 text-xs italic min-[2000px]:text-xl [@media(min-width:3000px)]:text-2xl [@media(min-width:4400px)]:text-3xl font-medium group-hover:text-gray-300 transition">
+                “Healthcare Management System”
+              </p>
+            </div>
+          </div>
         </NavLink>
 
-        {/* <h1 style={{ color: "red", margin: 0, fontSize: "25px" }} className='hidden sm:block'>
-          Memon Medical Complex
-        </h1> */}
+
         <h1 className="hidden sm:block swim-text text-[28px] font-extrabold  tracking-wide">
           Memon Medical Complex
         </h1>
@@ -265,6 +291,7 @@ const AppLayout = () => {
             <span >Admin</span>
             <UserOutlined style={{ fontSize: "25px", color: "white" }} />
           </div>
+
         </div>
 
       </Header>
@@ -282,7 +309,7 @@ const AppLayout = () => {
           md:ml-0  md:static md:h-full  bg-white `}
         >
           <Menu
-            style={{ height: "100%", width: "100%", paddingTop: "40px" , borderInlineEnd: 0, display: "flex", flexDirection: "column" }}
+            style={{ height: "100%", width: "100%", paddingTop: "40px", borderInlineEnd: 0, display: "flex", flexDirection: "column" }}
             items={items2}
           />
         </Sider>

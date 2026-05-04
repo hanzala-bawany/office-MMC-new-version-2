@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import logo from "../assets/MMC logo.png"; // ← Apna logo path yahan set kar lo
 import NubitLogo from "../assets/nubit logo png.png"; // ← Apna Nubit logo
+import hospitraxLogo from "../assets/productLogoBgRemove.png"; // ← Apna Product logo
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import PatientCard from '../components/screen5/PatientCard';
@@ -102,14 +103,15 @@ const Screen5Display = () => {
     });
   };
 
-  const speakToken = async ({ token, doctor }) => {
+  const speakToken = async ({ token, doctor , room }) => {
 
     // console.log("speak tokenc chala" , token , doctor);
     const voices = await loadVoices();
     // console.log(voices, " <<<<<<<< voices");
 
     const msg = new SpeechSynthesisUtterance(
-      token === "System" ? "Voice service is ready." : `Token ${token} , Aap doctor  ${doctor} ke pass tashreef le jaen`  // SHAHZAIB
+      token === "System" ? "Voice service is ready." : `Token ${token} , Aap doctor ${doctor} ke paas,  ${room ? `room number ${room} me` : ""} tashreef le jaen`  
+      // token === "System" ? "Voice service is ready." : `Token ${token} , Aap doctor  ${doctor}  ke pass tashreef le jaen`  
     );
 
     msg.voice = voices.find(v => v?.lang?.includes("hi")) || voices?.find(v => v?.lang?.includes("en")) || voices[0];
@@ -168,15 +170,15 @@ const Screen5Display = () => {
 
     const handleQueue = (payload) => {
 
-      // console.log(" payload ..........", payload);
+      console.log(" payload ..........", payload);
       getPatientnDoctorInfo()
-      
+
       if (!payload?.patientToken) return;
 
-      const cleanName = cleanDoctorName(payload?.doctorName?.replace("DR", ""))
+      const cleanName = payload?.pronounceName ? cleanDoctorName(payload?.pronounceName) : cleanDoctorName(payload?.doctorName?.replace("DR", ""))
 
-      voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: cleanName, doctorId: payload?.doctorId });
-      voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: cleanName, doctorId: payload?.doctorId });
+      voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: cleanName, doctorId: payload?.doctorId ,room: payload?.roomNo });
+      voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: cleanName, doctorId: payload?.doctorId ,room: payload.roomNo });
 
       // voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: payload?.doctorName?.replace("DR", ""), doctorId: payload?.doctorId });
       // voiceQueueRef?.current?.push({ token: payload?.patientToken, doctor: payload?.doctorName?.replace("DR", ""), doctorId: payload?.doctorId });
@@ -242,38 +244,51 @@ const Screen5Display = () => {
         // </button>
       }
 
-      <div onClick={() => {
-        voiceQueueRef.current.push({ token: "System", doctor: "hanzala bawany" });
-        playNextVoice();
-      }} className="cursor-pointer flex absolute top-4 4xl:top-8 [@media(min-width:3200px)]:top-12 left-4 4xl:left-8 [@media(min-width:4200px)]:left-12 items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
+      <div className='flex justify-between items-center px-8 4xl:px-16 py-4 4xl:py-6'>
 
-        <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-blue-500 " >
-          <img src={logo} alt="logo" className="h-12 min-[2000px]:h-16 [@media(min-width:3000px)]:h-18  [@media(min-width:4400px)]:h-30 w-12 min-[2000px]:w-16 [@media(min-width:3000px)]:w-18 [@media(min-width:4400px)]:w-30 object-contain" />
+        {/* Left Side - Hospitrax Logo & Name */}
+        <div className=" cursor-pointer flex items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
+
+          <img
+            src={hospitraxLogo}
+            alt="Hospitrax Logo"
+            className="w-22 4xl:w-30"
+          
+          />
+
         </div>
 
-        <div>
-          <h1 className="text-blue-500 text-3xl font-bold min-[2000px]:text-5xl [@media(min-width:3200px)]:text-6xl  [@media(min-width:4400px)]:text-7xl  tracking-wide drop-shadow">
-            Memon Medical Complex
-          </h1>
-          <p className="text-[#7d9ec0] text-sm italic min-[2000px]:text-2xl [@media(min-width:3000px)]:text-3xl [@media(min-width:4400px)]:text-5xl ">
-            “Serving with Excellence & Care”
-          </p>
+        {/* Center - Memon Medical Complex Info (Clickable for Voice) */}
+        <div onClick={() => {
+          voiceQueueRef.current.push({ token: "System", doctor: "hanzala bawany" });
+          playNextVoice();
+        }} className="cursor-pointer  flex  items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
+
+          <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-blue-500 " >
+            <img src={logo} alt="logo" className="h-12 min-[2000px]:h-16 [@media(min-width:3000px)]:h-18  [@media(min-width:4400px)]:h-30 w-12 min-[2000px]:w-16 [@media(min-width:3000px)]:w-18 [@media(min-width:4400px)]:w-30 object-contain" />
+          </div>
+
+          <div>
+            <h1 className="text-blue-500 text-3xl font-bold min-[2000px]:text-5xl [@media(min-width:3200px)]:text-6xl  [@media(min-width:4400px)]:text-7xl  tracking-wide drop-shadow">
+              Memon Medical Complex
+            </h1>
+            <p className="text-[#7d9ec0] text-sm italic min-[2000px]:text-2xl [@media(min-width:3000px)]:text-3xl [@media(min-width:4400px)]:text-5xl ">
+              “Serving with Excellence & Care”
+            </p>
+          </div>
+
+        </div>
+
+        {/* Right Side - Empty for balance (or you can add something here later) */}
+        <div className="w-45 [@media(min-width:4400px)]:w-62.5">
+          {/* Future content like date/time or notification */}
         </div>
 
       </div>
 
-      <div className="flex justify-center items-center pt-3  relative flex-2 invisible">
-        <h1 className="text-cyan-800 font-extrabold tracking-wide text-5xl 4xl:text-6xl 5xl:text-7xl relative">
+   
 
-          <span className="bg-clip-text text-transparent  bg-gradient-to-r from-cyan-600 to-blue-500">
-            Live Patient Queue
-          </span>
-
-          <span className="absolute -bottom-4 left-1/2 -translate-x-1/2  w-40 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full" />
-        </h1>
-      </div>
-
-      <div className='flex-13 flex '>
+      <div className='flex-13 flex   mt-10 mb-7'>
 
         {
           patinetnDocotrsData?.length > 0 ?

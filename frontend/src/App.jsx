@@ -26,6 +26,7 @@ import DoctorDashboard from './pages/DoctorDashboard'
 import DocotorParent from './routes/DocotorParent'
 import MedicalAssistant from './pages/MedicalAssistant'
 import MedicalAssistantParent from './routes/MedicalAssistantParent'
+import PronunciationPage from './pages/PronunciationPage'
 
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
             <Route path="/doctor" element={<DoctorPage />} />
             <Route path="/screens" element={<ScreensPage />} />
             <Route path="/reception" element={<ReceptionPage />} />
+            <Route path="/pronunciation" element={<PronunciationPage />} />
           </Route>
         </Route>
 

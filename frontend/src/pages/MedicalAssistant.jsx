@@ -2,35 +2,38 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Modal } from "antd";
+import { LogoutOutlined, CloseOutlined, UserOutlined, SafetyOutlined } from "@ant-design/icons";
 import { logoutUser } from "../reduxToolKit/authSlice";
 import logo from "../assets/MMC logo.png";
 import NubitLogo from "../assets/nubit logo png.png";
 import FormHeader from "../components/MedicalAssistant/FormHeader";
 import FormBody from "../components/MedicalAssistant/FormBody";
-
-
-
+import hospitraxLogo from "../assets/productLogoBgRemove.png";
 
 const MedicalAssistant = () => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [selectedPatient, setSelectedPatient] = useState(null);
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleLogout = () => {
         dispatch(logoutUser());
         toast.success("Logout Successful");
         navigate("/login");
     };
-    
+
+    const handleModalLogout = () => {
+        setIsModalOpen(false);
+        handleLogout();
+    };
 
     return (
         <>
-
             {/* ── PAGE ROOT ── */}
             <div
-                className="flex flex-col just min-h-screen px-4 py-7"
+                className="flex flex-col min-h-screen px-4 pb-7 pt-4"
                 style={{
                     fontFamily: "'DM Sans', sans-serif",
                     background: "#f0f4ff",
@@ -38,47 +41,60 @@ const MedicalAssistant = () => {
                 }}
             >
 
-                {/* HEADER   */}
+                {/* HEADER */}
                 <header className="flex-1 flex items-center justify-between mb-7">
 
-                    {/* Logo pill */}
-                    <div className="anim-slideDown flex items-center gap-3 px-4 py-2 rounded-full border border-indigo-500/50 bg-white/90 backdrop-blur shadow-md shadow-indigo-500/10">
+                    <div className="flex items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
+                        <img
+                            src={hospitraxLogo}
+                            alt="Hospitrax Logo"
+                            className="w-22 4xl:w-30"
+                        />
+                        <div>
+                            <h1 className="text-blue-600 text-2xl font-bold min-[2000px]:text-4xl [@media(min-width:3200px)]:text-5xl [@media(min-width:4400px)]:text-6xl tracking-wide drop-shadow">
+                                Hospitrax
+                            </h1>
+                            <p className="text-gray-500 text-xs italic min-[2000px]:text-xl [@media(min-width:3000px)]:text-2xl [@media(min-width:4400px)]:text-3xl">
+                                “Healthcare Management System”
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Logo pill - Clickable to open modal */}
+                    <div
+                        onClick={() => setIsModalOpen(true)}
+                        className="cursor-pointer anim-slideDown flex items-center gap-3 px-4 py-2 rounded-full border border-indigo-500/50 bg-white/90 backdrop-blur shadow-md shadow-indigo-500/10 hover:shadow-lg hover:scale-105 transition-all duration-300"
+                    >
                         <img src={logo} alt="MMC Logo" className="h-12 w-12 object-contain rounded-full" />
                         <span style={{ fontFamily: "'Playfair Display', serif" }} className="text-lg font-semibold text-indigo-950 tracking-wide hidden sm:block">
                             Memon Medical Complex
                         </span>
                     </div>
 
-                    {/* Logout button */}
-                    <button
-                        onClick={handleLogout}
-                        className="text-sm cursor-pointer font-medium text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-4 py-2 rounded-full transition-all hover:bg-red-50"
-                    >
-                        Logout →
-                    </button>
+      
 
                 </header>
 
-                {/*  BODY  */}
+                {/* BODY */}
                 <main className="flex-8 flex flex-col items-center justify-center">
 
                     {/* Form */}
-                    <div className="anim-fadeUp w-full max-w-2xl h-max bg-white/97 rounded-3xl overflow-hidden border border-indigo-200/70" style={{ boxShadow: "0 12px 48px rgba(79,70,229,0.13), 0 2px 8px rgba(0,0,0,0.04)" }}  >
+                    <div className="anim-fadeUp w-full max-w-2xl h-max bg-white/97 rounded-3xl overflow-hidden border border-indigo-200/70" style={{ boxShadow: "0 12px 48px rgba(79,70,229,0.13), 0 2px 8px rgba(0,0,0,0.04)" }}>
 
                         {/* ── Form Header ── */}
                         <FormHeader selectedPatient={selectedPatient} />
 
                         {/* ── Form Body ── */}
-                        <FormBody selectedPatient={selectedPatient}  setSelectedPatient={setSelectedPatient} />
+                        <FormBody selectedPatient={selectedPatient} setSelectedPatient={setSelectedPatient} />
 
                     </div>
 
                 </main>
 
-                {/*   FOOTER  */}
+                {/* FOOTER */}
                 <footer className="flex-1 flex justify-end items-center pt-5 pr-2">
                     <button
-                        className="flex items-center gap-2 text-blue-500 hover:text-blue-700 text-sm font-medium transition-colors  bg-transparent border-none"
+                        className="flex items-center gap-2 text-blue-500 hover:text-blue-700 text-sm font-medium transition-colors bg-transparent border-none"
                     >
                         Powered by
                         <img src={NubitLogo} alt="Nubit" className="w-10 object-contain" />
@@ -86,11 +102,93 @@ const MedicalAssistant = () => {
                 </footer>
 
             </div>
+
+            {/* Ant Design Modal */}
+            <Modal
+                open={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                footer={null}
+                centered
+                width={400}
+                closable={false}
+                maskClosable={true}
+                styles={{
+                    content: {
+                        borderRadius: '24px',
+                        overflow: 'hidden',
+                        padding: 0,
+                    },
+                    body: {
+                        padding: 0,
+                    }
+                }}
+            >
+                <div className="bg-gradient-to-br from-indigo-50 to-blue-50">
+
+                    {/* Modal Header */}
+                    <div className="relative bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4">
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors"
+                        >
+                            <CloseOutlined className="text-lg cursor-pointer" />
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="bg-white/20 p-2 rounded-full">
+                                <SafetyOutlined className="text-white text-xl" />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-bold text-lg m-0">Memon Medical Complex</h3>
+                                <p className="text-white/80 text-sm m-0">Hospital Management System</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Modal Body */}
+                    <div className="p-6">
+                        
+
+                        {/* Warning Message */}
+                        <div className="mb-6 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                            <p className="text-amber-700 text-sm text-center">
+                                ⚠️ Are you sure you want to logout? You will be redirected to the login page.
+                            </p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="flex-1 px-4 py-2.5 cursor-pointer rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleModalLogout}
+                                className="flex-1 px-4 py-2.5 rounded-xl cursor-pointer bg-red-600 text-white font-medium hover:bg-red-700 transition-all flex items-center justify-center gap-2"
+                            >
+                                <LogoutOutlined />
+                                Logout
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </Modal>
+
         </>
     );
 };
 
 export default MedicalAssistant;
+
+
+
+
+
+
 
 
 

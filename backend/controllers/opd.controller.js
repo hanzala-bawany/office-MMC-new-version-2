@@ -3,6 +3,39 @@ const poolPromise = require("../database.js");
 
 //-------Queue Display Screen--------------------
 
+const getPronounceNameByDoctorId = async (connection, doctorId) => {
+  try {
+    const result = await connection.execute(
+      `SELECT NVL(cp.pronounce_name, c.name) AS call_name
+       FROM hms.consultant c
+       LEFT JOIN consultant_pronounce cp
+       ON cp.consultant_id = c.id
+       WHERE c.id = :id`,
+      { id: doctorId },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+
+    return result.rows[0]?.CALL_NAME || null;
+  } catch {
+    return null;
+  }
+};
+
+const getRoomNoByDoctorId = async (connection, doctorId) => {
+  try {
+    const result = await connection.execute(
+      `SELECT NVL(room_no, 'Room Not Assigned') AS room_no
+       FROM consultant_room
+       WHERE consultant_id = :id`,
+      { id: doctorId },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+    return result.rows[0]?.ROOM_NO || "Room Not Assigned";
+  } catch {
+    return "Room Not Assigned";
+  }
+};
+
 const getTodayDoctorPatients = async (req, res) => {
   let connection;
 
@@ -57,7 +90,6 @@ const getTodayDoctorPatients = async (req, res) => {
     }
   }
 };
-
 
 const getDoctorPatientsWithStats = async (req, res) => {
   let connection;
@@ -123,7 +155,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
       testList = await rs3.getRows();
       skippedTokens = await rs4.getRows();
       patientVitals = await rs5.getRows();
-       medicineList = await rs6.getRows();
+      medicineList = await rs6.getRows();
     }
 
     await rs1.close();
@@ -153,13 +185,11 @@ const getDoctorPatientsWithStats = async (req, res) => {
     res.status(200).json({ status: 200, data: responseData });
   } catch (err) {
     console.error("getDoctorPatientsWithStats error:", err);
-    res
-      .status(500)
-      .json({
-        status: 500,
-        message: "Internal Server Error",
-        error: err.message,
-      });
+    res.status(500).json({
+      status: 500,
+      message: "Internal Server Error",
+      error: err.message,
+    });
   } finally {
     if (connection) await connection.close();
   }
@@ -269,6 +299,7 @@ const getDoctorNextPatient = async (req, res) => {
       doctorId,
       patientToken: currentPatient?.TOKENNO_1,
       doctorName: currentPatient?.DOCTOR_NAME,
+      roomNo: currentPatient?.ROOM_NO,
     });
     // }
 
@@ -353,6 +384,8 @@ const getDoctorNextPatientSkip = async (req, res) => {
       doctorId,
       patientToken: nextPatient?.TOKENNO_1,
       doctorName: nextPatient?.DOCTOR_NAME,
+      pronounceName: nextPatient?.PRONOUNCE_NAME,
+      roomNo: nextPatient?.ROOM_NO,
     });
 
     res.json({
@@ -636,7 +669,6 @@ const doctorCallTokenByNumber = async (req, res) => {
 
         treatment: treatment,
 
-
         medical_plan: medicalPlan,
 
         medicine: {
@@ -669,6 +701,8 @@ const doctorCallTokenByNumber = async (req, res) => {
         doctorId,
         patientToken: currentPatient.TOKENNO_1,
         doctorName: currentPatient.DOCTOR_NAME,
+        pronounceName: currentPatient?.PRONOUNCE_NAME,
+        roomNo: currentPatient?.ROOM_NO,
       });
     }
 
@@ -697,9 +731,12 @@ const doctorCallTokenByNumber = async (req, res) => {
 
 // ------- REPEAT CALL  PATIENT BY STATUS API with SOCKET ------------------
 const repeatCallPatient = async (req, res) => {
-  let connection;
 
   try {
+    let connection;
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+    
     const { doctorId, doctorName, patientToken } = req.body;
     // console.log(doctorId, "docotr id");
     // console.log(doctorName, "doctorName");
@@ -707,11 +744,19 @@ const repeatCallPatient = async (req, res) => {
 
     const io = req.app.get("io");
 
+    const pronounceName = await getPronounceNameByDoctorId(
+      connection,
+      doctorId,
+    );
+    const roomNum = await getRoomNoByDoctorId(connection, doctorId);
+
     io.emit("QUEUE_UPDATED", {
       type: "REPEAT_CALL",
       doctorId,
       patientToken: patientToken,
       doctorName: doctorName,
+      pronounceName: pronounceName,
+      roomNo: roomNum,
     });
 
     res.json({
@@ -879,6 +924,100 @@ const addPatientVitals = async (req, res) => {
   }
 };
 
+const doctorStop = async (req, res) => {
+  let connection;
+  try {
+    let {
+      doctorId,
+      receiptNo,
+      breakMessage,
+      remarks,
+      primaryDiagnosis,
+      medicalTests,
+      treatment,
+      medicalPlan,
+      medicine,
+    } = req.body;
+
+    const normalizeString = (val) =>
+      typeof val === "string" && val.trim() !== "" ? val.trim() : null;
+
+    receiptNo = normalizeString(receiptNo);
+    remarks = normalizeString(remarks);
+    treatment = normalizeString(treatment);
+    medicalPlan = normalizeString(medicalPlan);
+    breakMessage = normalizeString(breakMessage) || "On Break";
+
+    primaryDiagnosis = Array.isArray(primaryDiagnosis) ? primaryDiagnosis : [];
+    medicalTests = Array.isArray(medicalTests) ? medicalTests : [];
+    medicine = Array.isArray(medicine) ? medicine : [];
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    await connection.execute(
+      `
+      BEGIN
+        doctor_stop_break(
+          p_doc_id        => :doc_id,
+          p_receiptno     => :receiptno,
+          p_message       => :message,
+          p_remarks       => :remarks,
+          p_primary_diag  => :primary_diag,
+          p_medical_tests => :medical_tests,
+          p_treatment     => :treatment,
+          p_medical_plan  => :medical_plan,
+          p_medicine      => :medicine
+        );
+      END;
+      `,
+      {
+        doc_id: doctorId,
+        receiptno: receiptNo,
+        message: breakMessage,
+        remarks: remarks,
+        primary_diag: {
+          dir: oracledb.BIND_IN,
+          val: primaryDiagnosis,
+          type: "TY_MEDICINE",
+        },
+        medical_tests: {
+          dir: oracledb.BIND_IN,
+          val: medicalTests,
+          type: "TY_MEDICINE",
+        },
+        treatment: treatment,
+        medical_plan: medicalPlan,
+        medicine: {
+          dir: oracledb.BIND_IN,
+          val: medicine,
+          type: "TY_MEDICINE",
+        },
+      },
+      { autoCommit: true },
+    );
+
+    // Socket emit
+    const io = req.app.get("io");
+    io.emit("QUEUE_UPDATED", {
+      type: "DOCTOR_ON_BREAK",
+      doctorId,
+      // patientToken: patientToken,
+      // doctorName: doctorName,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("doctorStop error:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  } finally {
+    if (connection) await connection.close().catch(() => {});
+  }
+};
+
 module.exports = {
   getTodayDoctorPatients,
   getDoctorNextPatient,
@@ -890,19 +1029,5 @@ module.exports = {
   repeatCallPatient,
   getActiveConsultants,
   addPatientVitals,
+  doctorStop,
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

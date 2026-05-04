@@ -98,6 +98,22 @@ const unifiedLogin = async (req, res) => {
     if (rows.length > 0) {
       const doctor = rows[0];
 
+      //  Already logged in check
+      if (doctor.ID === -1) {
+        return res.status(403).json({
+          success: false,
+          message: "Doctor already logged in on another device",
+        });
+      }
+
+      //  Invalid case
+      if (!doctor.ID) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid username or password",
+        });
+      }
+
       const token = jwt.sign(
         {
           doctorId: doctor.ID,
@@ -143,4 +159,66 @@ const unifiedLogin = async (req, res) => {
   }
 };
 
-module.exports = { unifiedLogin };
+const logoutDoctor = async (req, res) => {
+  let connection;
+
+  try {
+    const { doctorId } = req.body;
+
+    if (!doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: "doctorId is required",
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `
+      BEGIN
+        doctor_logout(
+          :doctorId,
+          :status,
+          :message
+        );
+      END;
+      `,
+      {
+        doctorId,
+        status: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        message: {
+          dir: oracledb.BIND_OUT,
+          type: oracledb.STRING,
+          maxSize: 200,
+        },
+      },
+    );
+
+    const { status, message } = result.outBinds;
+
+    if (status === 1) {
+      return res.status(200).json({
+        success: true,
+        message,
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+  } catch (err) {
+    console.error("Logout Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: err.message,
+    });
+  } finally {
+    if (connection) await connection.close();
+  }
+};
+
+module.exports = { unifiedLogin , logoutDoctor };

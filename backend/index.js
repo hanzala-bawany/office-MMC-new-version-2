@@ -18,6 +18,8 @@ const headlineRoutes = require("./routes/headlinesRoutes.js");
 const opdRoutes = require("./routes/opd.Routes.js");
 const poolPromise = require("./database.js");
 const voiceRoutes = require("./routes/voiceRoutes.js")
+const pronounceRoutes = require("./routes/pronounceRoutes");
+
 
 const app = express();
 const PORT = 3000;
@@ -66,6 +68,7 @@ app.use("/api/screen", screenRoutes);
 app.use("/api/headline", headlineRoutes);
 app.use("/api/opd", opdRoutes);
 app.use("/api/voice", voiceRoutes);
+app.use("/api/pronounce", pronounceRoutes);
 
 let lastCreatedTime = null;
 

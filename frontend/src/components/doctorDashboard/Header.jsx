@@ -24,6 +24,7 @@ const Header = ({ doctorData, patientsData, onStartTour }) => {
 
   const [openProfile, setOpenProfile] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const stats = [
@@ -57,7 +58,23 @@ const Header = ({ doctorData, patientsData, onStartTour }) => {
     },
   ];
 
-  const logoutHandler = () => {
+  const logoutHandler = async () => {
+
+     try {
+      setLogoutLoading(true);
+      const res = await axios.post(`${base_URL}/api/auth/logout`, {
+        doctorId: doctorData?.doctorId,
+      });
+      console.log(res, "res of logout Handler by id");
+
+
+    } catch (err) {
+      console.log(err, "error in next Handler");
+      toast.error(err?.message);
+    } finally {
+      setLogoutLoading(false);
+    }
+
     dispatch(logoutUser());
     toast.success("Logout Scuccessful");
     navigate("/login");

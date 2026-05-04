@@ -13,6 +13,7 @@ import VoiceTextArea from "./VoiceTextArea";
 import VoiceTextAreaOnline from "./VoiceTextAreaOnline";
 import AiAssistant from "./AiAssistant";
 import { BulbOutlined } from "@ant-design/icons";
+import StopModal from "./StopModal";
 
 const MidSection = ({ patientsData, docPatientData }) => {
 
@@ -52,6 +53,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
   const [showAIAssistant, setShowAIAssistant] = useState(false); // for AI 
   const [aiResponse, setAiResponse] = useState(null);
   const [aiVitalAlerts, setAiVitalAlerts] = useState([]);
+  const [isStopModalOpen, setIsStopModalOpen] = useState(false);
 
   // let patintsW8ing;
 
@@ -431,19 +433,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
     }, 1200);
   };
 
-
-  // for AI
-
-  // const handleAddMedicinesFromAI = (medicines) => {
-  //   const currentTreatment = formData.treatment || "";
-  //   const medicineText = medicines.map(m => m).join(", ");
-  //   const newTreatment = currentTreatment
-  //     ? `${currentTreatment}\n💊 ${medicineText}`
-  //     : `💊 ${medicineText}`;
-  //   formHandler("treatment", newTreatment);
-  //   toast.success(`${medicines.length} medicine(s) added to Treatment`);
-  // };
-
   const handleAddTreatmentFromAI = (treatmentText) => {
     const currentTreatment = formData.treatment || "";
     const newTreatment = currentTreatment
@@ -757,6 +746,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 </Button>
               </div>
             </div>
+
           </div>
 
           <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
@@ -824,6 +814,11 @@ const MidSection = ({ patientsData, docPatientData }) => {
                   ? "Next Patient"
                   : "START"}
             </Button>
+
+            <Button onClick={() => setIsStopModalOpen(true)} style={{ width: "40%" }} block className="border-blue-500! text-blue-500!  hover:border-blue-600! hover:text-blue-600! hover:bg-blue-50! active:bg-blue-100! transition-all duration-200" >
+              BREAK
+            </Button>
+
           </div>
 
           {/* Skip Buttons */}
@@ -838,6 +833,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
               Skip Patient
             </Button>
           </div>
+
         </div>
 
         {/* Add Patient Detail */}
@@ -1044,6 +1040,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
               />
             )}
 
+
+
             {/* AI Suggestion Button - Professional Floating Button */}
             {
               (formData.primaryDiagnosis?.length > 0 || (formData.primaryComplain && formData.primaryComplain.trim() !== "")) && (
@@ -1125,6 +1123,11 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 Skip Patient
               </Button>
             </div>
+
+            <Button onClick={() => setIsStopModalOpen(true)} style={{ width: "15%" }} block className="border-blue-500! text-blue-500!  hover:border-blue-600! hover:text-blue-600! hover:bg-blue-50! active:bg-blue-100! transition-all duration-200" >
+              BREAK
+            </Button>
+
           </div>
 
           <div
@@ -1154,6 +1157,16 @@ const MidSection = ({ patientsData, docPatientData }) => {
         loginUserData={loginUserData}
         VITALS_CONFIG={VITALS_CONFIG}
         currentPatientsVitals={currentPatientsVitals}
+        docPatientData={docPatientData}
+      />
+
+      <StopModal
+        isOpen={isStopModalOpen}
+        onClose={() => setIsStopModalOpen(false)}
+        formData={formData}
+        currentPatientsData={currentPatientsData}
+        loginUserData={loginUserData}
+        setFormData={setFormData}
         docPatientData={docPatientData}
       />
 
