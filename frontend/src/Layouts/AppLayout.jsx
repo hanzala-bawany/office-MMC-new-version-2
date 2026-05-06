@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import NavImg from '../assets/MMC logo.png';
 import hospitraxLogo from '../assets/productLogoBgRemove.png';
 import { UserOutlined, LaptopOutlined } from '@ant-design/icons';
-import { FaChalkboardTeacher, FaTextWidth } from 'react-icons/fa';
+import { FaChalkboardTeacher, FaMicrophone, FaTextWidth, FaUserMd, FaUserMinus } from 'react-icons/fa';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlineMenu } from "react-icons/ai";
 import { AiFillCloseCircle } from 'react-icons/ai';
@@ -43,22 +43,31 @@ const AppLayout = () => {
         </NavLink>
     },
     {
-      key: "2", icon: FaChalkboardTeacher, label:
-        <NavLink
-          to={`/consultant `}
-
-        >
+      key: "2",
+      icon: FaUserMd ,
+      label: (
+        <NavLink to="/consultant">
           Add Consultant
         </NavLink>
+      ),
     },
     {
-      key: "3", icon: FaChalkboardTeacher, label:
-        <NavLink
-          to={`/pronunciation `}
-
-        >
-          Add Doctor Pronounciation
+      key: "9",
+      icon: FaMicrophone ,
+      label: (
+        <NavLink to="/pronunciation">
+          Add Doctor Pronunciation
         </NavLink>
+      ),
+    },
+    {
+      key: "10",
+      icon: FaUserMinus ,
+      label: (
+        <NavLink to="/removeDoctor">
+          Remove Doctor
+        </NavLink>
+      ),
     },
     {
       key: "3",

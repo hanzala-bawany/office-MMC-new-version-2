@@ -61,7 +61,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
   // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
   // console.log(patientsData, "<<<<<<<<<");
   // console.log(loginUserData, "<<<<<<<  loginUserData  ");
-  // console.log(currentPatientsVitals, "<<<<<<<  currentPatientsVitals  ");
+  // console.log(currentPatientsVitals, "<<<<<<<  currentPatientsVitals ");
 
   // Sample departments data - sirf UI dikhane ke liye
   const departments = [
@@ -708,6 +708,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
           id="vitals-section"
           className="flex-1 z-10 themeBoxShadow rounded-t-[12px] bg-white flex flex-col justify-between transition-all duration-300 hover:shadow-lg 2xl:order-2"
         >
+
           <div className="flex-1  p-6 xl:p-4 flex items-center justify-between rounded-t-[12px] border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-blue-500 2xl:bg-none 2xl:from-transparent 2xl:to-transparent">
             <h2 className="flex flex-col gap-2 text-lg sm:text-xl font-semibold text-white 2xl:text-black">
               Patient Vitals
@@ -750,6 +751,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
           </div>
 
           <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
+
             <div className="font-semibold  py-1 flex justify-between text-gray-600">
               <p>
                 <span className="font-semibold text-gray-800">Name :</span>{" "}
@@ -783,6 +785,12 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 />
               ))}
             </div>
+
+            <p>
+              <span className="font-semibold text-gray-800">Added by :</span>{" "}
+              {currentPatientsVitals?.CREATED_BY || "Not Yet"}
+            </p>
+
           </div>
 
           {/* NEXT BUTTON */}

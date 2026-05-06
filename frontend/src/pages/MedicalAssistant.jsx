@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Modal } from "antd";
-import { LogoutOutlined, CloseOutlined, UserOutlined, SafetyOutlined } from "@ant-design/icons";
+import { LogoutOutlined, CloseOutlined, UserOutlined, SafetyOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { logoutUser } from "../reduxToolKit/authSlice";
 import logo from "../assets/MMC logo.png";
 import NubitLogo from "../assets/nubit logo png.png";
@@ -17,6 +17,7 @@ const MedicalAssistant = () => {
     const navigate = useNavigate();
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
 
     const handleLogout = () => {
         dispatch(logoutUser());
@@ -28,6 +29,9 @@ const MedicalAssistant = () => {
         setIsModalOpen(false);
         handleLogout();
     };
+
+    // console.log(loginUserData, "....... loginUserData");
+
 
     return (
         <>
@@ -71,8 +75,6 @@ const MedicalAssistant = () => {
                         </span>
                     </div>
 
-      
-
                 </header>
 
                 {/* BODY */}
@@ -85,7 +87,7 @@ const MedicalAssistant = () => {
                         <FormHeader selectedPatient={selectedPatient} />
 
                         {/* ── Form Body ── */}
-                        <FormBody selectedPatient={selectedPatient} setSelectedPatient={setSelectedPatient} />
+                        <FormBody username={loginUserData?.username} selectedPatient={selectedPatient} setSelectedPatient={setSelectedPatient} />
 
                     </div>
 
@@ -146,13 +148,31 @@ const MedicalAssistant = () => {
 
                     {/* Modal Body */}
                     <div className="p-6">
-                        
 
                         {/* Warning Message */}
-                        <div className="mb-6 p-3 bg-amber-50 rounded-xl border border-amber-200">
-                            <p className="text-amber-700 text-sm text-center">
-                                ⚠️ Are you sure you want to logout? You will be redirected to the login page.
+                        <div className="mb-6 p-5 bg-amber-50 rounded-2xl border border-amber-200 shadow-sm">
+
+                            {/* Top Warning */}
+                            <div className="flex items-center justify-center gap-2 text-amber-700 text-sm font-medium">
+                                <ExclamationCircleOutlined className="text-lg" />
+                                <span>Are you sure you want to logout?</span>
+                            </div>
+
+                            {/* User Info */}
+                            <div className="mt-4 flex items-center justify-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
+                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                                    <UserOutlined />
+                                </div>
+                                <span className="text-gray-800 font-semibold text-sm tracking-wide">
+                                    {loginUserData?.username}
+                                </span>
+                            </div>
+
+                            {/* Footer Text */}
+                            <p className="text-xs text-gray-500 mt-3 text-center">
+                                You will be redirected to the login page.
                             </p>
+
                         </div>
 
                         {/* Action Buttons */}

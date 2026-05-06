@@ -43,9 +43,13 @@ const Screen5Display = () => {
     setIsLoading(true); // Start loading
 
     try {
-      const res = await axios.get(`${base_URL}/api/opd/patients`);
-      const data = res?.data?.data?.filter((i) => i?.PATIENT_STATUS_ID == 2);
-      dispatch(updatePatinetnDocotrsData(data));
+      // const res = await axios.get(`${base_URL}/api/opd/patients`);
+      // const data = res?.data?.data?.filter((i) => i?.PATIENT_STATUS_ID == 2);
+      // dispatch(updatePatinetnDocotrsData(data));
+      const res = await axios.get(`${base_URL}/api/opd/patients?patientStatus=2`);
+      dispatch(updatePatinetnDocotrsData(res?.data?.data));
+      // console.log(res , " ,,,,,,,,,,,,,");
+      
     } catch (err) {
       console.log(err, "error in get Doctor info");
     } finally {
@@ -221,7 +225,7 @@ const Screen5Display = () => {
   }, []);   // for icon click skip
 
 
-  // console.log(patinetnDocotrsData, "<<<<<<< patinetnDocotrsData", highlightToken, "<<<< highlightToken");
+  console.log(patinetnDocotrsData, "<<<<<<< patinetnDocotrsData", highlightToken, "<<<< highlightToken");
 
 
   return (
@@ -244,6 +248,7 @@ const Screen5Display = () => {
         // </button>
       }
 
+        {/* Header */}
       <div className='flex justify-between items-center px-8 4xl:px-16 py-4 4xl:py-6'>
 
         {/* Left Side - Hospitrax Logo & Name */}
@@ -287,15 +292,12 @@ const Screen5Display = () => {
       </div>
 
    
-
-      <div className='flex-13 flex   mt-10 mb-7'>
+        {/* Body */}
+      <div className='flex-13 flex   mb-7'>
 
         {
           patinetnDocotrsData?.length > 0 ?
 
-            // <div className={`${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid grid-cols-${patinetnDocotrsData.length <= 6 ? "2" : "3"} gap-8 4xl:gap-12 px-6`}>
-            //   {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken?.token === doc?.TOKENNO && highlightToken?.doctorId == doc?.CONSULTANTID} />)}
-            // </div>
             <div className={` ${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid ${patinetnDocotrsData.length <= 6 ? "grid-cols-2" : "grid-cols-3"} gap-8 4xl:gap-12 px-6`}>
               {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken?.token === doc?.TOKENNO && highlightToken?.doctorId == doc?.CONSULTANTID} />)}
             </div>
@@ -317,6 +319,7 @@ const Screen5Display = () => {
 
       </div>
 
+        {/* Footer */}
       <div className=" text-blue-500 flex-1 flex justify-center items-center z-50 [@media(min-width:4200px)]:right-10 bottom-5 [@media(min-width:4200px)]:bottom-8 [@media(min-width:1520px)]:text-2xl [@media(min-width:2200px)]:text-3xl [@media(min-width:3200px)]:text-4xl  [@media(min-width:4200px)]:text-6xl">
         <span className='flex justify-center items-center gap-2 cursor-pointer' onClick={logoutHandler}> Powered by <img className="w-[50px] [@media(min-width:2200px)]:w-[70px] [@media(min-width:3200px)]:w-[80px]" src={NubitLogo} alt="" /> </span>
       </div>

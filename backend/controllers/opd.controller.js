@@ -731,12 +731,11 @@ const doctorCallTokenByNumber = async (req, res) => {
 
 // ------- REPEAT CALL  PATIENT BY STATUS API with SOCKET ------------------
 const repeatCallPatient = async (req, res) => {
-
+  let connection;
   try {
-    let connection;
     const pool = await poolPromise;
     connection = await pool.getConnection();
-    
+
     const { doctorId, doctorName, patientToken } = req.body;
     // console.log(doctorId, "docotr id");
     // console.log(doctorName, "doctorName");
@@ -1018,6 +1017,101 @@ const doctorStop = async (req, res) => {
   }
 };
 
+const setDoctorRoom = async (req, res) => {
+  let connection;
+
+  try {
+    const { doctorId, roomNo } = req.body;
+
+    if (!doctorId || !roomNo) {
+      return res.status(400).json({
+        success: false,
+        message: "doctorId and roomNo required",
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    await connection.execute(
+      `
+      BEGIN
+        set_consultant_room(
+          p_consultant_id => :consultant_id,
+          p_room_no       => :room_no,
+          p_updated_by    => :updated_by
+        );
+      END;
+      `,
+      {
+        consultant_id: doctorId,
+        room_no: roomNo,
+        updated_by: doctorId,
+      },
+      {
+        autoCommit: true,
+      },
+    );
+
+    return res.json({
+      success: true,
+      message: "Room updated successfully",
+    });
+  } catch (err) {
+    console.error("setDoctorRoom error:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  } finally {
+    if (connection) {
+      await connection.close().catch(() => {});
+    }
+  }
+};
+
+const getDoctorRoom = async (req, res) => {
+  let connection;
+  try {
+    const { doctorId } = req.query;
+
+    if (!doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: "doctorId is required",
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `SELECT NVL(room_no, 'Room Not Assigned') AS room_no
+       FROM consultant_room
+       WHERE consultant_id = :id`,
+      { id: doctorId },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+
+    const roomNo = result.rows[0]?.ROOM_NO || "Room Not Assigned";
+
+    res.json({
+      success: true,
+      doctorId,
+      roomNo,
+    });
+  } catch (err) {
+    console.error("getDoctorRoom error:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  } finally {
+    if (connection) await connection.close().catch(() => {});
+  }
+};
+
 module.exports = {
   getTodayDoctorPatients,
   getDoctorNextPatient,
@@ -1030,4 +1124,6 @@ module.exports = {
   getActiveConsultants,
   addPatientVitals,
   doctorStop,
+  setDoctorRoom,
+  getDoctorRoom
 };

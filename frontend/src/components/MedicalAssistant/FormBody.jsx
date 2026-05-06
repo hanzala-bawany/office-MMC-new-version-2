@@ -160,7 +160,7 @@ const MOCK_PREV_VITALS = {
 
 
 
-const FormBody = ({ selectedPatient, setSelectedPatient }) => {
+const FormBody = ({ selectedPatient, setSelectedPatient , username }) => {
 
     const [selectedDoctorId, setSelectedDoctorId] = useState(null);
 
@@ -218,7 +218,7 @@ const FormBody = ({ selectedPatient, setSelectedPatient }) => {
                 height: vitals?.height || null,
                 temperature: vitals?.temperature || null,
                 pulse: vitals?.pulse || null,
-                createdBy: "medical Assistant" || null
+                createdBy: username || "medical Assistant"
             });
             console.log(res, "res of save Handler by id");
             console.log(vitals, " vitals  >......");
@@ -239,7 +239,6 @@ const FormBody = ({ selectedPatient, setSelectedPatient }) => {
         }
 
     };
-
 
     const fetchPatients = async () => {
 
