@@ -36,6 +36,7 @@ const getRoomNoByDoctorId = async (connection, doctorId) => {
   }
 };
 
+
 const getTodayDoctorPatients = async (req, res) => {
   let connection;
 
@@ -300,6 +301,7 @@ const getDoctorNextPatient = async (req, res) => {
       patientToken: currentPatient?.TOKENNO_1,
       doctorName: currentPatient?.DOCTOR_NAME,
       roomNo: currentPatient?.ROOM_NO,
+      pronounceName: currentPatient?.PRONOUNCE_NAME,
     });
     // }
 
@@ -571,6 +573,11 @@ const cancelAllDoctorPatients = async (req, res) => {
     io.emit("QUEUE_UPDATED", {
       type: "CANCEL_ALL_PATIENTS",
       doctorId,
+    });
+
+    io.emit("opdUpdated", {
+      message: "New OPD Receipt Added",
+      time: new Date(),
     });
 
     res.json({
@@ -1125,5 +1132,5 @@ module.exports = {
   addPatientVitals,
   doctorStop,
   setDoctorRoom,
-  getDoctorRoom
+  getDoctorRoom,
 };

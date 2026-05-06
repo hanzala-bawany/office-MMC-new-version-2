@@ -75,7 +75,7 @@ const RemoveDoctor = () => {
             <Card className="rounded-2xl shadow-md border-0">
                 {/* Heading */}
                 <Title level={3} className="!mb-2 !text-gray-700">
-                    Remove Doctor
+                    Remove Doctor From Screen
                 </Title>
                 <Text className="text-gray-500">
                     Select a doctor and remove them from the screen 5

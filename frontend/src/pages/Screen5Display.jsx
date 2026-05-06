@@ -299,7 +299,7 @@ const Screen5Display = () => {
           patinetnDocotrsData?.length > 0 ?
 
             <div className={` ${patinetnDocotrsData.length <= 6 ? "w-[70%]" : "w-full"} h-full grid ${patinetnDocotrsData.length <= 6 ? "grid-cols-2" : "grid-cols-3"} gap-8 4xl:gap-12 px-6`}>
-              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.PATIENTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken?.token === doc?.TOKENNO && highlightToken?.doctorId == doc?.CONSULTANTID} />)}
+              {patinetnDocotrsData?.map((doc) => <PatientCard key={doc?.CONSULTANTID} doc={doc} isTwo={patinetnDocotrsData.length <= 2} highlight={highlightToken?.token === doc?.TOKENNO && highlightToken?.doctorId == doc?.CONSULTANTID} />)}
             </div>
 
             : isLoading ?
