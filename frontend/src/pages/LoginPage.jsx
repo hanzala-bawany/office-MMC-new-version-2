@@ -2,6 +2,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { Button, Input } from 'antd';
 import doctorImg from "../assets/doctor.png"
 import NubitLogo from "../assets/nubit-logo.png"
+import hospitraxLogo from "../assets/productLogoBgRemove.png"
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -150,9 +151,17 @@ const LoginPage = () => {
 
       <div className="w-[50%] h-[100%] bg-[#01A7B5] flex items-center justify-end">
 
-        <div className="flex flex-col justify-between absolute left-5 sm:static  items-start p-6 h-[65%] md:h-[60%] lg:h-[50%]  w-[90%] md:w-[80%] lg:w-[60%] xl:w-[50%] bg-white shadow-[6px_0_20px_black]">
+        <div className="flex flex-col justify-between absolute left-5 sm:static  items-start p-6 h-[65%] md:h-[62%] lg:h-[55%]  w-[90%] md:w-[80%] lg:w-[60%] xl:w-[50%] bg-white shadow-[6px_0_20px_black]">
 
-          <div className='w-full text-center'>
+          <div className="flex absolute  items-center gap-4 [@media(min-width:3200px)]:gap-8 [@media(min-width:4400px)]:gap-12">
+            <img
+              src={hospitraxLogo}
+              alt="Hospitrax Logo"
+              className="w-14 4xl:w-30"
+            />
+          </div>
+
+          <div className='w-full text-center mt-4 '>
             <h1 className='text-[40px] font-medium text-[#01A7B5]'>Hospital</h1>
             <h3 className='text-[20px] text-gray-600'>Management System</h3>
           </div>
@@ -202,7 +211,7 @@ const LoginPage = () => {
 
       <div className="w-[50%] h-[100%] bg-[#F3F3F3] flex items-center justify-start">
 
-        <div className="hidden sm:flex   justify-center items-center p-4 h-[65%] md:h-[60%] lg:h-[50%] w-[95%] md:w-[80%] lg:w-[60%] xl:w-[50%] bg-[#E3FDFF] shadow-[12px_4px_20px_0_rgba(0,0,0,0.3)]">
+        <div className="hidden sm:flex   justify-center items-center p-4 h-[65%] md:h-[62%] lg:h-[55%] w-[95%] md:w-[80%] lg:w-[60%] xl:w-[50%] bg-[#E3FDFF] shadow-[12px_4px_20px_0_rgba(0,0,0,0.3)]">
           <img src={doctorImg} alt="" />
         </div>
 

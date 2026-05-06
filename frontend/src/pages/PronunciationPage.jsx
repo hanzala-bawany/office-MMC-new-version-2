@@ -170,6 +170,22 @@ const PronunciationPage = () => {
         });
     };
 
+    // pronounciation
+
+    const cleanDoctorName = (name) => {
+        if (!name) return '';
+
+        return name
+            .replace(/\(.*?\)/g, '')          // (Anesthetist), (RMO) etc remove
+            .replace(/\bDR\.?\b/gi, '')       // DR. ya DR word remove
+            .replace(/-/g, ' ')               // hyphen → space
+            .replace(/\./g, ' ')              // dots → space
+            .replace(/,/g, ' ')               // comma → space
+            .replace(/\s+/g, ' ')             // multiple spaces → single
+            .trim()
+            .toLowerCase();
+    };
+
     const loadVoices = () => {
         return new Promise((resolve) => {
             let voices = speechSynthesis.getVoices();
@@ -184,12 +200,14 @@ const PronunciationPage = () => {
     const handleAnnounce = async () => {
         const voices = await loadVoices();
 
+        
         if (!pronounceName && !selectedDoctor?.name) {
             return toast.info("Please select any doctor")
         }
+        const name = cleanDoctorName(selectedDoctor?.name)
 
         const msg = new SpeechSynthesisUtterance(
-            `doctor ${pronounceName || selectedDoctor?.name}`,
+            `doctor ${pronounceName || name}`,
         );
 
         msg.voice =
@@ -273,7 +291,7 @@ const PronunciationPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
             <div className="max-w-7xl mx-auto">
-               
+
                 {/* Header */}
                 <div className="mb-8 text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-2xl mb-4">
@@ -435,7 +453,7 @@ const PronunciationPage = () => {
                                  [&_.ant-pagination-item-active_a]:text-white"
                     />
                 </Card>
-                
+
             </div>
         </div>
     );
