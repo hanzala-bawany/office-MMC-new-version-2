@@ -36,7 +36,7 @@ const DoctorSetupPage = () => {
 
     const handleSubmit = async () => {
 
-        if (!inputs.room || !inputs.ip || !inputs.port) {
+        if (!inputs.room) {
             toast.info('Please fill all fields');
             return;
         }
@@ -50,7 +50,7 @@ const DoctorSetupPage = () => {
 
             const dynamicBaseURL = `http://${inputs.ip}:${inputs.port}`;
 
-            console.log(res, "res of next Handler by id");
+            // console.log(res, "res of next Handler by id");
 
             localStorage.setItem('dynamicBaseURL', dynamicBaseURL);
             localStorage.setItem('doctorRoom', inputs.room);

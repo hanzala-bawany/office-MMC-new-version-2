@@ -103,6 +103,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
     return () => clearInterval(cooldownRef.current); // cleanup
   }, []);
 
+
+
   const disableNext = isNextLoading || !hasAppointments || (!specificSearchingToken && allPatientsDone) || isOnBreak || isCoolingDown;        // ← break pe sab band
   const disableSkip = isSkipLoading || !hasCurrentPatient || isOnBreak || isFakePatientActive || isCoolingDown;
   const disableRepeatCall = !currentPatientsData || isOnBreak || isFakePatientActive || isCoolingDown;
@@ -111,7 +113,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
   // let patintsW8ing;
 
   // console.log(specificSearchingToken, "<<<<<<<  specificSearchingToken  ");
-  // console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
+  console.log(currentPatientsData, "<<<<<<<  currentPatientsData ");
   // console.log(patientsData, "<<<<<<<<<");
   // console.log(loginUserData, "<<<<<<<  loginUserData  ");
   // console.log(currentPatientsVitals, "<<<<<<<  currentPatientsVitals ");
@@ -571,10 +573,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
       {isOnBreak ? `▶ Resume` : "BREAK"}
     </Button>
   }
-
-
-
-
 
 
 
