@@ -142,6 +142,13 @@ const unifiedLogin = async (req, res) => {
         });
       }
 
+      if (doctor.ID === -2) {
+        return res.status(400).json({
+          success: false,
+          message: "Multiple usernames found with the same credentials.",
+        });
+      }
+
       //  Invalid case
       if (!doctor.ID) {
         return res.status(401).json({
@@ -235,6 +242,13 @@ const logoutDoctor = async (req, res) => {
     const { status, message } = result.outBinds;
 
     if (status === 1) {
+
+      const io = req.app.get("io");
+      io.emit("QUEUE_UPDATED", {
+        type: "LOGOUT_DOCOTR",
+        doctorId,
+      });
+
       return res.status(200).json({
         success: true,
         message,
@@ -258,10 +272,6 @@ const logoutDoctor = async (req, res) => {
 };
 
 module.exports = { unifiedLogin, logoutDoctor };
-
-
-
-
 
 // const oracledb = require("oracledb");
 // const jwt = require("jsonwebtoken");

@@ -36,7 +36,6 @@ const getRoomNoByDoctorId = async (connection, doctorId) => {
   }
 };
 
-
 const getTodayDoctorPatients = async (req, res) => {
   let connection;
 
@@ -539,11 +538,20 @@ const cancelAllDoctorPatients = async (req, res) => {
 
   try {
     let { doctorId, receiptNo } = req.body;
+    let { action = "CANCEL" } = req.query;
 
     const normalizeString = (val) =>
       typeof val === "string" && val.trim() !== "" ? val.trim() : null;
 
     receiptNo = normalizeString(receiptNo);
+
+    // Validate action
+    if (!["CANCEL", "RESTORE"].includes(action.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid action. Use CANCEL or RESTORE",
+      });
+    }
 
     const pool = await poolPromise;
     connection = await pool.getConnection();
@@ -553,43 +561,50 @@ const cancelAllDoctorPatients = async (req, res) => {
       BEGIN
         doctor_patient_cancel_all(
           p_doc_id    => :doc_id,
-          p_receiptno => :receiptno
+          p_receiptno => :receiptno,
+          p_action    => :action
         );
       END;
       `,
       {
         doc_id: doctorId,
         receiptno: receiptNo,
+        action: action.toUpperCase(),
       },
-      {
-        autoCommit: true,
-      },
+      { autoCommit: true },
     );
 
-    console.log("ALL PATIENTS CANCELLED FOR DOCTOR:", doctorId);
+    const isRestore = action.toUpperCase() === "RESTORE";
+    console.log(
+      isRestore ? "DOCTOR RESTORED:" : "ALL PATIENTS CANCELLED:",
+      doctorId,
+    );
 
     // SOCKET EMIT
     const io = req.app.get("io");
     io.emit("QUEUE_UPDATED", {
-      type: "CANCEL_ALL_PATIENTS",
+      type: isRestore ? "DOCTOR_RESTORED" : "CANCEL_ALL_PATIENTS",
       doctorId,
     });
 
-    io.emit("opdUpdated", {
-      message: "New OPD Receipt Added",
-      time: new Date(),
-    });
+    if (!isRestore) {
+      io.emit("opdUpdated", {
+        message: "New OPD Receipt Added",
+        time: new Date(),
+      });
+    }
 
     res.json({
       success: true,
-      message: "All patients cancelled successfully",
+      message: isRestore
+        ? "Doctor restored successfully"
+        : "All patients cancelled successfully",
     });
   } catch (err) {
     console.error("cancelAllDoctorPatients error:", err);
-
     res.status(500).json({
       success: false,
-      message: "Failed to cancel all patients",
+      message: "Failed to process request",
       error: err.message,
     });
   } finally {
@@ -930,6 +945,8 @@ const addPatientVitals = async (req, res) => {
   }
 };
 
+// old stop api
+
 const doctorStop = async (req, res) => {
   let connection;
   try {
@@ -1015,6 +1032,54 @@ const doctorStop = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error("doctorStop error:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  } finally {
+    if (connection) await connection.close().catch(() => {});
+  }
+};
+
+// ----  doctorResumeBreak --------
+
+const doctorResumeBreak = async (req, res) => {
+  let connection;
+  try {
+    const { doctorId } = req.body;
+
+    if (!doctorId) {
+      return res.status(400).json({
+        success: false,
+        message: "doctorId is required",
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    await connection.execute(
+      `
+      BEGIN
+        doctor_resume_break(
+          p_doc_id => :doc_id
+        );
+      END;
+      `,
+      { doc_id: doctorId },
+      { autoCommit: true }
+    );
+
+    const io = req.app.get("io");
+    io.emit("QUEUE_UPDATED", {
+      type: "DOCTOR_RESUMED",
+      doctorId,
+    });
+
+    res.json({ success: true, message: "Break resumed successfully" });
+
+  } catch (err) {
+    console.error("doctorResumeBreak error:", err);
     res.status(500).json({
       success: false,
       error: err.message,
@@ -1119,6 +1184,211 @@ const getDoctorRoom = async (req, res) => {
   }
 };
 
+const getPatientHistory = async (req, res) => {
+  let connection;
+
+  console.log(req.query, "<<<<<<<<<< req.query");
+
+  try {
+    let { doctorId, mrNum } = req.query;
+
+    // Normalize strings
+    const normalizeString = (val) =>
+      typeof val === "string" && val.trim() !== "" ? val.trim() : null;
+
+    mrNum = normalizeString(mrNum);
+    doctorId = doctorId ? doctorId : null;
+
+    if (!mrNum) {
+      return res.status(400).json({
+        success: false,
+        message: "MR Number is required",
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `
+      BEGIN
+        get_patient_history(
+          p_mrno      => :mrNum,
+          p_doctor_id => :doctorId,
+          p_result    => :cursor1
+        );
+      END;
+      `,
+      {
+        mrNum: mrNum,
+        doctorId: doctorId,
+        cursor1: {
+          dir: oracledb.BIND_OUT,
+          type: oracledb.CURSOR,
+        },
+      },
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+        autoCommit: true,
+      },
+    );
+
+    // Read ALL rows from cursor
+    const rs = result.outBinds.cursor1;
+    const allRows = await rs.getRows();
+    await rs.close();
+
+    console.log(`${allRows.length} history records found for MR# ${mrNum}`);
+
+    // Send EXACT database response as-is
+    res.json({
+      success: true,
+      data: allRows, // Direct database rows, no transformation
+      totalVisits: allRows.length,
+    });
+  } catch (err) {
+    console.error("getPatientHistory error:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch patient history",
+      error: err.message,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
+    }
+  }
+};
+
+// ------- GET PATIENT VITALS API --------------------
+const getPatientVitals = async (req, res) => {
+  let connection;
+
+  try {
+    const { receiptNo } = req.params; // or req.query.receiptNo if using query param
+
+    if (!receiptNo || receiptNo.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "receiptNo is required",
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `
+      BEGIN
+        get_patient_vitals(
+          p_receiptno => :receiptNo,
+          p_cursor    => :cursor
+        );
+      END;
+      `,
+      {
+        receiptNo: receiptNo.trim(),
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+      },
+    );
+
+    const cursor = result.outBinds.cursor;
+    const rows = await cursor.getRows();
+    const metaData = cursor.metaData;
+    await cursor.close();
+
+    // Map rows to objects using column names
+    const vitals =
+      rows.length > 0
+        ? rows.map((row) => {
+            const obj = {};
+            metaData.forEach((col, i) => {
+              obj[col.name] = row[i];
+            });
+            return obj;
+          })
+        : null;
+
+    res.status(200).json({
+      success: true,
+      data: vitals, // null agar record nahi mila
+    });
+  } catch (err) {
+    console.error("getPatientVitals error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch patient vitals",
+      error: err.message,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
+    }
+  }
+};
+
+// ------- GET ACTIVE CONSULTANTS API ------------------
+const getActiveConsultants1 = async (req, res) => {
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `
+      BEGIN
+        get_active_consultants1(
+          :cursor
+        );
+      END;
+      `,
+      {
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+      },
+      {
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+      },
+    );
+
+    // ===== READ CURSOR =====
+    const resultSet = result.outBinds.cursor;
+    const rows = await resultSet.getRows();
+    await resultSet.close();
+
+    res.status(200).json({
+      status: 200,
+      count: rows.length,
+      data: rows,
+    });
+  } catch (err) {
+    console.error("getActiveConsultants error:", err);
+
+    res.status(500).json({
+      status: 500,
+      message: "Failed to fetch consultants",
+      error: err.message,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Connection close error:", err);
+      }
+    }
+  }
+};
+
 module.exports = {
   getTodayDoctorPatients,
   getDoctorNextPatient,
@@ -1133,4 +1403,8 @@ module.exports = {
   doctorStop,
   setDoctorRoom,
   getDoctorRoom,
+  getPatientHistory,
+  getPatientVitals,
+  getActiveConsultants1,
+  doctorResumeBreak,
 };

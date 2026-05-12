@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 
 const PatientCard = ({ doc, isTwo, highlight }) => {
 
-
   const isMessageCard = doc?.GENDER === "message";
   const messageText = isMessageCard ? doc?.PATIENTNAME : null;
 
@@ -37,7 +36,6 @@ const PatientCard = ({ doc, isTwo, highlight }) => {
                   </p>
                 </div>
 
-
                 <div className="flex gap-10">
                   <div className="inline-flex items-center justify-center px-4 py-1 bg-orange-50 border border-orange-300 rounded-full text-orange-700 font-extrabold text-md 2xl:text-lg 4xl:text-xl tracking-wide shadow-sm">
                     {messageText?.length > 30 ? `${messageText.slice(0, 30)}...` : messageText || "No message available"}
@@ -45,7 +43,6 @@ const PatientCard = ({ doc, isTwo, highlight }) => {
                 </div>
 
               </div>
-
 
               {/* RIGHT SIDE - Message Badge instead of Token */}
               <div className="flex flex-col items-center justify-center gap-4 4xl:gap-8">
@@ -100,13 +97,11 @@ const PatientCard = ({ doc, isTwo, highlight }) => {
                   </div>
                 </div>
 
-
                 {/* <div className="inline-flex items-center gap-2 px-4 py-1 bg-purple-50 border border-purple-300 rounded-full w-fit">
                   <FaDoorOpen className="text-purple-700 text-sm" />
                   <span className=" text-md 2xl:text-lg 4xl:text-xl font-bold text-purple-700 tracking-wide">ROOM</span>
                   <span className=" text-purple-900 font-extrabold text-md 2xl:text-lg 4xl:text-xl">{doc?.ROOM_NO || "Not yet"}</span>
                 </div> */}
-
 
               </div>
 
@@ -156,12 +151,11 @@ const PatientCard = ({ doc, isTwo, highlight }) => {
                     <div className="inline-flex items-center gap-2 px-4 py-1 bg-gray-50 border border-dashed border-gray-300 rounded-2xl w-fit">
 
                       <p className="text-gray-500 text-sm 4xl:text-lg font-medium text-center">
-                        No Room 
+                        No Room
                       </p>
 
                     </div>
                 }
-
 
               </div>
             </>
@@ -176,8 +170,3 @@ const PatientCard = ({ doc, isTwo, highlight }) => {
 };
 
 export default memo(PatientCard);
-
-
-
-
-

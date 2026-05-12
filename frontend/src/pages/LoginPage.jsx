@@ -18,7 +18,12 @@ import logo from "../assets/MMC logo.png";
 
 const LoginPage = () => {
 
-  const [inputs, setInputs] = useState({})
+  const savedUsername = JSON.parse(localStorage.getItem('username') || 'null') || '';
+  const savedPassword = JSON.parse(localStorage.getItem('password') || 'null') || '';
+  const [inputs, setInputs] = useState({
+    username: savedUsername,
+    password: savedPassword
+  })
   const [loading, setLoading] = useState(false)
 
   const navigate = useNavigate()
@@ -29,6 +34,9 @@ const LoginPage = () => {
     // console.log(inputs , "<<<<<<<<<<<<");
   }
 
+
+  // console.log(savedUsername, "savedUsername");
+  // console.log(savedPassword, "savedPassword");
 
 
   const loginHandler = async () => {
@@ -56,7 +64,9 @@ const LoginPage = () => {
         navigate("/");
       }
       else if (decoded.role === "doctor") {
-        navigate("/doctorDashboard");
+        localStorage.setItem("username", JSON.stringify(inputs?.username))
+        localStorage.setItem("password", JSON.stringify(inputs?.password));
+        navigate("/doctorSetupPage");
       }
       else if (decoded.role === "medical_assistant") {
         navigate("/medicalAssistant");
@@ -72,7 +82,13 @@ const LoginPage = () => {
 
         navigate(screenAccessMap[decoded.username] || "/login");
       }
-      toast.success(res?.data?.message);
+
+      if (decoded.role === "doctor") {
+        toast.info("Add Room");
+      }
+      else {
+        toast.success(res?.data?.message);
+      }
     }
     catch (err) {
       console.log(err, "error");
@@ -169,6 +185,7 @@ const LoginPage = () => {
           <div className='w-[100%] text-[18px]'>
             <label htmlFor="userName">User Name</label>
             <Input
+              value={inputs.username}
               onKeyUp={(e) => {
                 if (e.key === "Enter") {
                   loginHandler();
@@ -181,6 +198,7 @@ const LoginPage = () => {
           <div className='w-[100%] text-[18px]'>
             <label htmlFor="password">Password</label>
             <Input.Password
+              value={inputs.password}
               onKeyUp={(e) => {
                 if (e.key === "Enter") {
                   loginHandler();

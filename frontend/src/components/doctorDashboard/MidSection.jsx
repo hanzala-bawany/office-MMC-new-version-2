@@ -3,7 +3,7 @@ const { Option } = Select;
 import MyCircleChart from "../Dashboard/MyCircleChart";
 import axios from "axios";
 import { base_URL } from "../../utills/baseUrl";
-import { memo, useState } from "react";
+import { memo, useState, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
 import GetVoice from "./GetVoice";
 import AddVitalsModal from "./AddVitalsModal";
@@ -22,6 +22,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
   const currentPatientsVitals = patientsData?.patientVitals?.[0];
   const [isNextLoading, setIsNextLoading] = useState(false);
   const [isSkipLoading, setIsSkipLoading] = useState(false);
+  const [isResumeLoading, setIsResumeLoading] = useState(false);
   const [isRepeatCallingHandler, setRepeatCallingHandler] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(false);
   const [specificSearchingToken, setSpecificSearchingToken] = useState(null);
@@ -37,14 +38,9 @@ const MidSection = ({ patientsData, docPatientData }) => {
   let patientToken = Number(specificSearchingToken?.split(" ")[0]);
   const hasAppointments = patientsData?.todayAppointments > 0;
   const hasCurrentPatient = !!currentPatientsData?.RECEIPTNO;
-  const allPatientsDone =
-    patientsData?.todayAppointments ===
-    patientsData?.patientsChecked + patientsData?.patientsSkipped;
-  const disableNext =
-    isNextLoading ||
-    !hasAppointments ||
-    (!specificSearchingToken && allPatientsDone);
-  const disableSkip = isSkipLoading || !hasCurrentPatient;
+  const allPatientsDone = patientsData?.todayAppointments === patientsData?.patientsChecked + patientsData?.patientsSkipped;
+  // const disableNext = isNextLoading || !hasAppointments || (!specificSearchingToken && allPatientsDone);
+  // const disableSkip = isSkipLoading || !hasCurrentPatient;
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [selectedTest, setSelectedTest] = useState(null);
   const [activeVoiceField, setActiveVoiceField] = useState(null);
@@ -54,6 +50,63 @@ const MidSection = ({ patientsData, docPatientData }) => {
   const [aiResponse, setAiResponse] = useState(null);
   const [aiVitalAlerts, setAiVitalAlerts] = useState([]);
   const [isStopModalOpen, setIsStopModalOpen] = useState(false);
+  const isFakePatientActive = currentPatientsData?.GENDER == "message"
+  const [isOnBreak, setIsOnBreak] = useState(false);
+
+  const [cooldown, setCooldown] = useState(0); // 0 matlab timer nahi chal raha
+  const cooldownRef = useRef(null);
+
+
+  const startBreak = () => {
+    setIsOnBreak(true);
+  };
+
+  const resumeManually = async () => {
+
+    try {
+      setIsResumeLoading(true);
+      const res = await axios.post(`${base_URL}/api/opd/doctor-resume-break`, {
+        doctorId: loginUserData?.doctorId,
+      });
+      console.log(res, "res of resume Manually by id");
+
+
+      toast.success(`Now you can call patients`);
+      setIsOnBreak(false);   // chahe API fail ho ya pass, UI unlock karo
+
+    } catch (err) {
+      console.log(err, "error in next Handler");
+      toast.error(err?.message);
+    }
+    finally {
+      setIsResumeLoading(false)
+    }
+
+  };
+
+  const startCooldown = () => {
+    setCooldown(16);
+    cooldownRef.current = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const isCoolingDown = cooldown > 0;
+
+  useEffect(() => {
+    return () => clearInterval(cooldownRef.current); // cleanup
+  }, []);
+
+  const disableNext = isNextLoading || !hasAppointments || (!specificSearchingToken && allPatientsDone) || isOnBreak || isCoolingDown;        // ← break pe sab band
+  const disableSkip = isSkipLoading || !hasCurrentPatient || isOnBreak || isFakePatientActive || isCoolingDown;
+  const disableRepeatCall = !currentPatientsData || isOnBreak || isFakePatientActive || isCoolingDown;
+  const disableAddVitals = !currentPatientsData || isOnBreak || isFakePatientActive;
 
   // let patintsW8ing;
 
@@ -278,12 +331,44 @@ const MidSection = ({ patientsData, docPatientData }) => {
     label: item?.TEST_NAME,
   }));
 
-  const skippedTokenListOptions = patientsData?.skippedTokenList?.map(
-    (item) => ({
-      value: item?.TOKENNO,
-      label: item?.TOKENNO,
-    }),
-  );
+  // const skippedTokenListOptions = patientsData?.skippedTokenList?.map(
+  //   (item) => ({
+  //     value: item?.TOKENNO,
+  //     label: item?.TOKENNO,
+  //   }),
+  // );
+
+  const skippedTokenListOptions = patientsData?.skippedTokenList?.map((item) => ({
+    value: item?.TOKENNO,
+    label: `${item?.TOKENNO} | ${item?.PATIENTNAME}`,
+    // Multi-line display for dropdown
+    labelWithBreaks: (
+      <div className="py-2 px-1 border-b border-gray-100 last:border-b-0">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+            Token: {item?.TOKENNO}
+          </span>
+          <span className="font-medium text-gray-800 text-sm">
+            {item?.PATIENTNAME}
+          </span>
+        </div>
+        <div className="flex gap-4 text-xs text-gray-600">
+          <span className="inline-flex items-center gap-1">
+            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span className="font-medium">Gender:</span> {item?.GENDER || 'N/A'}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-medium">Age:</span> {item?.AGE || 'N/A'} {item?.AGE && 'yrs'}
+          </span>
+        </div>
+      </div>
+    )
+  }));
 
   const medicinesOptions = patientsData?.medicineList?.map(
     (item) => ({
@@ -293,6 +378,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
   );
 
   const nextHandler = async () => {
+
     try {
       setIsNextLoading(true);
       const res = await axios.post(`${base_URL}/api/opd/doctor/next-patient`, {
@@ -321,6 +407,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
         medicinePlan: "",
       });
       setResetTrigger((prev) => !prev);
+      startCooldown();
     } catch (err) {
       console.log(err, "error in next Handler");
       toast.error(err?.message);
@@ -366,6 +453,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
       });
 
       setSpecificSearchingToken(null);
+      startCooldown();
     } catch (err) {
       console.log(err, "error in specific Calling Handler");
       toast.error(err?.message);
@@ -393,6 +481,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
       } else {
         toast.info(`Patient Not yet`);
       }
+      startCooldown();
     } catch (err) {
       console.log(err, "error in skip Handler");
       toast.error(err?.message);
@@ -415,6 +504,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
       // console.log(res, "res of repeat Calling Handler");
 
       toast.success(`Repeat Calling`);
+      startCooldown();
     } catch (err) {
       console.log(err, "error in call Repeat Handler");
       toast.error(err?.message);
@@ -460,6 +550,29 @@ const MidSection = ({ patientsData, docPatientData }) => {
     toast.success("Medicine plan added");
   };
 
+  const BreakBtn = () => {
+
+    return <Button
+      onClick={isOnBreak ? resumeManually : () => setIsStopModalOpen(true)}
+      // onClick={() => setIsStopModalOpen(true)}
+      style={{
+        // width: "15%",
+        borderColor: isOnBreak ? "#16a34a" : "#ef4444",
+        color: isOnBreak ? "#16a34a" : "#ef4444",
+      }}
+      block
+      loading={isResumeLoading}
+      className={
+        isOnBreak
+          ? "hover:border-green-600! hover:text-green-600! hover:bg-green-50! active:bg-green-100! transition-all duration-200"
+          : "hover:border-red-600! hover:text-red-600! hover:bg-red-50! active:bg-red-100! transition-all duration-200"
+      }
+    >
+      {isOnBreak ? `▶ Resume` : "BREAK"}
+    </Button>
+  }
+
+
 
 
 
@@ -467,7 +580,9 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
   return (
 
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:gap-6 2xl:grid-cols-2 mb-8 h-auto xl:grid-rows-1 ">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:gap-6 2xl:grid-cols-2 mb-8 h-auto xl:grid-rows-1">
+
+
 
       {/* Pie Chart - sirf xl/laptop pe */}
       <div className="hidden xl:flex 2xl:hidden order-3 xl:order-3 themeBoxShadow border-none outline-none rounded-[10px] z-10 bg-white flex-col justify-between min-h-40">
@@ -701,7 +816,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
       </div>
 
       {/* ADD Patient Detail & Patient Vitals */}
-      <div className="z-10 rounded-t-[12px] order-1  2xl:contents xl:row-span-2">
+      <div className="z-10 rounded-t-[12px] order-1  2xl:contents xl:row-span-2 relative">
 
         {/* Patient Vitals */}
         <div
@@ -730,6 +845,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                   size="middle"
                   onClick={() => setIsVitalsModalOpen(true)}
                   disabled={!currentPatientsData}
+                  disabled={disableAddVitals}
                   className="bg-green-500 border-none text-white hover:opacity-90 !h-auto !px-0 !py-1 text-xs  sm:!px-4 sm:!py-2 sm:text-sm"
                 >
                   + Add Vitals
@@ -741,6 +857,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
                   onClick={repeatCallingHandler}
                   loading={isRepeatCallingHandler}
                   disabled={!currentPatientsData}
+                  disabled={disableRepeatCall}
                   className="w-fit bg-gradient-to-r from-indigo-500 to-blue-500 border-none text-white hover:opacity-90 md:bg-none md:bg-white/20 md:border-white/40 xl:bg-gradient-to-r xl:from-indigo-500 xl:to-blue-500 !h-auto !px-2 !py-1 text-xs  sm:!px-4 sm:!py-2 sm:text-sm"
                 >
                   🔁 Repeat Call
@@ -752,20 +869,30 @@ const MidSection = ({ patientsData, docPatientData }) => {
 
           <div className="p-6 flex-6 flex flex-col gap-3 text-gray-700 ">
 
+            <p>
+              <span className="font-semibold text-gray-800">Added by :</span>{" "}
+              {!isFakePatientActive ? currentPatientsVitals?.CREATED_BY || "Not Yet" : "Not Yet"}
+            </p>
+
+            <p>
+              <span className="font-semibold text-gray-800">Name :</span>{" "}
+              {!isFakePatientActive ? currentPatientsData?.PATIENTNAME || "Not Yet" : "Not Yet"}
+            </p>
+
             <div className="font-semibold  py-1 flex justify-between text-gray-600">
-              <p>
-                <span className="font-semibold text-gray-800">Name :</span>{" "}
-                {currentPatientsData?.PATIENTNAME || "Not Yet"}
-              </p>
+
               <p>
                 <span className="font-semibold text-gray-800">Age :</span>{" "}
-                {currentPatientsData?.AGE || "Not Yet"}
+                {!isFakePatientActive ? currentPatientsData?.AGE || "Not Yet" : "Not Yet"}
               </p>
               <p>
                 <span className="font-semibold text-gray-800">Gender :</span>{" "}
-                {currentPatientsData?.GENDER || "Not Yet"}
+                {!isFakePatientActive ? currentPatientsData?.GENDER || "Not Yet" : "Not Yet"}
               </p>
+
             </div>
+
+
 
             <div className="mt-3 grid grid-cols-2  sm:grid-cols-3 gap-3 gap-x-5 text-sm p-4 rounded-2xl shadow-lg transition-all themeBoxShadow">
               {VITALS_CONFIG?.map((vital) => (
@@ -785,11 +912,6 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 />
               ))}
             </div>
-
-            <p>
-              <span className="font-semibold text-gray-800">Added by :</span>{" "}
-              {currentPatientsVitals?.CREATED_BY || "Not Yet"}
-            </p>
 
           </div>
 
@@ -823,9 +945,8 @@ const MidSection = ({ patientsData, docPatientData }) => {
                   : "START"}
             </Button>
 
-            <Button onClick={() => setIsStopModalOpen(true)} style={{ width: "40%" }} block className="border-blue-500! text-blue-500!  hover:border-blue-600! hover:text-blue-600! hover:bg-blue-50! active:bg-blue-100! transition-all duration-200" >
-              BREAK
-            </Button>
+
+            <BreakBtn />
 
           </div>
 
@@ -1087,6 +1208,19 @@ const MidSection = ({ patientsData, docPatientData }) => {
           {/* NEXT BUTTON */}
           <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
             {/* TOKEN SELECT */}
+            {/* <div id="dropdown-select-token" className="flex-1">
+              <Select
+                allowClear
+                showSearch
+                placeholder="Select Token"
+                optionFilterProp="label"
+                className="w-full"
+                options={skippedTokenListOptions}
+                onChange={(value) => setSpecificSearchingToken(value)}
+                value={specificSearchingToken}
+              />
+            </div> */}
+
             <div id="dropdown-select-token" className="flex-1">
               <Select
                 allowClear
@@ -1097,6 +1231,30 @@ const MidSection = ({ patientsData, docPatientData }) => {
                 options={skippedTokenListOptions}
                 onChange={(value) => setSpecificSearchingToken(value)}
                 value={specificSearchingToken}
+                optionLabelProp="label"
+                dropdownStyle={{
+                  minWidth: '300px',
+                  width: 'auto',
+                  maxWidth: '90vw',
+                  position: 'fixed'
+                }}
+                dropdownRender={(menu) => (
+                  <div className="custom-select-dropdown max-h-96 overflow-y-auto">
+                    {skippedTokenListOptions?.map((option) => (
+                      <div
+                        key={option.value}
+                        className={`px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors duration-150 ${specificSearchingToken === option.value ? 'bg-blue-50' : ''
+                          }`}
+                        onClick={() => {
+                          setSpecificSearchingToken(option.value);
+                          // If you need to close dropdown, you might need to use Select's ref
+                        }}
+                      >
+                        {option.labelWithBreaks}
+                      </div>
+                    ))}
+                  </div>
+                )}
               />
             </div>
 
@@ -1132,28 +1290,45 @@ const MidSection = ({ patientsData, docPatientData }) => {
               </Button>
             </div>
 
-            <Button onClick={() => setIsStopModalOpen(true)} style={{ width: "15%" }} block className="border-blue-500! text-blue-500!  hover:border-blue-600! hover:text-blue-600! hover:bg-blue-50! active:bg-blue-100! transition-all duration-200" >
-              BREAK
-            </Button>
+            {/* <Button onClick={() => setIsStopModalOpen(true)} style={{ width: "15%" }} block className="border-blue-500! text-blue-500!  hover:border-blue-600! hover:text-blue-600! hover:bg-blue-50! active:bg-blue-100! transition-all duration-200" >
+              Break
+            </Button> */}
+
 
           </div>
 
-          <div
-            id="btn-skip"
-            className="border-t p-4 border-gray-200 gap-4 flex md:hidden"
-          >
-            <Button
-              block
-              className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
-              onClick={skipHandler}
-              loading={isSkipLoading}
-              disabled={disableSkip}
+          <div className="flex items-center p-4 gap-4">
+
+            <div
+              id="btn-skip"
+              className="border-t border-gray-200 gap-4 flex md:hidden"
             >
-              Skip Patient
-            </Button>
+              <Button
+                block
+                className="!border-blue-500 !text-blue-500  hover:!border-blue-600 hover:!text-blue-600 hover:!bg-blue-50 active:!bg-blue-100 transition-all duration-200"
+                onClick={skipHandler}
+                loading={isSkipLoading}
+                disabled={disableSkip}
+              >
+                Skip Patient
+              </Button>
+
+            </div>
+
+            <BreakBtn />
+
           </div>
 
         </div>
+
+        {isCoolingDown && (
+          <div className="flex items-center gap-2 bg-red-50 border border-red-400 rounded-full px-3 py-1 fixed top-8 left-4">
+            <span className="text-xs font-semibold text-red-700">Next in</span>
+            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold">
+              {cooldown}
+            </span>
+          </div>
+        )}
 
       </div>
 
@@ -1169,6 +1344,7 @@ const MidSection = ({ patientsData, docPatientData }) => {
       />
 
       <StopModal
+        startBreak={startBreak}
         isOpen={isStopModalOpen}
         onClose={() => setIsStopModalOpen(false)}
         formData={formData}

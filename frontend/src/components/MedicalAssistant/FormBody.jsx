@@ -160,11 +160,11 @@ const MOCK_PREV_VITALS = {
 
 
 
-const FormBody = ({ selectedPatient, setSelectedPatient , username }) => {
+const FormBody = ({ selectedPatient, setSelectedPatient, username }) => {
 
     const [selectedDoctorId, setSelectedDoctorId] = useState(null);
 
-    // console.log(selectedPatient, "<<<<< selectedPatient");
+    console.log(selectedPatient, "<<<<< selectedPatient");
     // console.log(selectedDoctorId, "<<<<< selectedDoctorId");
 
     // Vitals form state
@@ -174,10 +174,14 @@ const FormBody = ({ selectedPatient, setSelectedPatient , username }) => {
     const [docotorPatients, setDocotorPatients] = useState([]);
     const [docotors, setDocotor] = useState([]);
 
+    console.log(vitals, "..... vitals");
+    // console.log(docotorPatients , "..... docotorPatients");
+
+
 
     // ── Derived data
     const doctorOptions = docotors?.map(d => ({ value: d?.ID, label: d?.NAME }));
-    const patientOptions = docotorPatients?.map(p => ({ value: p.RECEIPTNO, label: `${p.TOKENNO} — ${p.PATIENTNAME}` }));
+    const patientOptions = docotorPatients?.map(p => ({ value: p.RECEIPTNO, label: `${p.PATIENTNAME} -- ${p.TOKENNO} -- ${p.AGE} -- ${p.GENDER}` }));
 
     const filledCount = Object.values(vitals).filter(Boolean).length;
     const total = VITALS_CONFIG.length;
@@ -243,8 +247,9 @@ const FormBody = ({ selectedPatient, setSelectedPatient , username }) => {
     const fetchPatients = async () => {
 
         try {
-            const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${selectedDoctorId}?status=1`,);
-            console.log(res, "res of fetch Patients by id");
+            const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${selectedDoctorId}?status=14`,);
+            // const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${selectedDoctorId}`,);
+            // console.log(res, "res of fetch Patients by id");
             setDocotorPatients(res?.data?.data?.patients);
         }
         catch (err) {
@@ -268,14 +273,44 @@ const FormBody = ({ selectedPatient, setSelectedPatient , username }) => {
 
     }
 
+    const fetchSpecifPatientData = async () => {
+
+        try {
+            const res = await axios.get(`${base_URL}/api/opd/doctor/patient-vitals/${selectedPatient?.RECEIPTNO}`,);
+            // console.log(res, "res of fetch fetch SpecifPatient Data by id");
+            const vitals = res?.data?.data?.[0]
+            setVitals({
+                bloodPressure: vitals?.BLOOD_PRESSURE ?? null,
+                bloodSugar: vitals?.BLOOD_SUGAR ?? null,
+                height: vitals?.HEIGHT ?? null,
+                pulse: vitals?.PULSE ?? null,
+                temperature: vitals?.TEMPERATURE ?? null,
+                weight: vitals?.WEIGHT ?? null,
+            });
+        }
+        catch (err) {
+            // console.log(err, "error in get faculty");
+            toast.error(err?.message)
+        }
+
+    }
+
 
     useEffect(() => {
-        fetchPatients();
+        if (selectedDoctorId) {
+            fetchPatients();
+        }
     }, [selectedDoctorId]);
 
     useEffect(() => {
         fetchDoctors();
     }, []);
+
+    useEffect(() => {
+        if (selectedPatient?.RECEIPTNO) {
+            fetchSpecifPatientData();
+        }
+    }, [selectedPatient]);
 
 
     return (
@@ -312,15 +347,46 @@ const FormBody = ({ selectedPatient, setSelectedPatient , username }) => {
                         <Select
                             className="ma-select w-full"
                             placeholder={selectedDoctorId ? "Choose a patient..." : "Select doctor first"}
-                            options={patientOptions}
                             value={selectedPatient?.RECEIPTNO ?? null}
                             onChange={handlePatientChange}
                             disabled={!selectedDoctorId}
                             showSearch
                             optionFilterProp="label"
                             allowClear
+                            listHeight={400}
+                            dropdownStyle={{
+                                minWidth: '320px',
+                                whiteSpace: 'normal'
+                            }}
+                            options={docotorPatients?.map(p => ({
+                                value: p.RECEIPTNO,
+                                label: `${p.PATIENTNAME} (Token: ${p.TOKENNO}) - Age: ${p.AGE}, Gender: ${p.GENDER}`,
+                                patient: p
+                            }))}
+                            optionRender={(option) => (
+                                <div className="py-2 px-3 border-b border-gray-100 last:border-0 hover:bg-indigo-50 transition-colors">
+                                    <div className="font-semibold text-gray-800 text-sm mb-1">
+                                        {option.data.patient?.PATIENTNAME}
+                                    </div>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-indigo-500">🎫</span> Token: {option.data.patient?.TOKENNO}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-indigo-500">📅</span> Age: {option.data.patient?.AGE}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-indigo-500">👤</span> Gender: {option.data.patient?.GENDER}
+                                        </div>
+                                    </div>
+                                    <div className="text-[12px] text-gray-400 mt-1">
+                                        Status : {option.data.patient?.PATIENT_STATUS_ID == 1 ? "waiting" : option.data.patient?.PATIENT_STATUS_ID == 3 ? "checked" : "skipped"}
+                                    </div>
+                                </div>
+                            )}
                         />
                     </div>
+
                 </div>
 
                 {/* Progress bar */}
@@ -405,7 +471,7 @@ const FormBody = ({ selectedPatient, setSelectedPatient , username }) => {
                                                 if (v.key === "bloodPressure") {
                                                     if (val === "" || /^[\d/]*$/.test(val)) {
                                                         handleVitalChange(v.key, val);
-                                                    } 
+                                                    }
                                                 } else {
                                                     handleVitalChange(v.key, val);
                                                 }

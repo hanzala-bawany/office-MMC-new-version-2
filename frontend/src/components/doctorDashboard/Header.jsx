@@ -80,27 +80,28 @@ const Header = ({ doctorData, patientsData, onStartTour }) => {
     navigate("/login");
   };
 
-  const cancelAllHandler = async () => {
-    try {
-      setCancelLoading(true);
-      const res = await axios.post(
-        `${base_URL}/api/opd/doctor/patient-cancel-all`,
-        {
-          doctorId: doctorData?.doctorId,
-          receiptNo: null,
-        },
-      );
-      // console.log(res, "res of cancel Handler by id");
-      dispatch(toggleRefreshPatients());
-      toast.success(`Cancel all remaining patients Successfully`);
-    } catch (err) {
-      console.log(err, "error in next Handler");
-      toast.error(err?.message);
-    } finally {
-      setCancelLoading(false);
-    }
-  };
+  // const cancelAllHandler = async () => {
+  //   try {
+  //     setCancelLoading(true);
+  //     const res = await axios.post(
+  //       `${base_URL}/api/opd/doctor/patient-cancel-all`,
+  //       {
+  //         doctorId: doctorData?.doctorId,
+  //         receiptNo: null,
+  //       },
+  //     );
+  //     // console.log(res, "res of cancel Handler by id");
+  //     dispatch(toggleRefreshPatients());
+  //     toast.success(`Cancel all remaining patients Successfully`);
+  //   } catch (err) {
+  //     console.log(err, "error in next Handler");
+  //     toast.error(err?.message);
+  //   } finally {
+  //     setCancelLoading(false);
+  //   }
+  // };
 
+  
   return (
     <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:gap-25 w-full justify-between">
 
@@ -142,7 +143,7 @@ const Header = ({ doctorData, patientsData, onStartTour }) => {
             Take a Tour / Help Guide
           </Button>
 
-          <Button
+          {/* <Button
             type="primary"
             block
             loading={cancelLoading}
@@ -151,7 +152,7 @@ const Header = ({ doctorData, patientsData, onStartTour }) => {
             className="mt-4 rounded-xl flex items-center justify-center gap-2 bg-blue-500"
           >
             Cancel All
-          </Button>
+          </Button> */}
 
           <Button
             danger

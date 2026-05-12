@@ -67,12 +67,25 @@ const MedicalAssistant = () => {
                     {/* Logo pill - Clickable to open modal */}
                     <div
                         onClick={() => setIsModalOpen(true)}
-                        className="cursor-pointer anim-slideDown flex items-center gap-3 px-4 py-2 rounded-full border border-indigo-500/50 bg-white/90 backdrop-blur shadow-md shadow-indigo-500/10 hover:shadow-lg hover:scale-105 transition-all duration-300"
+                       className="cursor-pointer anim-slideDown flex flex-col items-center gap-3 px-4 py-2 rounded-full border border-indigo-500/50 bg-white/90 backdrop-blur shadow-md shadow-indigo-500/10 hover:shadow-lg hover:scale-105 transition-all duration-300"
                     >
-                        <img src={logo} alt="MMC Logo" className="h-12 w-12 object-contain rounded-full" />
-                        <span style={{ fontFamily: "'Playfair Display', serif" }} className="text-lg font-semibold text-indigo-950 tracking-wide hidden sm:block">
-                            Memon Medical Complex
-                        </span>
+
+                        <div className="flex items-center gap-3">
+
+                            <img src={logo} alt="MMC Logo" className="h-12 w-12 object-contain rounded-full" />
+                            <div className="text-right hidden sm:block">
+                                <span style={{ fontFamily: "'Playfair Display', serif" }} className="text-lg font-semibold text-indigo-950 tracking-wide block">
+                                    Memon Medical Complex
+                                </span>
+                                <div className="flex items-center gap-1 mt-0.5">
+                                    <span className="text-[13px] font-medium text-indigo-600/80 tracking-wide">
+                                        {loginUserData?.username}
+                                    </span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
 
                 </header>
