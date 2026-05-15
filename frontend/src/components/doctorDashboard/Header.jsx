@@ -1,5 +1,5 @@
 import { Avatar, Button, Card, Modal } from "antd";
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -17,8 +17,9 @@ import {
 } from "react-icons/fa";
 import { base_URL } from "../../utills/baseUrl";
 import axios from "axios";
+import { socket } from "../../socket/socket";
 
-const Header = ({ doctorData, patientsData, onStartTour }) => {
+const Header = ({ doctorData, patientsData, onStartTour , loginUserData  }) => {
   // console.log(patientsData, "patientsData >>>>>>>>>>>");
   // console.log(doctorData, "doctorData >>>>>>>>>>>");
 
@@ -58,6 +59,7 @@ const Header = ({ doctorData, patientsData, onStartTour }) => {
     },
   ];
 
+
   const logoutHandler = async () => {
 
      try {
@@ -65,7 +67,7 @@ const Header = ({ doctorData, patientsData, onStartTour }) => {
       const res = await axios.post(`${base_URL}/api/auth/logout`, {
         doctorId: doctorData?.doctorId,
       });
-      console.log(res, "res of logout Handler by id");
+      // console.log(res, "res of logout Handler by id");
 
 
     } catch (err) {
@@ -80,28 +82,15 @@ const Header = ({ doctorData, patientsData, onStartTour }) => {
     navigate("/login");
   };
 
-  // const cancelAllHandler = async () => {
-  //   try {
-  //     setCancelLoading(true);
-  //     const res = await axios.post(
-  //       `${base_URL}/api/opd/doctor/patient-cancel-all`,
-  //       {
-  //         doctorId: doctorData?.doctorId,
-  //         receiptNo: null,
-  //       },
-  //     );
-  //     // console.log(res, "res of cancel Handler by id");
-  //     dispatch(toggleRefreshPatients());
-  //     toast.success(`Cancel all remaining patients Successfully`);
-  //   } catch (err) {
-  //     console.log(err, "error in next Handler");
-  //     toast.error(err?.message);
-  //   } finally {
-  //     setCancelLoading(false);
-  //   }
-  // };
 
+  useEffect(() => {
+    socket.on(`${loginUserData?.doctorId}`, () => {
+      logoutHandler();
+    });
+  }, []);
   
+
+
   return (
     <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:gap-25 w-full justify-between">
 

@@ -12,139 +12,93 @@ import {
   FaClock,
   FaUserMd,
 } from "react-icons/fa";
-import { Card, Button, Table, Modal, Tag } from "antd";
+import { Card, Button, Table, Modal, Tag, Tabs } from "antd";
 import { useState } from "react";
 
 
 
-const HistoryTable = () => {
+const HistoryTable = ({ currentPatientHistory, lastVisit }) => {
 
   const [openReport, setOpenReport] = useState(false);
   const [openVitals, setOpenVitals] = useState(false);
   const [openTreatment, setOpenTreatment] = useState(false);
   const card = "rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 themeBoxShadow";
+  const [openPatientDetail, setOpenPatientDetail] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState(null);
+
+
+  // console.log(currentPatientHistory, "currentPatientHistory ,,,,,,,,,,,");
+  // console.log(selectedHistory, "selectedHistory ,,,,,,,,,,,");
+  // console.log(lastVisit, "lastVisit ,,,,,,,,,,,");
+
+
+  const openDetailModal = (record) => {
+    setSelectedHistory(record);
+    setOpenPatientDetail(true);
+  };
+
+  const openVitalsModal = (openVitalsModal) => {
+    setSelectedHistory(openVitalsModal);
+    setOpenVitals(true);
+  };
+
 
 
   const historyColumns = [
-    { title: "Date", dataIndex: "date" },
-    { title: "Patient", dataIndex: "name" },
-    { title: "Primery Diagnosis", dataIndex: "disease", render: (d) => <Tag color="cyan">{d}</Tag> },
-    // { title: "Primery Complain", dataIndex: "comment", },
-    {
-      title: "Complain and Treatment",
-      render: () => (
-        <Button
-          icon={<FaPills />}
-          className="flex items-center gap-2 border-blue-500 text-blue-500 "
-          onClick={() => setOpenTreatment(true)}
-        >
-          View
-        </Button>
-      ),
-    },
+    { title: "Date", dataIndex: "VISIT_DATE" },
+    { title: "Patient", dataIndex: "PATIENTNAME" },
     {
       title: "Vitals",
-      render: () => (
+      render: (_, rowData) => (
         <Button
           icon={<FaHeartbeat />}
           className="flex items-center gap-2 border-blue-500 text-blue-500 "
-          onClick={() => setOpenVitals(true)}
+          onClick={() => openVitalsModal(rowData)}
         >
           View
         </Button>
       ),
     },
     {
-      title: "Report",
-      render: () => (
-        <Button
-          icon={<FaMicroscope />}
-          className="flex items-center gap-2 border-blue-500 text-blue-500 "
-          onClick={() => setOpenReport(true)}
-        >
-          View
-        </Button>
+      title: "Patient Detail",
+      dataIndex: "GENDER",
+      render: (GENDERWaliValue, record) => (
+        <>
+          {/* {console.log(GENDERWaliValue,"GENDERWaliValue , ,,,,,,,,,,,,,,,,,,")} */}
+
+          <Button
+            icon={<FaFileMedical />}
+            className="flex items-center gap-2 border-blue-500 text-blue-500"
+            onClick={() => openDetailModal(record)}
+          >
+            View
+          </Button>
+        </>
       ),
     },
+    // {
+    //   title: "Report",
+    //   render: () => (
+    //     <Button
+    //       icon={<FaMicroscope />}
+    //       className="flex items-center gap-2 border-blue-500 text-blue-500 "
+    //       onClick={() => setOpenReport(true)}
+    //     >
+    //       View
+    //     </Button>
+    //   ),
+    // },
   ];
 
 
-  const historyData = [
-    {
-      key: 1,
-      date: "15 Jan 2026",
-      name: "Ahmed",
-      disease: "Asthama",
-      comment: "High fever and sore throat",
-    },
-    {
-      key: 2,
-      date: "16 Jan 2026",
-      name: "Ahmed",
-      disease: "Blood presure",
-      comment: "Mild flu, prescribed rest",
-    },
-  ];
 
 
 
   return (
     <>
 
-      {/* report modal */}
-      <Modal
-        open={openReport}
-        onCancel={() => setOpenReport(false)}
-        footer={null}
-        centered
-        width={600}
-      >
+      {/* ===================== Patient vitals Modal ===================== */}
 
-        <div className="flex justify-between items-center mb-4  mr-6">
-          <h2 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
-            <FaMicroscope className="text-blue-500" /> Patient Reports
-          </h2>
-
-          <div className="flex gap-4 text-md ">
-            <span className="cursor-pointer text-blue-500">📄</span>
-            <span className="cursor-pointer text-green-500">🧪</span>
-            <span className="cursor-pointer text-purple-500">📊</span>
-          </div>
-        </div>
-
-        <Card className="rounded-xl shadow-lg">
-
-          <div className="space-y-3 space-x-3  grid  grid-cols-1 sm:grid-cols-2   text-gray-600 ">
-            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition" >
-              <FaFileMedical className="text-blue-500" />
-              Previous Discharge Summary
-            </p>
-
-            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition">
-              <FaNotesMedical className="text-green-500" />
-              Previous OPD Records
-            </p>
-
-            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition">
-              <FaFlask className="text-purple-500" />
-              Lab Reports
-            </p>
-
-            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition">
-              <FaXRay className="text-orange-500" />
-              Radiology Reports
-            </p>
-
-            <p className="flex items-center gap-2 hover:text-blue-600 cursor-pointer transition">
-              <FaFolderOpen className="text-gray-500" />
-              Others
-            </p>
-          </div>
-
-        </Card>
-      </Modal>
-
-      {/* vitals modal */}
       <Modal
         open={openVitals}
         onCancel={() => setOpenVitals(false)}
@@ -174,7 +128,7 @@ const HistoryTable = () => {
               Blood Pressure
             </span>
             <span className="font-bold text-pink-700">
-              120 / 80
+              {selectedHistory?.BLOOD_PRESSURE || "N/A"} mmHg
             </span>
           </div>
 
@@ -184,7 +138,7 @@ const HistoryTable = () => {
               Blood Sugar
             </span>
             <span className="font-bold text-green-700">
-              110 mg/dL
+              {selectedHistory?.BLOOD_SUGAR || "N/A"} mg/dL
             </span>
           </div>
 
@@ -194,7 +148,7 @@ const HistoryTable = () => {
               Weight
             </span>
             <span className="font-bold text-blue-700">
-              72 kg
+              {selectedHistory?.WEIGHT || "N/A"} kg
             </span>
           </div>
 
@@ -204,7 +158,7 @@ const HistoryTable = () => {
               Height
             </span>
             <span className="font-bold text-gray-700">
-              5.8 ft
+              {selectedHistory?.HEIGHT || "N/A"} ft
             </span>
           </div>
 
@@ -214,7 +168,7 @@ const HistoryTable = () => {
               Temperature
             </span>
             <span className="font-bold text-purple-700">
-              98.6 °F
+              {selectedHistory?.TEMPERATURE || "N/A"} °F
             </span>
           </div>
 
@@ -224,7 +178,7 @@ const HistoryTable = () => {
               Pulse
             </span>
             <span className="font-bold text-yellow-700">
-              76 bpm
+              {selectedHistory?.PULSE || "N/A"} bpm
             </span>
           </div>
 
@@ -233,60 +187,102 @@ const HistoryTable = () => {
 
       </Modal>
 
-      {/* primery complain and medication/treatment */}
+      {/* ===================== Patient Detail Modal ===================== */}
+
       <Modal
-        open={openTreatment}
-        onCancel={() => setOpenTreatment(false)}
+        open={openPatientDetail}
+        onCancel={() => setOpenPatientDetail(false)}
         footer={null}
         centered
-        width={600}
+        width={850}
       >
-
-        {/* Header */}
         <div className="flex justify-between items-center mb-4">
+
           <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
-            <FaPills className="text-green-600" />
-            Complain and Treatment
+            <FaFileMedical className="text-blue-600" />
+            Patient Details
           </h2>
 
-          <span className="text-sm text-gray-600 font-medium mr-6 hidden sm:flex items-center gap-1 ">
-            <FaUserMd />
-            OPD Doctor
-          </span>
-        </div>
-
-
-        {/* Body */}
-        <div className="mt-3 gap-4 p-4 rounded-2xl themeBoxShadow flex flex-col gap-2" >
-
-          {/* Primary Complaint */}
-          <div className="bg-gray-50 p-4 rounded-xl border">
-
-            <h3 className="text-sm font-semibold text-gray-700 mb-1">
-              Primary Complain :
-            </h3>
-            <p className="text-gray-800 text-sm leading-relaxed">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Asperiores explicabo accusantium repudiandae dicta.
-            </p>
-
-          </div>
-
-          {/* Medicine Card */}
-          <div className="bg-green-50 border-green-400 p-4 rounded-xl border">
-
-            <h3 className="text-sm font-semibold text-green-800 mb-1">
-              Prescribed Treatment :
-            </h3>
-            <p className="text-green-800 text-sm leading-relaxed">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Asperiores explicabo accusantium repudiandae dicta.
-            </p>
-
+          <div className="text-sm text-gray-600 mr-6">
+            {selectedHistory?.PATIENTNAME}
           </div>
 
         </div>
 
+        {/* tabs section */}
+
+        <Tabs
+          defaultActiveKey="1"
+          items={[
+            {
+              key: "1",
+              label: "Diagnosis",
+              children: (
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  {selectedHistory?.PRIMARY_DIAGNOSIS?.split(",").join(" -- ") || "No Data"}
+                </div>
+              ),
+            },
+
+            {
+              key: "2",
+              label: "Medical Tests",
+              children: (
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  {selectedHistory?.MEDICAL_TESTS?.split(",").join(" -- ") || "No Data"}
+                </div>
+              ),
+            },
+
+            {
+              key: "3",
+              label: "Medical Plan",
+              children: (
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  {selectedHistory?.MEDICAL_PLAN || "No Data"}
+                </div>
+              ),
+            },
+
+            {
+              key: "4",
+              label: "Medicine",
+              children: (
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  {selectedHistory?.MEDICINE || "No Data"}
+                </div>
+              ),
+            },
+
+            {
+              key: "5",
+              label: "Complain",
+              children: (
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  {selectedHistory?.REMARKS || "No Data"}
+                </div>
+              ),
+            },
+
+            {
+              key: "6",
+              label: "Treatment",
+              children: (
+                <div className="p-3 bg-gray-50 rounded-xl whitespace-pre-line">
+                  {selectedHistory?.TREATMENT || "No Data"}
+                </div>
+              ),
+            },
+          ]}
+          tabBarStyle={{
+            marginBottom: 0,
+          }}
+          renderTabBar={(props, DefaultTabBar) => (
+            <div style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
+              <DefaultTabBar {...props} style={{ flexWrap: 'nowrap', minWidth: 'max-content' }} />
+            </div>
+          )}
+        />
       </Modal>
 
 
@@ -313,7 +309,7 @@ const HistoryTable = () => {
               <div className="flex flex-col sm:flex-row sm:gap-2  text-center">
                 <span className="text-black">Last Visit</span>
                 <span className="font-semibold text-blue-600">
-                  16 Jan 2026
+                  {lastVisit?.VISIT_DATE?.split(" ")[0]}
                 </span>
               </div>
 
@@ -322,7 +318,7 @@ const HistoryTable = () => {
               <div className="flex flex-col sm:flex-row sm:gap-2  text-center">
                 <span className="text-black">Total Visits</span>
                 <span className="font-semibold text-blue-600">
-                  12
+                  {currentPatientHistory?.length}
                 </span>
               </div>
 
@@ -345,9 +341,10 @@ const HistoryTable = () => {
       >
         <Table
           columns={historyColumns}
-          dataSource={historyData}
+          dataSource={currentPatientHistory}
           pagination={false}
           scroll={{ x: true }}
+          rowKey={(record, i) => record?.RECEIPTNO || i}
         />
       </Card>
 

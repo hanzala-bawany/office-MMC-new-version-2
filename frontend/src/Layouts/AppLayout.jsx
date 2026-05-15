@@ -65,7 +65,7 @@ const AppLayout = () => {
       icon: FaUserMinus ,
       label: (
         <NavLink to="/removeDoctor">
-          Remove Doctor
+          Doctor Management
         </NavLink>
       ),
     },

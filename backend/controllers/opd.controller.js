@@ -112,6 +112,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
           p_remaining      => :remaining,
           p_skipped        => :skipped,
           p_cancel         => :canceled,
+          p_is_logged_in   => :is_logged_in,
           retval           => :cursor1,
           retval1          => :cursor2,
           retval2          => :cursor3,
@@ -129,6 +130,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
         remaining: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         skipped: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         canceled: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        is_logged_in: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         cursor1: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor2: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
         cursor3: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
@@ -171,6 +173,7 @@ const getDoctorPatientsWithStats = async (req, res) => {
       patientsRemaining: result.outBinds.remaining,
       patientsSkipped: result.outBinds.skipped,
       patientsCanceled: result.outBinds.canceled,
+      isLoggedIn: result.outBinds.is_logged_in,
       patients,
     };
 
@@ -194,6 +197,9 @@ const getDoctorPatientsWithStats = async (req, res) => {
     if (connection) await connection.close();
   }
 };
+
+
+
 
 const getDoctorNextPatient = async (req, res) => {
   let connection;
@@ -1067,7 +1073,7 @@ const doctorResumeBreak = async (req, res) => {
       END;
       `,
       { doc_id: doctorId },
-      { autoCommit: true }
+      { autoCommit: true },
     );
 
     const io = req.app.get("io");
@@ -1077,7 +1083,6 @@ const doctorResumeBreak = async (req, res) => {
     });
 
     res.json({ success: true, message: "Break resumed successfully" });
-
   } catch (err) {
     console.error("doctorResumeBreak error:", err);
     res.status(500).json({
@@ -1215,7 +1220,8 @@ const getPatientHistory = async (req, res) => {
         get_patient_history(
           p_mrno      => :mrNum,
           p_doctor_id => :doctorId,
-          p_result    => :cursor1
+          p_result    => :cursor1,
+          p_last_visit => :cursor2
         );
       END;
       `,
@@ -1223,6 +1229,11 @@ const getPatientHistory = async (req, res) => {
         mrNum: mrNum,
         doctorId: doctorId,
         cursor1: {
+          dir: oracledb.BIND_OUT,
+          type: oracledb.CURSOR,
+        },
+        cursor2: {
+          // ✅ Naya last visit cursor
           dir: oracledb.BIND_OUT,
           type: oracledb.CURSOR,
         },
@@ -1234,9 +1245,19 @@ const getPatientHistory = async (req, res) => {
     );
 
     // Read ALL rows from cursor
-    const rs = result.outBinds.cursor1;
-    const allRows = await rs.getRows();
-    await rs.close();
+    // const rs = result.outBinds.cursor1;
+    // const allRows = await rs.getRows();
+    // await rs.close();
+
+    // ✅ Poori history
+    const rs1 = result.outBinds.cursor1;
+    const allRows = await rs1.getRows();
+    await rs1.close();
+
+    // ✅ Last visit
+    const rs2 = result.outBinds.cursor2;
+    const lastVisitRows = await rs2.getRows();
+    await rs2.close();
 
     console.log(`${allRows.length} history records found for MR# ${mrNum}`);
 
@@ -1245,6 +1266,7 @@ const getPatientHistory = async (req, res) => {
       success: true,
       data: allRows, // Direct database rows, no transformation
       totalVisits: allRows.length,
+      lastVisit: lastVisitRows[0] || null,
     });
   } catch (err) {
     console.error("getPatientHistory error:", err);
@@ -1339,37 +1361,28 @@ const getPatientVitals = async (req, res) => {
 // ------- GET ACTIVE CONSULTANTS API ------------------
 const getActiveConsultants1 = async (req, res) => {
   let connection;
+  const { loggedIn } = req.query;
 
   try {
     const pool = await poolPromise;
     connection = await pool.getConnection();
 
     const result = await connection.execute(
-      `
-      BEGIN
-        get_active_consultants1(
-          :cursor
-        );
-      END;
-      `,
-      {
-        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
-      },
-      {
-        outFormat: oracledb.OUT_FORMAT_OBJECT,
-      },
+      `BEGIN get_active_consultants1(:cursor); END;`,
+      { cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR } },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
     );
 
-    // ===== READ CURSOR =====
     const resultSet = result.outBinds.cursor;
-    const rows = await resultSet.getRows();
+    let rows = await resultSet.getRows();
     await resultSet.close();
 
-    res.status(200).json({
-      status: 200,
-      count: rows.length,
-      data: rows,
-    });
+    // ← yeh filter add karo
+    if (loggedIn === "1") {
+      rows = rows.filter((r) => r.IS_LOGGED_IN === 1);
+    }
+
+    res.status(200).json({ status: 200, count: rows.length, data: rows });
   } catch (err) {
     console.error("getActiveConsultants error:", err);
 

@@ -10,6 +10,7 @@ import {
     ReloadOutlined,
     DeleteOutlined,
 } from "@ant-design/icons";
+import { toast } from "react-toastify";
 
 const AiAssistant = ({ complaint, primaryDiagnosis, onAddTests, onAddMedicines, onAddMedicinePlan, onAddTreatment, visible, onClose, currentPatient, currentVitals, aiResponse, setAiResponse, aiVitalAlerts, setAiVitalAlerts }) => {
 

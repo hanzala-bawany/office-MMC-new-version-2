@@ -4,7 +4,6 @@ const cors = require("cors");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
-
 // Routes
 const authRoutes = require("./routes/authRoutes.js");
 const facultyRoutes = require("./routes/facultyRoutes.js");
@@ -19,6 +18,8 @@ const opdRoutes = require("./routes/opd.Routes.js");
 const poolPromise = require("./database.js");
 const voiceRoutes = require("./routes/voiceRoutes.js")
 const pronounceRoutes = require("./routes/pronounceRoutes");
+const patientLoginRoutes = require("./routes/patientLogin.Routes.js")
+
 
 
 const app = express();
@@ -69,6 +70,8 @@ app.use("/api/headline", headlineRoutes);
 app.use("/api/opd", opdRoutes);
 app.use("/api/voice", voiceRoutes);
 app.use("/api/pronounce", pronounceRoutes);
+app.use("/api/patient", patientLoginRoutes);
+
 
 let lastCreatedTime = null;
 

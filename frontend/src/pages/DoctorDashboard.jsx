@@ -5,17 +5,22 @@ import Header from "../components/doctorDashboard/Header.jsx";
 import MidSection from "../components/doctorDashboard/MidSection.jsx";
 import HistoryTable from "../components/doctorDashboard/HistoryTable.jsx";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { socket } from "../socket/socket.js";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import Footer from "../components/doctorDashboard/Footer.jsx";
+import { logoutUser } from "../reduxToolKit/authSlice.js";
+import { useNavigate } from "react-router-dom";
 
 
 const DoctorDashboard = () => {
 
 
   const [patientsData, setPatientsData] = useState([]);
+  const [currentPatientHistoryData, setCurrentPatientHistoryData] = useState([]);
+  const currentPatientHistory = currentPatientHistoryData?.data || [];
+  const lastVisit = currentPatientHistoryData?.lastVisit || {};
   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
   const isCancelClick = useSelector(
     (state) => state?.doctorSlice?.refreshPatients,
@@ -182,30 +187,65 @@ const DoctorDashboard = () => {
       },
     ],
   });
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // console.log(isCancelClick, "<<<<<<< isCancelClick");
   // console.log(loginUserData, "<<<<<<< loginUserData");
   // console.log(isNextBtnClick, "<<<<<<< isNextBtnClick");
   // console.log(driverObj, "<<<<<<< driverObj");
   // console.log(isCancelClick, "<<<<<<< isCancelClick");
+  // console.log(currentPatientHistory, "<<<<<<< currentPatientHistory");
+  // console.log(patientsData, "<<<<<<< patientsData");
+  // console.log(lastVisit, "<<<<<<< lastVisit");
 
+
+  const logout = async () => {
+
+    dispatch(logoutUser());
+    toast.success("Logout Scuccessful");
+    navigate("/login");
+
+  };
 
   const foo = useCallback(async () => {
+
     try {
-      const res = await axios.get(
-        `${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,
-      );
+      const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
       // console.log(res, "res of get DocotrDetail by id");
       setPatientsData(res?.data?.data);
+      if(res?.data?.data?.isLoggedIn == 0){
+        logout()
+      }
+      
     } catch (err) {
       // console.log(err, "error in get faculty");
       toast.error(err?.message);
     }
+
   }, [loginUserData?.doctorId]);
+
+
+  const getCurrentPatientHistory = useCallback(async () => {
+
+    try {
+      const res = await axios.get(
+        `${base_URL}/api/opd/getPatientsHistory?mrNum=${patientsData?.patients?.[0]?.MRNO}&doctorId=${loginUserData?.doctorId}`,
+      );
+      // console.log(res, "res of get current patient history by id");
+      setCurrentPatientHistoryData(res?.data);
+    } catch (err) {
+      // console.log(err, "error in get faculty");
+      toast.error(err?.message);
+    }
+  }, [patientsData?.patients?.[0]?.MRNO]);
+
+
 
   const startTour = () => {
     driverObj.drive();
   };
+
 
 
   useEffect(() => {
@@ -214,6 +254,14 @@ const DoctorDashboard = () => {
       foo();
     });
   }, [isCancelClick]);
+
+  useEffect(() => {
+    getCurrentPatientHistory();
+    // socket.on("opdUpdated", () => {
+    //   getCurrentPatientHistory();
+    // });
+  }, [patientsData?.patients?.[0]?.MRNO]);
+
 
 
   return (
@@ -232,15 +280,16 @@ const DoctorDashboard = () => {
         onStartTour={startTour}
         doctorData={loginUserData}
         patientsData={patientsData}
+        loginUserData={loginUserData}
       />
 
       {/* Middle Section */}
-      <MidSection patientsData={patientsData} docPatientData={foo} />
+      <MidSection patientsData={patientsData} docPatientData={foo} lastVisit={lastVisit} />
 
       {/* History */}
-      {/* <HistoryTable /> */}
+      <HistoryTable currentPatientHistory={currentPatientHistory} lastVisit={lastVisit} />
 
-      <Footer />
+      {/* <Footer /> */}
 
     </div>
   );

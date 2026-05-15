@@ -9,10 +9,10 @@ const VitalCard = ({ label, currentValue, lastValue, bgColor, borderColor, textC
         >
             <span className="text-black font-semibold">{label}</span>
             <div className="font-bold" style={{ color: textColor }}>
-                { currentValue ? `${currentValue} ${unit || ""}` : "—"}
+                { currentValue ? `${currentValue} ${unit || ""} ` : "—"}
             </div>
-            <div className="font-medium" style={{ color: subTextColor }}>
-                { lastValue ? `${lastValue} ${unit || ""}` : "—" }
+            <div className="" style={{ color: subTextColor }}>
+                { lastValue ? `${lastValue} ${unit || ""} (L)` : "—" }
             </div>
         </div>
     );

@@ -21,13 +21,12 @@ import AdminDisplayParent from './routes/AdminDisplayParent'
 import AuthParent from './routes/AuthParent'
 import ScreenDisplayParent from './routes/ScreenDisplayParent'
 import Screen5Display from './pages/Screen5Display'
-import Screen6Display from './pages/Screen6Display'
 import DoctorDashboard from './pages/DoctorDashboard'
 import DocotorParent from './routes/DocotorParent'
 import MedicalAssistant from './pages/MedicalAssistant'
 import MedicalAssistantParent from './routes/MedicalAssistantParent'
 import PronunciationPage from './pages/PronunciationPage'
-import RemoveDoctor from './pages/RemoveDoctor'
+import AddRemoveLogoutDoctor from './pages/AddRemoveLogoutDoctor'
 import DoctorSetupPage from './components/doctorDashboard/Doctorsetuppage'
 
 
@@ -51,7 +50,7 @@ function App() {
             <Route path="/screens" element={<ScreensPage />} />
             <Route path="/reception" element={<ReceptionPage />} />
             <Route path="/pronunciation" element={<PronunciationPage />} />
-            <Route path="/removeDoctor" element={<RemoveDoctor />} />
+            <Route path="/removeDoctor" element={<AddRemoveLogoutDoctor />} />
           </Route>
         </Route>
 
@@ -62,7 +61,6 @@ function App() {
           <Route path="/screen3display" element={<Screen3Display />} />
           <Route path="/screen4display" element={<Screen4Display />} />
           <Route path="/screen5display" element={<Screen5Display />} />
-          <Route path="/screen6display" element={<Screen6Display />} />
         </Route>
 
         <Route element={<DocotorParent />}>
