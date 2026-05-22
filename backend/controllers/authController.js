@@ -1,6 +1,58 @@
 const oracledb = require("oracledb");
 const jwt = require("jsonwebtoken");
 const poolPromise = require("../database.js");
+// const {
+//   getDoctorFacultyId,
+//   getScreensForFaculty,
+// } = require("../utills/helperFunc.js");
+
+//-------HELPER FUNCTIONS START--------------------
+
+ const getScreensForFaculty = async (connection, facultyId) => {
+  try {
+    const result = await connection.execute(
+      `SELECT screen_id FROM screen_faculty_map 
+       WHERE faculty_id = :facultyId`,
+      { facultyId },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+    return result.rows.map((r) => r.SCREEN_ID);
+  } catch {
+    return [];
+  }
+};
+
+ const getDoctorFacultyId = async (connection, doctorId) => {
+  try {
+    const result = await connection.execute(
+      `SELECT facultyid FROM hms.consultant WHERE id = :id`,
+      { id: doctorId },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+    return result.rows[0]?.FACULTYID || null;
+  } catch {
+    return null;
+  }
+};
+
+const emitToScreens = async (connection, io, doctorId, payload) => {
+  try {
+    const facultyId = await getDoctorFacultyId(connection, doctorId);
+    const screenIds = await getScreensForFaculty(connection, facultyId);
+    screenIds.forEach((sid) => {
+      io.to(`screen_${sid}`).emit("QUEUE_UPDATED", {
+        ...payload,
+        screenId: parseInt(sid),
+      });
+    });
+  } catch (err) {
+    console.error("emitToScreens error:", err);
+  }
+};
+
+
+//                END
+
 
 const unifiedLogin = async (req, res) => {
   const { username, password } = req.body;
@@ -27,7 +79,8 @@ const unifiedLogin = async (req, res) => {
           :password,
           :status,
           :message,
-          :userrole
+          :userrole,
+          :userid
         );
       END;
       `,
@@ -41,10 +94,11 @@ const unifiedLogin = async (req, res) => {
           maxSize: 200,
         },
         userrole: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
+        userid: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
       },
     );
 
-    const { status, message, userrole } = userResult.outBinds;
+    const { status, message, userrole, userid } = userResult.outBinds;
 
     //  Admin / Screen success
     if (status === 1) {
@@ -56,14 +110,19 @@ const unifiedLogin = async (req, res) => {
         role = "screen";
       }
 
-      const token = jwt.sign({ username, role }, process.env.JWT_SECRET, {
-        expiresIn: "1d",
-      });
+      const token = jwt.sign(
+        { id: userid, username, role },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "1d",
+        },
+      );
 
       return res.status(200).json({
         success: true,
         message,
         role,
+        userId: userid,
         token,
       });
     }
@@ -169,10 +228,13 @@ const unifiedLogin = async (req, res) => {
       );
 
       const io = req.app.get("io");
-      io.emit("QUEUE_UPDATED", {
+
+      const payload = {
         type: "LOGIN_DOCOTR",
         doctorId: doctor.ID,
-      });
+      };
+
+      await emitToScreens(connection, io, doctor.ID, payload);
 
       return res.status(200).json({
         success: true,
@@ -249,10 +311,12 @@ const logoutDoctor = async (req, res) => {
 
     if (status === 1) {
       const io = req.app.get("io");
-      io.emit("QUEUE_UPDATED", {
-        type: "LOGOUT_DOCOTR",
-        doctorId,
-      });
+      const payload = {
+        type: "LOGOUT_DOCTOR",
+        doctorId: parseInt(doctorId),
+      };
+
+      await emitToScreens(connection, io, doctorId, payload);
 
       return res.status(200).json({
         success: true,
@@ -315,10 +379,13 @@ const forceLogoutDoctor = async (req, res) => {
       // Same pattern jo tumhara logoutDoctor mein hai
       const io = req.app.get("io");
 
-      io.emit("QUEUE_UPDATED", {
-        type: "FORCE_LOGOUT_DOCTOR", // naya type
-        doctorId: consultantId,
-      });
+      const payload = {
+        type: "FORCE_LOGOUT_DOCTOR",
+        doctorId: parseInt(consultantId),
+      };
+
+      await emitToScreens(connection, io, consultantId, payload);
+
       io.emit(`${consultantId}`, {
         type: "FORCE_LOGOUT_DOCTOR", // naya type
         doctorId: consultantId,
@@ -339,5 +406,6 @@ const forceLogoutDoctor = async (req, res) => {
     if (connection) await connection.close().catch(() => {});
   }
 };
+
 
 module.exports = { unifiedLogin, logoutDoctor, forceLogoutDoctor };

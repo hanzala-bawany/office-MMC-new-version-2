@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 
-const {repeatCallPatient, getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, getDoctorNextPatientSkip, getDoctorNextPatientQueue, doctorStop ,cancelAllDoctorPatients , doctorCallTokenByNumber,getActiveConsultants,addPatientVitals, setDoctorRoom, getDoctorRoom, getPatientHistory, getPatientVitals, getActiveConsultants1, doctorResumeBreak } = require("../controllers/opd.controller");
+const {repeatCallPatient, getTodayDoctorPatients, getDoctorNextPatient, getDoctorPatientsWithStats, getDoctorNextPatientSkip, getDoctorNextPatientQueue, doctorStop ,cancelAllDoctorPatients , doctorCallTokenByNumber,getActiveConsultants,addPatientVitals, setDoctorRoom, getDoctorRoom, getPatientHistory, getPatientVitals, getActiveConsultants1, doctorResumeBreak, getTodayDoctorPatientsByScreen } = require("../controllers/opd.controller");
 
 router.get("/patients", getTodayDoctorPatients);
 router.get("/doctor-patients/:doctorId", getDoctorPatientsWithStats);
@@ -23,5 +23,7 @@ router.get("/getPatientsHistory",getPatientHistory)
 router.get("/doctor/patient-vitals/:receiptNo", getPatientVitals);
 router.get("/consultants/active1",   getActiveConsultants1);
 router.post("/doctor-resume-break", doctorResumeBreak);
+router.get("/patients-by-screen", getTodayDoctorPatientsByScreen);
+
 
 module.exports = router;

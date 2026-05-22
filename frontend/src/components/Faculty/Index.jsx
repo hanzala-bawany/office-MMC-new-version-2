@@ -1,84 +1,110 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { ImageUploadPage } from "../Index";
-import { Button } from "antd";
+// import React, { useEffect, useState } from "react";
+// import { Table } from "antd";
+// import axios from "axios";
+// import { base_URL } from "../../utills/baseUrl";
+// import TableSkeleton from "../../utills/TableSkeleton";
+
+// const Faculty = () => {
+//   const [data, setData] = useState(null);
+
+//   const columns = [
+//     { title: "Id", dataIndex: "ID", key: "id" },
+//     { title: "Consultant Name", dataIndex: "NAME", key: "consultantName" },
+//   ];
+
+//   useEffect(() => {
+//     const fetchFaculties = async () => {
+//       try {
+//         const res = await axios.get(`${base_URL}/api/opd/hms-faculties`);
+//         setData(res.data.data);
+//       } catch (err) {
+//         console.error("Error fetching faculties:", err);
+//       }
+//     };
+//     fetchFaculties();
+//   }, []);
+
+//   return (
+//     <div>
+//       <h2 className="text-xl font-semibold text-gray-700 mb-4">Consultants</h2>
+//       {data ? (
+//         <Table
+//           rowKey="ID"
+//           columns={columns}
+//           dataSource={data}
+//           pagination={false}
+//           bordered
+//           scroll={{ x: "max-content" }}
+//         />
+//       ) : (
+//         <TableSkeleton />
+//       )}
+//     </div>
+//   );
+// };
+
+// export default Faculty;
+
+
+import React, { useEffect, useState } from "react";
+import { Table, Input } from "antd";
 import axios from "axios";
 import { base_URL } from "../../utills/baseUrl";
-import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
+import TableSkeleton from "../../utills/TableSkeleton";
+import { SearchOutlined } from "@ant-design/icons";
 
 const Faculty = () => {
-
-  const [reRendering, setReRendering] = useState(false);
   const [data, setData] = useState(null);
-  const [editdata, setEditdata] = useState(null);
-  const memoizedEditdata = useMemo(() => editdata, [editdata]);
+  const [search, setSearch] = useState("");
 
-
-  const deleteHandler = async (data) => {
-    // console.log(data , "row data in delete handler");
-    try {
-      const res = await axios.delete(`${base_URL}/api/faculty/${data?.ID}`);
-      // console.log(res , "res of delete facul5ty");
-      toast.success(res?.data?.message)
-      setReRendering(prev => !prev);
-
-    }
-    catch (err) {
-      // console.log(err, "error in delete faculty");
-      toast.error(err?.response?.data?.message)
-    }
-  }
-
+  const filtered = data?.filter(r =>
+    r.NAME.toLowerCase().includes(search.toLowerCase())
+  );
 
   const columns = [
     { title: "Id", dataIndex: "ID", key: "id" },
-    { title: "Consultant Name", dataIndex: "NAME", key: "consultantName" },
-    {
-      title: "Action",
-      key: "action",
-      render: (cellValue, rowData, rowIndex) => (
-        <div className="flex gap-2">
-          <Button onClick={() => setEditdata(rowData)} type="primary">Edit</Button>
-          <Button onClick={() => deleteHandler(rowData)} danger>Delete</Button>
-        </div>
-      ),
-    },
+    { title: "Faculty Name", dataIndex: "NAME", key: "facultyName" },
   ];
 
-
   useEffect(() => {
-
-    const foo = async () => {
+    const fetchFaculties = async () => {
       try {
-        const res = await axios.get(`${base_URL}/api/faculty/get`);
-        // console.log(res, "res of get faculty");
+        const res = await axios.get(`${base_URL}/api/admin/hms-faculties`);
         setData(res.data.data);
+      } catch (err) {
+        console.error("Error fetching faculties:", err);
       }
-      catch (err) {
-        // console.log(err, "error in get faculty");
-        //  toast.error(err?.message)
-      }
-    }
-    foo()
-
-  }, [reRendering])
-
+    };
+    fetchFaculties();
+  }, []);
 
   return (
+    <div>
+      <h2 className="text-xl font-semibold text-gray-700 mb-4">Faculty</h2>
 
-    <ImageUploadPage
-      title="Add Consultant"
-      inputLabel="Consultant Name"
-      showUpload={false}
-      columns={columns}
-      data={data}
-      editdata={memoizedEditdata}
-      setEditdata={setEditdata}
-      setReRendering={setReRendering}
-      purpose="addFaculty"
-      addRoute="api/faculty/add"
-      editRoute="api/faculty/add"
-    />
+      <Input
+        prefix={<SearchOutlined className="text-gray-400" />}
+        placeholder="Search faculty..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="mb-4"
+        allowClear
+        style={{ maxWidth: 300 }}
+      />
+
+      {data ? (
+        <Table
+          rowKey="ID"
+          columns={columns}
+          dataSource={filtered}
+          pagination={false}
+          bordered
+          scroll={{ x: "max-content" }}
+        />
+      ) : (
+        <TableSkeleton />
+      )}
+    </div>
   );
 };
 

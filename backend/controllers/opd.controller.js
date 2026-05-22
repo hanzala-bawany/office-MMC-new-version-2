@@ -1,7 +1,57 @@
 const oracledb = require("oracledb");
 const poolPromise = require("../database.js");
+// const { getScreensForFaculty, getDoctorFacultyId } = require("../utills/helperFunc.js");
 
-//-------Queue Display Screen--------------------
+//-------HELPER FUNCTIONS START--------------------
+
+
+ const getScreensForFaculty = async (connection, facultyId) => {
+  try {
+    const result = await connection.execute(
+      `SELECT screen_id FROM screen_faculty_map 
+       WHERE faculty_id = :facultyId`,
+      { facultyId },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+    return result.rows.map((r) => r.SCREEN_ID);
+  } catch {
+    return [];
+  }
+};
+
+ const getDoctorFacultyId = async (connection, doctorId) => {
+  try {
+    const result = await connection.execute(
+      `SELECT facultyid FROM hms.consultant WHERE id = :id`,
+      { id: doctorId },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+    return result.rows[0]?.FACULTYID || null;
+  } catch {
+    return null;
+  }
+};
+
+// ======= REUSABLE SOCKET EMIT HELPER =======
+const emitToScreens = async (connection, io, doctorId, payload) => {
+  try {
+    const facultyId = await getDoctorFacultyId(connection, doctorId);
+    const screenIds = await getScreensForFaculty(connection, facultyId);
+    screenIds.forEach((sid) => {
+      io.to(`screen_${sid}`).emit("QUEUE_UPDATED", {
+        ...payload,
+        screenId: parseInt(sid),
+      });
+    });
+  } catch (err) {
+    console.error("emitToScreens error:", err);
+  }
+};
+
+// END
+
+
+
 
 const getPronounceNameByDoctorId = async (connection, doctorId) => {
   try {
@@ -198,9 +248,6 @@ const getDoctorPatientsWithStats = async (req, res) => {
   }
 };
 
-
-
-
 const getDoctorNextPatient = async (req, res) => {
   let connection;
 
@@ -298,16 +345,52 @@ const getDoctorNextPatient = async (req, res) => {
     console.log(currentPatient, "<<<<<<<<<<<<<<<<<<<<<<");
 
     // ================= SOCKET EMIT =================
-    // if (currentPatient) {
+
+    // const io = req.app.get("io");
+    // io.emit("QUEUE_UPDATED", {
+    //   type: "NEXT_PATIENT",
+    //   doctorId,
+    //   patientToken: currentPatient?.TOKENNO_1,
+    //   doctorName: currentPatient?.DOCTOR_NAME,
+    //   roomNo: currentPatient?.ROOM_NO,
+    //   pronounceName: currentPatient?.PRONOUNCE_NAME,
+    // });
+
+    const facultyId = await getDoctorFacultyId(connection, doctorId);
+    const screenIds = await getScreensForFaculty(connection, facultyId);
+
+    // if (currentPatient && screenId) {
     const io = req.app.get("io");
-    io.emit("QUEUE_UPDATED", {
+
+    // ✅ Emit ONLY to the specific screen room
+    // io.to(`screen_${screenId}`).emit("QUEUE_UPDATED", {
+    //   type: "NEXT_PATIENT",
+    //   doctorId,
+    //   patientToken: currentPatient?.TOKENNO_1,
+    //   doctorName: currentPatient?.DOCTOR_NAME,
+    //   roomNo: currentPatient?.ROOM_NO,
+    //   pronounceName: currentPatient?.PRONOUNCE_NAME,
+    //   screenId: screenId,
+    // });
+
+    const payload = {
       type: "NEXT_PATIENT",
       doctorId,
       patientToken: currentPatient?.TOKENNO_1,
       doctorName: currentPatient?.DOCTOR_NAME,
       roomNo: currentPatient?.ROOM_NO,
       pronounceName: currentPatient?.PRONOUNCE_NAME,
+    };
+
+    // ✅ Har screen ko alag emit karo
+    screenIds.forEach((sid) => {
+      io.to(`screen_${sid}`).emit("QUEUE_UPDATED", { ...payload , screenId: parseInt(sid), });
+      console.log(`📡 Emitted to screen_${sid}`);
     });
+
+    console.log(
+      `📡 Emitted to screen_${screenIds} for doctor ${doctorId} which has faculty id ${facultyId}`,
+    );
     // }
 
     res.json({
@@ -381,19 +464,20 @@ const getDoctorNextPatientSkip = async (req, res) => {
     await rs.close();
 
     const nextPatient = rows[0] || null;
-    console.log(nextPatient, "<<<<<<<<<<<<<<<< NEXT SKIP PATIENT");
+    // console.log(nextPatient, "<<<<<<<<<<<<<<<< NEXT SKIP PATIENT");
 
     // ================= SOCKET EMIT =================
 
     const io = req.app.get("io");
-    io.emit("QUEUE_UPDATED", {
+    const payload = {
       type: "NEXT_PATIENT_SKIP",
       doctorId,
       patientToken: nextPatient?.TOKENNO_1,
       doctorName: nextPatient?.DOCTOR_NAME,
       pronounceName: nextPatient?.PRONOUNCE_NAME,
       roomNo: nextPatient?.ROOM_NO,
-    });
+    };
+    await emitToScreens(connection, io, doctorId, payload);
 
     res.json({
       success: true,
@@ -418,7 +502,7 @@ const getDoctorNextPatientSkip = async (req, res) => {
   }
 };
 
-// ------- NEXT PATIENT QUEUE API with SOCKET { skip call } ------------------
+// ------- NEXT PATIENT QUEUE API with SOCKET { kaam ki nahi he } ------------------
 const getDoctorNextPatientQueue = async (req, res) => {
   let connection;
 
@@ -508,12 +592,13 @@ const getDoctorNextPatientQueue = async (req, res) => {
     // ================= SOCKET EMIT =================
 
     const io = req.app.get("io");
-    io.emit("QUEUE_UPDATED", {
+    const payload = {
       type: "NEXT_PATIENT_QUEUE",
       doctorId,
       patientToken: nextPatient?.TOKENNO_1,
       doctorName: nextPatient?.DOCTOR_NAME,
-    });
+    };
+    await emitToScreens(connection, io, doctorId, payload);
 
     res.json({
       success: true,
@@ -588,10 +673,12 @@ const cancelAllDoctorPatients = async (req, res) => {
 
     // SOCKET EMIT
     const io = req.app.get("io");
-    io.emit("QUEUE_UPDATED", {
+
+    const payload = {
       type: isRestore ? "DOCTOR_RESTORED" : "CANCEL_ALL_PATIENTS",
       doctorId,
-    });
+    };
+    await emitToScreens(connection, io, doctorId, payload);
 
     if (!isRestore) {
       io.emit("opdUpdated", {
@@ -724,14 +811,15 @@ const doctorCallTokenByNumber = async (req, res) => {
 
     if (currentPatient) {
       const io = req.app.get("io");
-      io.emit("QUEUE_UPDATED", {
+      const payload = {
         type: "MANUAL_CALL_TOKEN",
         doctorId,
         patientToken: currentPatient.TOKENNO_1,
         doctorName: currentPatient.DOCTOR_NAME,
         pronounceName: currentPatient?.PRONOUNCE_NAME,
         roomNo: currentPatient?.ROOM_NO,
-      });
+      };
+      await emitToScreens(connection, io, doctorId, payload);
     }
 
     res.json({
@@ -777,14 +865,17 @@ const repeatCallPatient = async (req, res) => {
     );
     const roomNum = await getRoomNoByDoctorId(connection, doctorId);
 
-    io.emit("QUEUE_UPDATED", {
+    const payload = {
       type: "REPEAT_CALL",
       doctorId,
       patientToken: patientToken,
       doctorName: doctorName,
       pronounceName: pronounceName,
       roomNo: roomNum,
-    });
+    };
+    await emitToScreens(connection, io, doctorId, payload);
+
+    // console.log(`📡 Emitted to screen_${screenIds} for doctor ${doctorId}`);
 
     res.json({
       success: true,
@@ -1028,12 +1119,11 @@ const doctorStop = async (req, res) => {
 
     // Socket emit
     const io = req.app.get("io");
-    io.emit("QUEUE_UPDATED", {
+    const payload = {
       type: "DOCTOR_ON_BREAK",
       doctorId,
-      // patientToken: patientToken,
-      // doctorName: doctorName,
-    });
+    };
+    await emitToScreens(connection, io, doctorId, payload);
 
     res.json({ success: true });
   } catch (err) {
@@ -1077,10 +1167,8 @@ const doctorResumeBreak = async (req, res) => {
     );
 
     const io = req.app.get("io");
-    io.emit("QUEUE_UPDATED", {
-      type: "DOCTOR_RESUMED",
-      doctorId,
-    });
+    const payload = { type: "DOCTOR_RESUMED", doctorId };
+    await emitToScreens(connection, io, doctorId, payload);
 
     res.json({ success: true, message: "Break resumed successfully" });
   } catch (err) {
@@ -1402,6 +1490,59 @@ const getActiveConsultants1 = async (req, res) => {
   }
 };
 
+// Screen se patients — mapping auto read karke filter lagao
+const getTodayDoctorPatientsByScreen = async (req, res) => {
+  let connection;
+  try {
+    const { patientStatus, screenId } = req.query;
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    let facultyId = null;
+
+    if (screenId) {
+      const mapResult = await connection.execute(
+        `SELECT LISTAGG(faculty_id, ',')
+                WITHIN GROUP (ORDER BY faculty_id) AS faculty_ids
+         FROM screen_faculty_map
+         WHERE screen_id = :screenId`,
+        { screenId },
+        { outFormat: oracledb.OUT_FORMAT_OBJECT },
+      );
+
+      const mapped = mapResult.rows[0]?.FACULTY_IDS;
+      facultyId = mapped && mapped.trim() !== "" ? mapped : null;
+    }
+
+    const result = await connection.execute(
+      `BEGIN get_today_doctor_patients1(:VPatientStatus, :VFacultyId, :cursor); END;`,
+      {
+        VPatientStatus: patientStatus ? Number(patientStatus) : null,
+        VFacultyId: facultyId,
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+
+    const rs = result.outBinds.cursor;
+    const rows = await rs.getRows();
+    await rs.close();
+
+    res.status(200).json({
+      status: 200,
+      count: rows.length,
+      screenId: screenId || null,
+      facultyFilter: facultyId,
+      data: rows,
+    });
+  } catch (err) {
+    res.status(500).json({ status: 500, error: err.message });
+  } finally {
+    if (connection) await connection.close().catch(() => {});
+  }
+};
+
 module.exports = {
   getTodayDoctorPatients,
   getDoctorNextPatient,
@@ -1420,4 +1561,5 @@ module.exports = {
   getPatientVitals,
   getActiveConsultants1,
   doctorResumeBreak,
+  getTodayDoctorPatientsByScreen,
 };

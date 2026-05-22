@@ -189,6 +189,15 @@ const DoctorDashboard = () => {
   });
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    primaryDiagnosis: [],
+    medicalTests: [],
+    treatment: "",
+    primaryComplain: "",
+    medicines: [],
+    medicinePlan: "",
+  });
+
 
   // console.log(isCancelClick, "<<<<<<< isCancelClick");
   // console.log(loginUserData, "<<<<<<< loginUserData");
@@ -214,10 +223,11 @@ const DoctorDashboard = () => {
       const res = await axios.get(`${base_URL}/api/opd/doctor-patients/${loginUserData?.doctorId}`,);
       // console.log(res, "res of get DocotrDetail by id");
       setPatientsData(res?.data?.data);
-      if(res?.data?.data?.isLoggedIn == 0){
+      if (res?.data?.data?.isLoggedIn === 0) {
+        console.log("isLoggedIn 0 ho chuka he >>>>>>>>> ", res?.data?.data?.isLoggedIn == 0);
         logout()
       }
-      
+
     } catch (err) {
       // console.log(err, "error in get faculty");
       toast.error(err?.message);
@@ -241,12 +251,45 @@ const DoctorDashboard = () => {
   }, [patientsData?.patients?.[0]?.MRNO]);
 
 
+  const specificCallingHandler = useCallback(async (tokenNo) => {
+
+    try {
+      const res = await axios.post(
+        `${base_URL}/api/opd/doctor/patient-specific-call`,
+        {
+          doctorId: loginUserData?.doctorId,
+          tokenNo: tokenNo || null,
+          remarks: formData?.primaryComplain || null,
+          primaryDiagnosis: formData?.primaryDiagnosis || null,
+          medicalTests: formData?.medicalTests || null,
+          treatment: formData?.treatment || null,
+          medicine: formData?.medicines || null,
+          medicalPlan: formData?.medicinePlan || null,
+        }
+      );
+      await foo();
+      if (patientsData?.patientsRemaining > 0 || patientsData?.patientsSkipped > 0) {
+        toast.success(`Next Patient is Coming`);
+      } else {
+        toast.info(`Patient Not yet`);
+      }
+      setFormData({
+        primaryDiagnosis: [],
+        medicalTests: [],
+        treatment: "",
+        primaryComplain: "",
+        medicines: [],
+        medicinePlan: "",
+      });
+    } catch (err) {
+      toast.error(err?.message);
+    }
+
+  }, [formData, loginUserData?.doctorId]);
 
   const startTour = () => {
     driverObj.drive();
   };
-
-
 
   useEffect(() => {
     foo();
@@ -281,10 +324,18 @@ const DoctorDashboard = () => {
         doctorData={loginUserData}
         patientsData={patientsData}
         loginUserData={loginUserData}
+        specificCallingHandler={specificCallingHandler}
       />
 
       {/* Middle Section */}
-      <MidSection patientsData={patientsData} docPatientData={foo} lastVisit={lastVisit} />
+      <MidSection
+        patientsData={patientsData}
+        docPatientData={foo}
+        lastVisit={lastVisit}
+        specificCallingHandlerParent={specificCallingHandler}
+        formData={formData}
+        setFormData={setFormData}
+      />
 
       {/* History */}
       <HistoryTable currentPatientHistory={currentPatientHistory} lastVisit={lastVisit} />

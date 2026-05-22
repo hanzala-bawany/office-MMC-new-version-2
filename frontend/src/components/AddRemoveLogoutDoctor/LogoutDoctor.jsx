@@ -20,7 +20,7 @@ const LogoutDoctor = () => {
 
         setFetchLoading(true);
         try {
-            const res = await axios.get(`${base_URL}/api/opd/consultants/active1?loggedIn=1`);
+            const res = await axios.get(`${base_URL}/api/opd/consultants/active1`);
             console.log(res, "res of logout docotr");
             setLogoutDoctor(res?.data?.data || [])
         } catch (err) {
@@ -127,7 +127,7 @@ const LogoutDoctor = () => {
                     loading={loading}
                     onClick={handleLogoutDoctor}
                 >
-                    Logout Doctor 
+                    Logout Doctor
                 </Button>
             </div>
 

@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, Modal } from "antd";
+import { Avatar, Button, Card, Modal, Badge, Spin } from "antd";
 import { memo, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,10 @@ import { base_URL } from "../../utills/baseUrl";
 import axios from "axios";
 import { socket } from "../../socket/socket";
 
-const Header = ({ doctorData, patientsData, onStartTour , loginUserData  }) => {
+
+
+const Header = ({ doctorData, patientsData, onStartTour, loginUserData, specificCallingHandler }) => {
+
   // console.log(patientsData, "patientsData >>>>>>>>>>>");
   // console.log(doctorData, "doctorData >>>>>>>>>>>");
 
@@ -28,41 +31,47 @@ const Header = ({ doctorData, patientsData, onStartTour , loginUserData  }) => {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [patientModal, setPatientModal] = useState(null); // "waiting" | "skipped" | null
+  const [callingToken, setCallingToken] = useState(null); // loading state per patient
   const stats = [
     {
       id: 1,
-      driverId : "stat-today-appointments",
+      driverId: "stat-today-appointments",
       title: "Today Appointments",
       value: patientsData?.todayAppointments,
       icon: <FaCalendarAlt />,
+      onClick: null, // clickable nahi
     },
     {
       id: 2,
-      driverId : "stat-patients-checked",
+      driverId: "stat-patients-checked",
       title: "Patients Checked",
       value: patientsData?.patientsChecked,
       icon: <FaUserCheck />,
+      onClick: null,
     },
     {
       id: 3,
-      driverId : "stat-patients-waiting",
+      driverId: "stat-patients-waiting",
       title: "Patients Waiting",
       value: patientsData?.patientsRemaining,
       icon: <FaUserClock />,
+      onClick: () => setPatientModal("waiting"), // ✅ clickable
     },
     {
       id: 4,
-      driverId : "stat-patients-skipped",
+      driverId: "stat-patients-skipped",
       title: "Patients Skipped",
       value: patientsData?.patientsSkipped,
       icon: <FaUserTimes />,
+      onClick: () => setPatientModal("skipped"), // ✅ clickable
     },
   ];
 
 
   const logoutHandler = async () => {
 
-     try {
+    try {
       setLogoutLoading(true);
       const res = await axios.post(`${base_URL}/api/auth/logout`, {
         doctorId: doctorData?.doctorId,
@@ -82,20 +91,124 @@ const Header = ({ doctorData, patientsData, onStartTour , loginUserData  }) => {
     navigate("/login");
   };
 
+  const waitingList = patientsData?.skippedTokenList?.filter(p =>
+    p.TOKENNO?.toString().includes("waiting")
+  ) || [];
+
+  const skippedList = patientsData?.skippedTokenList?.filter(p =>
+    !p.TOKENNO?.toString().includes("waiting")
+  ) || [];
+
+  const handleCallPatient = async (patient) => {
+    // Token number se sirf number nikalo: "1 (waiting)" → 1
+    const rawToken = patient.TOKENNO?.toString().split(" ")[0];
+    const tokenNo = Number(rawToken);
+
+    setCallingToken(tokenNo);
+    await specificCallingHandler(tokenNo);
+    setCallingToken(null);
+    setPatientModal(null); // modal band karo
+  };
+
+  // Patient list modal ka content
+  const PatientListModal = ({ type }) => {
+
+    const list = type === "waiting" ? waitingList : skippedList;
+    const title = type === "waiting" ? "⏳ Waiting Patients" : "⏭️ Skipped Patients";
+    const emptyMsg = type === "waiting" ? "Koi patient wait nahi kar raha" : "Koi patient skip nahi hua";
+    const badgeColor = type === "waiting" ? "blue" : "orange";
+
+    return (
+      <Modal
+        open={patientModal === type}
+        onCancel={() => setPatientModal(null)}
+        footer={null}
+        centered
+        width={480}
+        title={
+          <div className="flex items-center gap-2 text-lg font-bold">
+            {type === "waiting"
+              ? <FaUserClock className="text-blue-500" />
+              : <FaUserTimes className="text-orange-500" />
+            }
+            {title}
+            <Badge count={list.length} color={badgeColor} />
+          </div>
+        }
+      >
+        {
+          list.length === 0 ? (
+            <div className="text-center py-10 text-gray-400">
+              <p className="text-4xl mb-3">🙌</p>
+              <p>{emptyMsg}</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto py-2 pr-1">
+              {
+                list?.map((patient) => {
+                  const tokenNo = Number(patient.TOKENNO?.toString().split(" ")[0]);
+                  const isLoading = callingToken === tokenNo;
+
+                  return (
+                    <div
+                      key={patient.TOKENNO}
+                      className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+                    >
+                      {/* Left: Patient Info */}
+                      <div className="flex items-center gap-3">
+                        {/* Token Badge */}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm ${type === "waiting" ? "bg-blue-500" : "bg-orange-500"}`}>
+                          {tokenNo}
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-gray-800 text-sm">
+                            {patient.PATIENTNAME || "N/A"}
+                          </p>
+                          <div className="flex gap-3 text-xs text-gray-500 mt-0.5">
+                            <span>Age: {patient.AGE || "N/A"}</span>
+                            <span>•</span>
+                            <span>{patient.GENDER || "N/A"}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Call Button */}
+                      <Button
+                        type="primary"
+                        size="small"
+                        loading={isLoading}
+                        onClick={() => handleCallPatient(patient)}
+                        className={type === "waiting"
+                          ? "bg-blue-500 border-none"
+                          : "bg-orange-500 border-none hover:bg-orange-600"
+                        }
+                      >
+                        {isLoading ? "Calling..." : "Call"}
+                      </Button>
+                    </div>
+                  );
+                })}
+            </div>
+          )
+        }
+      </Modal>
+    );
+  };
 
   useEffect(() => {
     socket.on(`${loginUserData?.doctorId}`, () => {
       logoutHandler();
     });
   }, []);
-  
+
 
 
   return (
     <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:gap-25 w-full justify-between">
 
       <Modal open={openProfile} onCancel={() => setOpenProfile(false)} footer={null} centered width={400} >
-        
+
         <div className="flex flex-col items-center text-center py-4">
           <h2 className="text-xl font-bold text-slate-800 ">
             {" "}
@@ -132,17 +245,6 @@ const Header = ({ doctorData, patientsData, onStartTour , loginUserData  }) => {
             Take a Tour / Help Guide
           </Button>
 
-          {/* <Button
-            type="primary"
-            block
-            loading={cancelLoading}
-            icon={<FaTimesCircle />}
-            onClick={cancelAllHandler}
-            className="mt-4 rounded-xl flex items-center justify-center gap-2 bg-blue-500"
-          >
-            Cancel All
-          </Button> */}
-
           <Button
             danger
             type="primary"
@@ -158,6 +260,9 @@ const Header = ({ doctorData, patientsData, onStartTour , loginUserData  }) => {
         </div>
 
       </Modal>
+
+      <PatientListModal type="skipped" />
+      <PatientListModal type="waiting" />
 
       <div className="flex 2xl:flex-col justify-between items-center 2xl:items-start gap-4 mb-8 2xl:w-fit ">
 
@@ -205,36 +310,40 @@ const Header = ({ doctorData, patientsData, onStartTour , loginUserData  }) => {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-4  gap-6 mb-8">
 
-        {stats?.map((s) => (
-          <div
-            id={s?.driverId}
-            key={s?.id}
-            className={`relative p-[2px] rounded-2xl  bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 `}
-          >
-            <div  className="rounded-2xl bg-white backdrop-blur-xl p-5 h-full  transition-all duration-300  group-hover:scale-[1.03] group-hover:shadow-2xl">
-              <div className="flex items-center gap-5">
-                {/* Icon Bubble */}
-                <div className=" w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100  text-blue-700 text-xl shadow-inner">
-                  {s?.icon || "👨‍⚕️"}
+        {
+          stats?.map((s) => (
+            <div
+              id={s?.driverId}
+              key={s?.id}
+              onClick={s.onClick}
+              className={`relative p-[2px] rounded-2xl  bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 ${s.onClick && "cursor-pointer"} `}
+            >
+              <div className="rounded-2xl bg-white backdrop-blur-xl p-5 h-full  transition-all duration-300  group-hover:scale-[1.03] group-hover:shadow-2xl">
+                <div className="flex items-center gap-5">
+                  {/* Icon Bubble */}
+                  <div className=" w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100  text-blue-700 text-xl shadow-inner">
+                    {s?.icon || "👨‍⚕️"}
+                  </div>
+
+                  {/* Text */}
+                  <div className="flex flex-col">
+                    <p className="text-gray-500 font-medium text-lg text-start">
+                      {s?.title || "Not yet"}
+                    </p>
+
+                    <p className="text-3xl font-extrabold text-slate-800 leading-tight">
+                      {s?.value || 0}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Text */}
-                <div className="flex flex-col">
-                  <p className="text-gray-500 font-medium text-lg text-start">
-                    {s?.title || "Not yet"}
-                  </p>
-
-                  <p className="text-3xl font-extrabold text-slate-800 leading-tight">
-                    {s?.value || 0}
-                  </p>
-                </div>
+                {/* Glow on hover */}
+                <div className=" absolute inset-0 rounded-2xl opacity-0  group-hover:opacity-100 transition bg-gradient-to-r from-blue-400/10 to-purple-400/10 pointer-events-none" />
               </div>
-
-              {/* Glow on hover */}
-              <div className=" absolute inset-0 rounded-2xl opacity-0  group-hover:opacity-100 transition bg-gradient-to-r from-blue-400/10 to-purple-400/10 pointer-events-none" />
             </div>
-          </div>
-        ))}
+          ))
+        }
+
       </div>
 
     </div>

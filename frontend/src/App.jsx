@@ -28,6 +28,7 @@ import MedicalAssistantParent from './routes/MedicalAssistantParent'
 import PronunciationPage from './pages/PronunciationPage'
 import AddRemoveLogoutDoctor from './pages/AddRemoveLogoutDoctor'
 import DoctorSetupPage from './components/doctorDashboard/Doctorsetuppage'
+import AddScreens from './pages/AddScreens'
 
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
             <Route path="/reception" element={<ReceptionPage />} />
             <Route path="/pronunciation" element={<PronunciationPage />} />
             <Route path="/removeDoctor" element={<AddRemoveLogoutDoctor />} />
+            <Route path="/addScreens" element={<AddScreens />} />
           </Route>
         </Route>
 
@@ -60,8 +62,9 @@ function App() {
           <Route path="/screen2display" element={<Screen2Display />} />
           <Route path="/screen3display" element={<Screen3Display />} />
           <Route path="/screen4display" element={<Screen4Display />} />
-          <Route path="/screen5display" element={<Screen5Display />} />
         </Route>
+          <Route path="/screen/:screenNum" element={<Screen5Display />} />
+
 
         <Route element={<DocotorParent />}>
           <Route path="/doctorDashboard" element={<DoctorDashboard />} />

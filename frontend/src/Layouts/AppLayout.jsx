@@ -1,4 +1,4 @@
-// src/layouts/AppLayout.jsx
+
 import { Layout, Menu, Breadcrumb, theme, Flex } from 'antd';
 import React, { useEffect, useState } from 'react';
 import NavImg from '../assets/MMC logo.png';
@@ -44,7 +44,7 @@ const AppLayout = () => {
     },
     {
       key: "2",
-      icon: FaUserMd ,
+      icon: FaUserMd,
       label: (
         <NavLink to="/consultant">
           Add Consultant
@@ -53,7 +53,7 @@ const AppLayout = () => {
     },
     {
       key: "9",
-      icon: FaMicrophone ,
+      icon: FaMicrophone,
       label: (
         <NavLink to="/pronunciation">
           Add Doctor Pronunciation
@@ -62,12 +62,22 @@ const AppLayout = () => {
     },
     {
       key: "10",
-      icon: FaUserMinus ,
+      icon: FaUserMinus,
       label: (
         <NavLink to="/removeDoctor">
           Doctor Management
         </NavLink>
       ),
+    },
+    {
+      key: "8", icon: FaTextWidth, label: (
+        <span >
+          <NavLink
+            to={`/addScreens`}
+          >
+            Add Screens
+          </NavLink>
+        </span>)
     },
     {
       key: "3",
@@ -178,7 +188,7 @@ const AppLayout = () => {
         {
           key: "5-2", label:
             <NavLink
-              to={`/screen5display`}
+              to={`/screen/5`}
             >
               TV Screen
             </NavLink>
@@ -186,23 +196,67 @@ const AppLayout = () => {
       ],
     },
     {
-      key: "8", icon: FaTextWidth, label: (
-        <span style={{
-          pointerEvents: "none",
-          opacity: 0.4,
-          color: 'gray',
-          fontWeight: "500",
-          cursor: "not-allowed",
-        }}>
-          <NavLink
-            to={`/screens`}
-          >
-            Screens Description
-          </NavLink>
-        </span>)
+      key: "11",
+      icon: LaptopOutlined,
+      label: "Screen 6",
+      children: [
+        {
+          key: "6-2", label:
+            <NavLink
+              to={`/screen/6`}
+            >
+              TV Screen
+            </NavLink>
+        },
+      ],
     },
     {
-      key: "8",
+      key: "12",
+      icon: LaptopOutlined,
+      label: "Screen 7",
+      children: [
+        {
+          key: "7-2", label:
+            <NavLink
+              to={`/screen/7`}
+            >
+              TV Screen
+            </NavLink>
+        },
+      ],
+    },
+    {
+      key: "13",
+      icon: LaptopOutlined,
+      label: "Screen 8",
+      children: [
+        {
+          key: "8-2", label:
+            <NavLink
+              to={`/screen/8`}
+            >
+              TV Screen
+            </NavLink>
+        },
+      ],
+    },
+    {
+      key: "14",
+      icon: LaptopOutlined,
+      label: "Screen 9",
+      children: [
+        {
+          key: "9-2", label:
+            <NavLink
+              to={`/screen/9`}
+            >
+              TV Screen
+            </NavLink>
+        },
+      ],
+    },
+    {
+      key: "15",
       label: (
         <button
           onClick={() => {
@@ -307,21 +361,52 @@ const AppLayout = () => {
 
       {/* BODY */}
       <Layout >
+
         {/* SIDEBAR */}
         <Sider
-          // width={240}
-          style={{ background: colorBgContainer, height: "88vh", overflow: "hidden" }}
-          className={`2xl:!min-w-[240px] 2xl:!max-w-[240px]   transition-all duration-300 ease-in-out z-50 
-          ${isSiderOpen
-              ? " !absolute left-0 ml-0 !h-[calc(100vh-70px)] shadow-lg"
-              : "-ml-[200px] h-0"}
-          md:ml-0  md:static md:h-full  bg-white `}
+          style={{
+            background: colorBgContainer,
+            height: "88vh",
+            overflow: "hidden",
+          }}
+          className={`2xl:!min-w-[240px] 2xl:!max-w-[240px] transition-all duration-300 ease-in-out z-50  ${isSiderOpen ? "!absolute left-0 ml-0 !h-[calc(100vh-70px)] shadow-lg" : "-ml-[200px] h-0"} md:ml-0 md:static md:h-full bg-white`}
         >
-          <Menu
-            style={{ height: "100%", width: "100%", paddingTop: "40px", borderInlineEnd: 0, display: "flex", flexDirection: "column" }}
-            items={items2}
-          />
+
+          {/* Yeh wrapper div flex ka kaam karega */}
+          <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+
+            {/* Scrollable area - logout ke bina */}
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+              <Menu
+                style={{
+                  width: "100%",
+                  paddingTop: "40px",
+                  borderInlineEnd: 0,
+                }}
+                items={items2.filter(item => item.key !== "15")}
+              />
+            </div>
+
+            {/* Logout - hamesha neeche fixed */}
+            <div style={{
+              borderTop: "1px solid #f0f0f0",
+              padding: "12px 0",
+              background: colorBgContainer,
+              flexShrink: 0,  // yeh shrink nahi hoga
+            }}>
+              <Menu
+                style={{
+                  width: "100%",
+                  borderInlineEnd: 0,
+                }}
+                items={items2.filter(item => item.key === "15")}
+              />
+            </div>
+
+          </div>
+
         </Sider>
+
 
         <button className={`flex align-top pt-4 pl-3 md:hidden cursor-pointer z-99 ${isSiderOpen && "absolute"} `}>
           {
@@ -353,7 +438,7 @@ const AppLayout = () => {
           </Content>
         </Layout>
 
-      </Layout>
+      </Layout> 
 
     </Layout>
   );

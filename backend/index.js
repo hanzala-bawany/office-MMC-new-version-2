@@ -19,6 +19,11 @@ const poolPromise = require("./database.js");
 const voiceRoutes = require("./routes/voiceRoutes.js")
 const pronounceRoutes = require("./routes/pronounceRoutes");
 const patientLoginRoutes = require("./routes/patientLogin.Routes.js")
+const displayScreenRoutes = require("./routes/screenDisplayRoutes.js");
+const consultantRoutes = require("./routes/consultantRoutes");
+const consultantFacultyRoutes = require("./routes/consultantFacultyRoutes");
+const doctorReportRoutes = require("./routes/doctorReport.Routes.js")
+const { initSocket } = require("./utills/socket.js");
 
 
 
@@ -28,18 +33,8 @@ const PORT = 3000;
 // 👇 HTTP server
 const server = http.createServer(app);
 
-// 👇 Socket server
-const io = new Server(server, {
-  cors: { origin: "*" },
-});
-
-io.on("connection", (socket) => {
-  console.log("🟢 Socket connected:", socket.id);
-  socket.on("disconnect", () => {
-    console.log("🔴 Socket disconnected");
-  });
-});
-
+// 👇 Socket serveror ye mera index.js e
+const io = initSocket(server);;
 app.set("io", io);
 
 // Middleware
@@ -71,6 +66,10 @@ app.use("/api/opd", opdRoutes);
 app.use("/api/voice", voiceRoutes);
 app.use("/api/pronounce", pronounceRoutes);
 app.use("/api/patient", patientLoginRoutes);
+app.use("/api/admin", displayScreenRoutes);
+app.use("/api/consultants", consultantRoutes);
+app.use("/api/consultant", consultantFacultyRoutes);
+app.use("/api/", doctorReportRoutes);
 
 
 let lastCreatedTime = null;

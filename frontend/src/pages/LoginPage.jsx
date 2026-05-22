@@ -52,7 +52,7 @@ const LoginPage = () => {
       // console.log(res, "login res <<<<<<<<<<<");
       const token = res.data.token;
       const decoded = jwtDecode(token);
-      // console.log(decoded, "decoded <<<<<<");
+      console.log(decoded, "decoded <<<<<<");
 
 
       localStorage.setItem("loginUserData", JSON.stringify(decoded))
@@ -61,26 +61,51 @@ const LoginPage = () => {
       setLoading(false);
 
       if (decoded.role === "admin") {
+
         navigate("/");
+
       }
       else if (decoded.role === "doctor") {
+
         localStorage.setItem("username", JSON.stringify(inputs?.username))
         localStorage.setItem("password", JSON.stringify(inputs?.password));
         navigate("/doctorSetupPage");
+
       }
       else if (decoded.role === "medical_assistant") {
+
         navigate("/medicalAssistant");
+
+      }
+      else if (decoded?.role == "screen" && decoded?.id >= 6 && decoded?.id <= 10) {
+
+        const screenAccessMap = {
+          "005Screen5": { path: "/screen", id: 6  , num : 5},
+          "006Screen6": { path: "/screen", id: 7 , num : 6},
+          "007Screen7": { path: "/screen", id: 8 , num : 7},
+          "008Screen8": { path: "/screen", id: 9 , num : 8},
+          "009Screen9": { path: "/screen", id: 10 , num : 9},
+        };
+
+        const screen = screenAccessMap[decoded.username];
+        if (screen) {
+          navigate(`${screen.path}/${screen.num}`); // ✅ Screen ID pass kar rahe hain
+        } else {
+          navigate("/login");
+        }
+
       }
       else {
+
         const screenAccessMap = {
           "001Screen1": "/screen1display",
           "002Screen2": "/screen2display",
           "003Screen3": "/screen3display",
           "004Screen4": "/screen4display",
-          "005Screen5": "/screen5display",
         };
 
         navigate(screenAccessMap[decoded.username] || "/login");
+
       }
 
       if (decoded.role === "doctor") {
@@ -89,6 +114,7 @@ const LoginPage = () => {
       else {
         toast.success(res?.data?.message);
       }
+
     }
     catch (err) {
       console.log(err, "error");

@@ -15,7 +15,7 @@ import AiAssistant from "./AiAssistant";
 import { BulbOutlined } from "@ant-design/icons";
 import StopModal from "./StopModal";
 
-const MidSection = ({ patientsData, docPatientData , lastVisit }) => {
+const MidSection = ({ patientsData, docPatientData, lastVisit, specificCallingHandlerParent, formData, setFormData }) => {
 
   const loginUserData = JSON.parse(localStorage.getItem("loginUserData"));
   const currentPatientsData = patientsData?.patients?.[0];
@@ -26,14 +26,6 @@ const MidSection = ({ patientsData, docPatientData , lastVisit }) => {
   const [isRepeatCallingHandler, setRepeatCallingHandler] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(false);
   const [specificSearchingToken, setSpecificSearchingToken] = useState(null);
-  const [formData, setFormData] = useState({
-    primaryDiagnosis: [],
-    medicalTests: [],
-    treatment: "",
-    primaryComplain: "",
-    medicines: [],
-    medicinePlan: "",
-  });
   // let patientToken = Number(specificSearchingToken?.split(" ")[0]?.split("-")[1],);
   let patientToken = Number(specificSearchingToken?.split(" ")[0]);
   const hasAppointments = patientsData?.todayAppointments > 0;
@@ -413,46 +405,19 @@ const MidSection = ({ patientsData, docPatientData , lastVisit }) => {
   };
 
   const specificCallingHandler = async () => {
+
     try {
+
       setIsNextLoading(true);
-      const res = await axios.post(
-        `${base_URL}/api/opd/doctor/patient-specific-call`,
-        {
-          doctorId: loginUserData?.doctorId,
-          tokenNo: patientToken || null,
-          remarks: formData?.primaryComplain || null,
-          primaryDiagnosis: formData?.primaryDiagnosis || null,
-          medicalTests: formData?.medicalTests || null,
-          treatment: formData?.treatment || null,
-          medicine: formData?.medicines || null,
-          medicalPlan: formData?.medicinePlan || null,
-        },
-      );
-      // console.log(res, "res of specific Calling Handler by id");
-      await docPatientData();
-      if (
-        patientsData?.patientsRemaining > 0 ||
-        patientsData?.patientsSkipped > 0
-      ) {
-        toast.success(`Next Patient is Coming`);
-      } else {
-        toast.info(`Patient Not yet`);
-      }
-
-      setFormData({
-        primaryDiagnosis: [],
-        medicalTests: [],
-        treatment: "",
-        primaryComplain: "",
-        medicines: [],
-        medicinePlan: "",
-      });
-
+      await onSpecificCall(patientToken);
       setSpecificSearchingToken(null);
       startCooldown();
+
     } catch (err) {
+
       console.log(err, "error in specific Calling Handler");
       toast.error(err?.message);
+
     } finally {
       setIsNextLoading(false);
     }
@@ -550,7 +515,6 @@ const MidSection = ({ patientsData, docPatientData , lastVisit }) => {
 
     return <Button
       onClick={isOnBreak ? resumeManually : () => setIsStopModalOpen(true)}
-      // onClick={() => setIsStopModalOpen(true)}
       style={{
         // width: "15%",
         borderColor: isOnBreak ? "#16a34a" : "#ef4444",
@@ -561,7 +525,7 @@ const MidSection = ({ patientsData, docPatientData , lastVisit }) => {
       className={
         isOnBreak
           ? "hover:border-green-600! hover:text-green-600! hover:bg-green-50! active:bg-green-100! transition-all duration-200"
-          : "hover:border-red-600! hover:text-red-600! hover:bg-red-50! active:bg-red-100! transition-all duration-200"
+          : `hover:border-red-600! hover:text-red-600! hover:bg-red-50! active:bg-red-100! transition-all duration-200 `
       }
     >
       {isOnBreak ? `▶ Resume` : "BREAK"}
@@ -743,7 +707,7 @@ const MidSection = ({ patientsData, docPatientData , lastVisit }) => {
             </Button>
 
 
-            <BreakBtn />
+            <BreakBtn desktop={true} />
 
           </div>
 
@@ -1004,20 +968,8 @@ const MidSection = ({ patientsData, docPatientData , lastVisit }) => {
 
           {/* NEXT BUTTON */}
           <div className="p-4 border-t border-gray-200 flex items-center gap-4 2xl:hidden">
-            {/* TOKEN SELECT */}
-            {/* <div id="dropdown-select-token" className="flex-1">
-              <Select
-                allowClear
-                showSearch
-                placeholder="Select Token"
-                optionFilterProp="label"
-                className="w-full"
-                options={skippedTokenListOptions}
-                onChange={(value) => setSpecificSearchingToken(value)}
-                value={specificSearchingToken}
-              />
-            </div> */}
 
+            {/* TOKEN SELECT */}
             <div id="dropdown-select-token" className="flex-1">
               <Select
                 allowClear
@@ -1107,7 +1059,9 @@ const MidSection = ({ patientsData, docPatientData , lastVisit }) => {
 
             </div>
 
-            <BreakBtn />
+            <div className="flex w-full 2xl:hidden gap-5">
+              <BreakBtn desktop={false} />
+            </div>
 
           </div>
 
