@@ -505,8 +505,8 @@
 
 
 import React, { useEffect, useState } from "react";
-import { Table, Button, Upload, Modal, Image } from "antd";
-import { UploadOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { Table, Button, Upload, Modal, Image, Input } from "antd";
+import { UploadOutlined, DeleteOutlined, EditOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { base_URL } from "../../utills/baseUrl";
 import { toast } from "react-toastify";
@@ -519,6 +519,14 @@ const DoctorTable = () => {
   const [fileList, setFileList] = useState([]);
   const [imageLoading, setImageLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [search, setSearch] = useState("");
+
+  // Filter doctors based on search
+  const filteredDoctors = doctorData?.filter(doctor =>
+    doctor.name?.toLowerCase().includes(search.toLowerCase()) ||
+    doctor.facultyName?.toLowerCase().includes(search.toLowerCase()) ||
+    doctor.id?.toString().includes(search.toLowerCase())
+  );
 
   // ---- Image Upload / Update ----
   const handleImageSave = async () => {
@@ -616,12 +624,23 @@ const DoctorTable = () => {
     <div>
       <h3 className="text-xl font-semibold text-gray-700 mb-4">Doctor Management</h3>
 
+      {/* Search Input - Same as Faculty component */}
+      <Input
+        prefix={<SearchOutlined className="text-gray-400" />}
+        placeholder="Search doctors by name, faculty or ID..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="mb-4"
+        allowClear
+        style={{ maxWidth: 350 }}
+      />
+
       <div className="overflow-x-auto bg-white p-4 rounded-xl shadow">
         {doctorData
           ? <Table
               rowKey="id"
               columns={columns}
-              dataSource={doctorData}
+              dataSource={filteredDoctors}
               pagination={{ pageSize: 15 }}
               bordered
               scroll={{ x: 1000 }}
