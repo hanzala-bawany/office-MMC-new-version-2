@@ -110,6 +110,7 @@ const MidSection = ({ patientsData, docPatientData, lastVisit, specificCallingHa
   // console.log(loginUserData, "<<<<<<<  loginUserData  ");
   // console.log(currentPatientsVitals, "<<<<<<<  currentPatientsVitals ");
   // console.log(lastVisit, "<<<<<<<  lastVisit ");
+  // console.log(patientToken, "<<<<<<<  patientToken ");
 
   // Sample departments data - sirf UI dikhane ke liye
   const departments = [
@@ -409,7 +410,7 @@ const MidSection = ({ patientsData, docPatientData, lastVisit, specificCallingHa
     try {
 
       setIsNextLoading(true);
-      await onSpecificCall(patientToken);
+      await specificCallingHandlerParent(patientToken);
       setSpecificSearchingToken(null);
       startCooldown();
 

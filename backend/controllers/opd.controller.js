@@ -361,18 +361,7 @@ const getDoctorNextPatient = async (req, res) => {
 
     // if (currentPatient && screenId) {
     const io = req.app.get("io");
-
-    // ✅ Emit ONLY to the specific screen room
-    // io.to(`screen_${screenId}`).emit("QUEUE_UPDATED", {
-    //   type: "NEXT_PATIENT",
-    //   doctorId,
-    //   patientToken: currentPatient?.TOKENNO_1,
-    //   doctorName: currentPatient?.DOCTOR_NAME,
-    //   roomNo: currentPatient?.ROOM_NO,
-    //   pronounceName: currentPatient?.PRONOUNCE_NAME,
-    //   screenId: screenId,
-    // });
-
+    
     const payload = {
       type: "NEXT_PATIENT",
       doctorId,

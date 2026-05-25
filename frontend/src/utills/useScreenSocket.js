@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket/socket";
 
 export const useScreenSocket = (screenId, onQueueUpdate) => {
-  
   const [isConnected, setIsConnected] = useState(false);
   const isRegistered = useRef(false);
   const callbackRef = useRef(onQueueUpdate); // ✅ ref mein store karo
@@ -13,8 +12,9 @@ export const useScreenSocket = (screenId, onQueueUpdate) => {
   }, [onQueueUpdate]);
 
   useEffect(() => {
-    
     if (!screenId) return;
+
+    console.log(socket, "socket ,,,,,,,,,,,,,,, ");
 
     if (!socket.connected) {
       socket.connect();
@@ -27,6 +27,14 @@ export const useScreenSocket = (screenId, onQueueUpdate) => {
         socket.emit("REGISTER_SCREEN", screenId);
         isRegistered.current = true;
       }
+    };
+
+    const onReconnect = () => {
+      console.log(
+        `Socket reconnected for screen ${screenId}, re-registering...`,
+      );
+      socket.emit("REGISTER_SCREEN", screenId);
+      isRegistered.current = true;
     };
 
     const onDisconnect = () => {
@@ -45,6 +53,7 @@ export const useScreenSocket = (screenId, onQueueUpdate) => {
     };
 
     socket.on("connect", onConnect);
+    socket.on("reconnect", onReconnect);
     socket.on("disconnect", onDisconnect);
     socket.on("SCREEN_REGISTERED", onScreenRegistered);
     socket.on("QUEUE_UPDATED", onQueueHandler); // ✅ stable function
@@ -57,6 +66,7 @@ export const useScreenSocket = (screenId, onQueueUpdate) => {
 
     return () => {
       socket.off("connect", onConnect);
+      socket.off("reconnect", onReconnect);
       socket.off("disconnect", onDisconnect);
       socket.off("SCREEN_REGISTERED", onScreenRegistered);
       socket.off("QUEUE_UPDATED", onQueueHandler);
