@@ -34,7 +34,6 @@ const LoginPage = () => {
     // console.log(inputs , "<<<<<<<<<<<<");
   }
 
-
   // console.log(savedUsername, "savedUsername");
   // console.log(savedPassword, "savedPassword");
 
@@ -52,7 +51,7 @@ const LoginPage = () => {
       // console.log(res, "login res <<<<<<<<<<<");
       const token = res.data.token;
       const decoded = jwtDecode(token);
-      console.log(decoded, "decoded <<<<<<");
+      // console.log(decoded, "decoded <<<<<<");
 
 
       localStorage.setItem("loginUserData", JSON.stringify(decoded))
@@ -75,6 +74,11 @@ const LoginPage = () => {
       else if (decoded.role === "medical_assistant") {
 
         navigate("/medicalAssistant");
+
+      }
+      else if (decoded.role === "Receptionist") {
+
+        navigate("/receptionist");
 
       }
       else if (decoded?.role == "screen" && decoded?.id >= 6 && decoded?.id <= 10) {

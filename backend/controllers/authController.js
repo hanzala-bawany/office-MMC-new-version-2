@@ -149,18 +149,19 @@ const unifiedLogin = async (req, res) => {
       },
     );
 
-    const { status: hmsStatus, userlevel } = hmsResult.outBinds;
+    const { status: hmsStatus, message: hmsMessage, userlevel } = hmsResult.outBinds;
 
     if (hmsStatus === 1) {
       const token = jwt.sign(
-        { username, role: "medical_assistant" },
+        { username, role: userlevel  },
         process.env.JWT_SECRET,
         { expiresIn: "1d" },
       );
 
       return res.json({
         success: true,
-        role: "medical_assistant",
+        role: userlevel,
+        message: hmsMessage,
         token,
       });
     }

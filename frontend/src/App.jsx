@@ -29,6 +29,7 @@ import PronunciationPage from './pages/PronunciationPage'
 import AddRemoveLogoutDoctor from './pages/AddRemoveLogoutDoctor'
 import DoctorSetupPage from './components/doctorDashboard/Doctorsetuppage'
 import AddScreens from './pages/AddScreens'
+import ReceptionistPage from './pages/ReceptionistPage'
 
 
 function App() {
@@ -64,6 +65,8 @@ function App() {
           <Route path="/screen4display" element={<Screen4Display />} />
         </Route>
           <Route path="/screen/:screenNum" element={<Screen5Display />} />
+
+          <Route path="/receptionist" element={<ReceptionistPage />} />
 
 
         <Route element={<DocotorParent />}>
