@@ -22,6 +22,7 @@ const getDoctorImageById = async (connection, doctorId) => {
 
 // ----------------- MANAGE DOCTOR -----------------
 const manageDoctor = async (req, res) => {
+  
   const file = req?.file || null;
   const body = req.body || {};
   const defaultImageName = !file && body.image && typeof body.image === "string" ? body.image : null;

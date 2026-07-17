@@ -11,7 +11,7 @@ const AdminDisplayParent = () => {
     "002Screen2": "/screen2display",
     "003Screen3": "/screen3display",
     "004Screen4": "/screen4display",
-    "005Screen5": "/screen5display",
+    "005Screen5": "/screen/5",
   };
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
   const allowedPath = screenAccessMap[loginUserData?.username];
@@ -32,6 +32,14 @@ const AdminDisplayParent = () => {
   else if (loginUserData.role == "doctor") {
     toast.error("Only Admin Can Access");
     return <Navigate to="/doctorDashboard" replace />;
+  }
+  else if (loginUserData.role == "Receptionist") {
+    toast.error("Only Admin Can Access");
+    return <Navigate to="/receptionist" replace />;
+  }
+  else if (loginUserData.role == "medical_assistant") {
+    toast.error("Only Admin Can Access");
+    return <Navigate to="/medicalAssistant" replace />;
   }
   else if (allowedPath) {
     toast.error("Only Admin Can Access");
