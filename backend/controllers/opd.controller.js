@@ -1532,6 +1532,75 @@ const getTodayDoctorPatientsByScreen = async (req, res) => {
   }
 };
 
+
+
+// ------- GET PATIENT FULL DETAILS API (by receiptno) --------------------
+const getPatientFullDetails = async (req, res) => {
+  let connection;
+
+  try {
+    const { receiptNo } = req.params; // /opd/patient-full-details/:receiptNo
+
+    if (!receiptNo || receiptNo.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "receiptNo is required",
+      });
+    }
+
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const result = await connection.execute(
+      `
+      BEGIN
+        get_patient_full_details(
+          p_receiptno => :receiptNo,
+          retval      => :cursor
+        );
+      END;
+      `,
+      {
+        receiptNo: receiptNo.trim(),
+        cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+
+    const rs = result.outBinds.cursor;
+    const rows = await rs.getRows();
+    await rs.close();
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No patient found for this receiptNo",
+        data: null,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: rows[0], // ek hi receiptno ka ek hi record hota hai
+    });
+  } catch (err) {
+    console.error("getPatientFullDetails error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch patient full details",
+      error: err.message,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (e) {
+        console.error("Connection close error:", e);
+      }
+    }
+  }
+};
+
 module.exports = {
   getTodayDoctorPatients,
   getDoctorNextPatient,
@@ -1551,4 +1620,5 @@ module.exports = {
   getActiveConsultants1,
   doctorResumeBreak,
   getTodayDoctorPatientsByScreen,
+  getPatientFullDetails
 };

@@ -25,7 +25,7 @@ const AuthParent = () => {
   const allowedPath = screenAccessMap[loginUserData?.username];
   const screenPath = loginUserData?.role == "screen";
   const doctorPath = loginUserData?.role == "doctor";
-  const medicalAssistantPath = loginUserData?.role == "medical_assistant";
+  const medicalAssistantPath = loginUserData?.role == "Medical Assistant";
   const receptionistPath = loginUserData?.role == "Receptionist";
   const adminPath = loginUserData?.role == "admin";
 

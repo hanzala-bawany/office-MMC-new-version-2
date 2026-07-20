@@ -46,7 +46,7 @@ const ScreenDisplayParent = () => {
         toast.error("Access Denied")
         return <Navigate to="/doctorDashboard" replace />;
     }
-    else if (loginUserData.role == "medical_assistant") {
+    else if (loginUserData.role == "Medical Assistant") {
         toast.error("Access Denied")
         return <Navigate to="/medicalAssistant" replace />;
     }

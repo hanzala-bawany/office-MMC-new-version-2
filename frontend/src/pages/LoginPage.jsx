@@ -48,7 +48,7 @@ const LoginPage = () => {
     try {
       setLoading(true);
       const res = await axios.post(`${base_URL}/api/auth/login`, inputs);
-      // console.log(res, "login res <<<<<<<<<<<");
+      console.log(res, "login res <<<<<<<<<<<");
       const token = res.data.token;
       const decoded = jwtDecode(token);
       // console.log(decoded, "decoded <<<<<<");
@@ -71,12 +71,12 @@ const LoginPage = () => {
         navigate("/doctorSetupPage");
 
       }
-      else if (decoded.role === "medical_assistant") {
+      else if (decoded.role === "Medical Assistant") {
 
         navigate("/medicalAssistant");
 
       }
-      else if (decoded.role === "Receptionist") {
+      else if (decoded.role === "Receptionist" || decoded.role?.split("|")[0] === "Receptionist") {
 
         navigate("/receptionist");
 
