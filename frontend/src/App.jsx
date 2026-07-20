@@ -30,6 +30,7 @@ import AddRemoveLogoutDoctor from './pages/AddRemoveLogoutDoctor'
 import DoctorSetupPage from './components/doctorDashboard/Doctorsetuppage'
 import AddScreens from './pages/AddScreens'
 import ReceptionistPage from './pages/ReceptionistPage'
+import PrescriptionReport from './pages/PrescriptionReport'
 
 
 function App() {
@@ -57,6 +58,7 @@ function App() {
           </Route>
         </Route>
 
+
         {/* Screen Displays */}
         <Route element={<ScreenDisplayParent />}>
           <Route path="/screen1display" element={<Screen1Display />} />
@@ -64,16 +66,25 @@ function App() {
           <Route path="/screen3display" element={<Screen3Display />} />
           <Route path="/screen4display" element={<Screen4Display />} />
         </Route>
-          <Route path="/screen/:screenNum" element={<Screen5Display />} />
-
-          <Route path="/receptionist" element={<ReceptionistPage />} />
+        <Route path="/screen/:screenNum" element={<Screen5Display />} />
 
 
+        {/*  Receptionist Page*/}
+        <Route path="/receptionist" element={<ReceptionistPage />} />
+
+
+        {/*  Reprts*/}
+        <Route path="/prescriptionReport" element={<PrescriptionReport />} />
+
+
+        {/*  Doctor*/}
         <Route element={<DocotorParent />}>
           <Route path="/doctorDashboard" element={<DoctorDashboard />} />
           <Route path="/doctorSetupPage" element={<DoctorSetupPage />} />
         </Route>
 
+
+        {/*  Medical Assistant */}
         <Route element={<MedicalAssistantParent />}>
           <Route path="/medicalAssistant" element={<MedicalAssistant />} />
         </Route>
@@ -83,6 +94,7 @@ function App() {
         <Route element={<AuthParent />}>
           <Route path="/login" element={<LoginPage />} />
         </Route>
+
 
         <Route path="/*" element={<NotFoundPage />} />
 

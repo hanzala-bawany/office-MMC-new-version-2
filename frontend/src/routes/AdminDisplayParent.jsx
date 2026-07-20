@@ -37,7 +37,7 @@ const AdminDisplayParent = () => {
     toast.error("Only Admin Can Access");
     return <Navigate to="/receptionist" replace />;
   }
-  else if (loginUserData.role == "medical_assistant") {
+  else if (loginUserData.role == "Medical Assistant") {
     toast.error("Only Admin Can Access");
     return <Navigate to="/medicalAssistant" replace />;
   }

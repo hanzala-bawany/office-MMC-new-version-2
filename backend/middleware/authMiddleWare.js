@@ -1,4 +1,5 @@
 const verifyToken = (req, res, next) => {
+
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; 
 
@@ -10,18 +11,22 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
-  } catch (err) {
+  } 
+  catch (err) {
     return res.status(403).json({
       success: false,
       message: 'Invalid or expired token',
     });
   }
+
 };
 
 const isAdmin = (req, res, next) => {
+
   if (req.user?.role !== 'admin') {
     return res.status(403).json({
       success: false,
@@ -29,6 +34,7 @@ const isAdmin = (req, res, next) => {
     });
   }
   next();
+  
 };
 
 module.exports = { verifyToken, isAdmin };
