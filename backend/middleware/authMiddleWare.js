@@ -1,4 +1,8 @@
-const verifyToken = (req, res, next) => {
+const jwt = require("jsonwebtoken");
+
+
+const verifyToken = (req, res, next) => {  
+
 
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; 
@@ -17,9 +21,9 @@ const verifyToken = (req, res, next) => {
     next();
   } 
   catch (err) {
-    return res.status(403).json({
+    return res.status(401).json({
       success: false,
-      message: 'Invalid or expired token',
+      message: err.message || 'Invalid or expired token',
     });
   }
 

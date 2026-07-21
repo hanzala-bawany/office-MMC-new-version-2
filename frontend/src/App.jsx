@@ -20,6 +20,7 @@ import LoginPage from './pages/LoginPage'
 import AdminDisplayParent from './routes/AdminDisplayParent'
 import AuthParent from './routes/AuthParent'
 import ScreenDisplayParent from './routes/ScreenDisplayParent'
+import ReceptionistParent from './routes/ReceptionistParent'
 import Screen5Display from './pages/Screen5Display'
 import DoctorDashboard from './pages/DoctorDashboard'
 import DocotorParent from './routes/DocotorParent'
@@ -70,7 +71,9 @@ function App() {
 
 
         {/*  Receptionist Page*/}
-        <Route path="/receptionist" element={<ReceptionistPage />} />
+        <Route element={<ReceptionistParent />}>
+          <Route path="/receptionist" element={<ReceptionistPage />} />
+        </Route>
 
 
         {/*  Reprts*/}

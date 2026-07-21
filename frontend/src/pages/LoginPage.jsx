@@ -51,7 +51,7 @@ const LoginPage = () => {
       console.log(res, "login res <<<<<<<<<<<");
       const token = res.data.token;
       const decoded = jwtDecode(token);
-      // console.log(decoded, "decoded <<<<<<");
+      console.log(decoded, "decoded <<<<<<");
 
 
       localStorage.setItem("loginUserData", JSON.stringify(decoded))

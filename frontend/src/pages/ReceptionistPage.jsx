@@ -43,6 +43,7 @@ const ReceptionistPage = () => {
 
 
 
+
     return (
         <div
             className="h-screen overflow-hidden flex flex-col px-4 pb-3 pt-3"

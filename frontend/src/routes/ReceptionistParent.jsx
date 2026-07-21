@@ -8,8 +8,8 @@ const ReceptionistParent = () => {
     const isUserLogin = JSON.parse(localStorage.getItem("loginUser"));
     const loginUserData = JSON.parse(localStorage.getItem("loginUserData") || "{}");
 
-    console.log(isUserLogin , "isUserLogin");
-    console.log(loginUserData , "loginUserData");
+    // console.log(isUserLogin , "isUserLogin");
+    // console.log(loginUserData , "loginUserData");
 
     const isAllow = loginUserData?.role === "Receptionist" || loginUserData?.role === "admin";
 
