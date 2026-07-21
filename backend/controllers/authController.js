@@ -114,7 +114,7 @@ const unifiedLogin = async (req, res) => {
         { id: userid, username, role },
         process.env.JWT_SECRET,
         {
-          expiresIn: "1d",
+          expiresIn: "30d",
         },
       );
 
@@ -155,7 +155,7 @@ const unifiedLogin = async (req, res) => {
       const token = jwt.sign(
         { username, role: userlevel  },
         process.env.JWT_SECRET,
-        { expiresIn: "1d" },
+        { expiresIn: "30d" },
       );
 
       return res.json({
@@ -225,7 +225,7 @@ const unifiedLogin = async (req, res) => {
           faculty: doctor.FACULTY,
         },
         process.env.JWT_SECRET,
-        { expiresIn: "1d" },
+        { expiresIn: "30d" },
       );
 
       const io = req.app.get("io");
