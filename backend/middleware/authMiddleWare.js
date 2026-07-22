@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { DEFAULT } = require("oracledb");
 
 
 const verifyToken = (req, res, next) => {  

@@ -29,19 +29,73 @@ import moment from 'moment';
 import LastSlipIssuedModal from './LastSlipIssuedModal';
 import { useEffect } from 'react';
 import axiosInstance from '../../utills/axiosInstance';
+import useFetch from '../../hooks/useFetch';
+import { useSelector } from 'react-redux';
 
 const { TextArea } = Input;
 const { Option } = Select;
 
 const OPDReceipt = () => {
 
+    const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
     const [form] = Form.useForm();
     const [grossAmount, setGrossAmount] = useState(0);
     const [netAmount, setNetAmount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [showLastVisitModal, setShowLastVisitModal] = useState(false);
-    const [opdCategoryData, setOpdCategoryData] = useState(false);
-    
+    const [selectedLabTestAmounts, setSelectedLabTestAmounts] = useState([]);
+    const [patientTypeId, setPatientTypeId] = useState(null);
+    const [opdCategoryId, setOpdCategoryId] = useState(null);
+
+
+    const { data: opdCategoryData, loading: opdCategorLoading, error: opdCategorError } = useFetch('/api/receptionist/opdCategory');
+    const { data: patientCategoryData, loading: patientCategorLoading, error: patientCategorError } = useFetch('/api/receptionist/patientCategory');
+    const { data: membersData, loading: membersLoading, error: membersError } = useFetch('/api/receptionist/members');
+    const { data: labTestData, loading: labTestLoading, error: labTestError } = useFetch('/api/receptionist/getLabTest');
+
+    const { data: lastPatientData, loading: lastPatientLoading, error: lastPatientError } =
+        useFetch(loginUserData?.username ? `/api/receptionist/lastPatient/${loginUserData?.username}` : null);
+
+    const { data: referenceData, loading: referenceLoading, error: referenceError } =
+        useFetch(patientTypeId ? `/api/receptionist/reference/${patientTypeId}` : null);
+
+    const { data: consultantsData, loading: consultantsLoading, error: consultantsError } =
+        useFetch(opdCategoryId ? '/api/receptionist/allConsultant' : null, { facultyId: opdCategoryId }); // agar value null ya aundefined gai to ye search params me jae ga hoi nahi 
+
+
+
+    // console.log(opdCategoryData , "opdCategoryData ..............");
+    // console.log(patientCategoryData , "patientCategoryData ..............");
+    // console.log(membersData , "membersData ..............");
+    // console.log(labTestData, "labTestData ..............");
+    console.log(referenceData, "referenceData ..............");
+    // console.log(consultantsData, "consultantsData ..............");
+    console.log(patientTypeId, "patientTypeId ..............");
+
+
+    const handleFieldChange = (changedValues, allValues) => {
+
+        console.log(changedValues, "changedValues...");
+        console.log(allValues, "allValues.......");
+
+        // Jab Patient Type (type) change ho
+        if (changedValues.type) {
+            setPatientTypeId(changedValues.type);
+            // Reference field clear karein (optional)
+            form.setFieldsValue({ reference: undefined });
+        }
+
+        // Jab OPD Category (opdCategory) change ho
+        if (changedValues.opdCategory) {
+            setOpdCategoryId(changedValues.opdCategory);
+            // Consultant field clear karein (optional)
+            form.setFieldsValue({ consultant: undefined });
+        }
+    };
+
+
+
+
 
     // Mock data for dropdowns
     const opdCategories = [
@@ -138,22 +192,38 @@ const OPDReceipt = () => {
         setNetAmount(0);
     };
 
-    const fetchOpdCategoryData = async () => {
-        try {
-            const res = await axiosInstance.get('/api/receptionist/opdCategory'); 
-            console.log(res , "res fetch Opd Category Data...............");
-            
-            // setOpdCategoryData(res.data);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            // setLoading(false);
-        }
-    };
+    const labTestHandler = (value, option) => {
 
-    useEffect(() => {
-        fetchOpdCategoryData();
-    }, []);
+        // console.log(value , "value ...");
+        // console.log(option , "option ...");
+
+        const selectedTests = labTestData?.data?.filter(item =>
+            value.includes(item.ID)
+        );
+
+        // Selected tests ke amounts nikaalein
+        const amounts = selectedTests?.map(item => ({
+            id: item.ID,
+            title: item.TITLE,
+            amount: item.HOSPITALRATE
+        }));
+
+        // State update karein
+        setSelectedLabTestAmounts(amounts || []);
+
+        // Form mein labTestAmount field set karein
+        if (amounts?.length > 0) {
+            form.setFieldsValue({
+                labTestAmount: amounts.map(item => item.id)
+            });
+        } else {
+            form.setFieldsValue({
+                labTestAmount: []
+            });
+        }
+
+    }
+
 
 
 
@@ -264,11 +334,12 @@ const OPDReceipt = () => {
                     onFinishFailed={onFinishFailed}
                     initialValues={{
                         date: moment(),
-                        type: 'opd',
+                        // type: 'opd',
                         gender: 'male',
                         payment: 'cash',
                         patientTitle: 'mr',
                     }}
+                    onValuesChange={handleFieldChange}
                 >
 
                     {/* SCROLLABLE FIELDS AREA - only this scrolls, buttons below stay fixed/visible */}
@@ -279,7 +350,7 @@ const OPDReceipt = () => {
 
                             <Form.Item
                                 name="type"
-                                label={<span className="text-xs font-semibold text-gray-600">Type</span>}
+                                label={<span className="text-xs font-semibold text-gray-600">Patient Type</span>}
                                 rules={[{ required: true, message: 'Please select type' }]}
                                 className="mb-0"
                             >
@@ -288,11 +359,12 @@ const OPDReceipt = () => {
                                     className="rounded-lg"
                                     suffixIcon={<span className="text-gray-400">▼</span>}
                                 >
-                                    {types.map(item => (
-                                        <Option key={item.value} value={item.value}>{item.label}</Option>
+                                    {patientCategoryData?.data?.map(item => (
+                                        <Option key={item?.ID} value={item?.ID}>{item?.TITLE}</Option>
                                     ))}
                                 </Select>
                             </Form.Item>
+
 
                             <Form.Item
                                 name="reference"
@@ -305,7 +377,7 @@ const OPDReceipt = () => {
                                     allowClear
                                     suffixIcon={<span className="text-gray-400">▼</span>}
                                 >
-                                    {references.map(item => (
+                                    {referenceData?.data?.map(item => (
                                         <Option key={item.value} value={item.value}>{item.label}</Option>
                                     ))}
                                 </Select>
@@ -354,8 +426,8 @@ const OPDReceipt = () => {
                                     className="rounded-lg"
                                     suffixIcon={<span className="text-gray-400">▼</span>}
                                 >
-                                    {opdCategories.map(item => (
-                                        <Option key={item.value} value={item.value}>{item.label}</Option>
+                                    {opdCategoryData?.data?.map(item => (
+                                        <Option key={item?.ID} value={item?.ID}>{item?.TITLE}</Option>
                                     ))}
                                 </Select>
                             </Form.Item>
@@ -375,8 +447,8 @@ const OPDReceipt = () => {
                                         option.children.toLowerCase().includes(input.toLowerCase())
                                     }
                                 >
-                                    {consultants.map(item => (
-                                        <Option key={item.value} value={item.value}>{item.label}</Option>
+                                    {consultantsData?.data?.map(item => (
+                                        <Option key={item.ID} value={item.ID}>{item.NAME}</Option>
                                     ))}
                                 </Select>
 
@@ -395,19 +467,13 @@ const OPDReceipt = () => {
                                     className="rounded-lg"
                                     suffixIcon={<span className="text-gray-400">▼</span>}
                                     allowClear
-                                    onChange={(value, option) => {
-                                        const selectedTests = labTest?.filter(item =>
-                                            value.includes(item.id)
-                                        );
-                                        const amounts = selectedTests?.map(item => item.amount);
-                                        console.log(amounts, "amounts ,,,,,,,,,");
-                                    }}
+                                    onChange={labTestHandler}
                                     filterOption={(input, option) =>
-                                        option.children.toLowerCase().includes(input.toLowerCase())
+                                        option?.children?.toLowerCase()?.includes(input?.toLowerCase())
                                     }
                                 >
-                                    {labTest.map(item => (
-                                        <Option key={item.id} value={item.id}>{item.label}</Option>
+                                    {labTestData?.data?.map(item => (
+                                        <Option key={item?.ID} value={item?.ID}>{item?.TITLE}</Option>
                                     ))}
                                 </Select>
                             </Form.Item>
@@ -425,8 +491,13 @@ const OPDReceipt = () => {
                                     suffixIcon={<span className="text-gray-400">▼</span>}
                                     mode="multiple"
                                     allowClear
+                                    disabled={selectedLabTestAmounts?.length === 0}
                                 >
-                                    {/* <Option key={item.value} value={item.value}>200</Option> */}
+                                    {selectedLabTestAmounts?.map(item => (
+                                        <Option key={item.id} value={item.id}>
+                                            {item.title} - Rs. {item.amount}
+                                        </Option>
+                                    ))}
 
                                 </Select>
                             </Form.Item>

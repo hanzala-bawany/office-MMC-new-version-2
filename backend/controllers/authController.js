@@ -130,7 +130,7 @@ const unifiedLogin = async (req, res) => {
     // ================== 2️⃣ HMS MEDICAL ASSISTANT ==================
     const hmsResult = await connection.execute(
       `BEGIN
-      hms_user_login(:username,:password,:status,:message,:userlevel);
+      hms_user_login(:username,:password,:status,:message,:userlevel,  :isprevioussessionopen);
    END;`,
       {
         username,
@@ -146,10 +146,15 @@ const unifiedLogin = async (req, res) => {
           type: oracledb.STRING,
           maxSize: 50,
         },
+        isprevioussessionopen: {
+          dir: oracledb.BIND_OUT,
+          type: oracledb.NUMBER,
+          maxSize: 10,
+        },
       },
     );
 
-    const { status: hmsStatus, message: hmsMessage, userlevel } = hmsResult.outBinds;
+    const { status: hmsStatus, message: hmsMessage, userlevel , isprevioussessionopen = null } = hmsResult.outBinds;
 
     if (hmsStatus === 1) {
       const token = jwt.sign(
@@ -163,6 +168,7 @@ const unifiedLogin = async (req, res) => {
         role: userlevel,
         message: hmsMessage,
         token,
+        isprevioussessionopen,
       });
     }
 
