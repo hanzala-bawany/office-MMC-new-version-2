@@ -1,7 +1,6 @@
 const oracledb = require("oracledb");
 const poolPromise = require("../database.js");
 
-
 const getOpdCategory = async (req, res) => {
   let connection;
   try {
@@ -47,7 +46,6 @@ const getOpdCategory = async (req, res) => {
   }
 };
 
-
 const getPatientCategory = async (req, res) => {
   let connection;
   try {
@@ -92,7 +90,6 @@ const getPatientCategory = async (req, res) => {
     }
   }
 };
-
 
 const getAllConsultantByOpdCategory = async (req, res) => {
   const facultyId = req?.query.facultyId;
@@ -143,16 +140,15 @@ const getAllConsultantByOpdCategory = async (req, res) => {
   }
 };
 
-
 const getReference = async (req, res) => {
-  const patientTypeId = req?.params.patientid;
+  // const patientTypeId = req?.params.patientid;
 
-  if (!patientTypeId) {
-    return res.status(400).json({
-      success: false,
-      message: "patientid is required",
-    });
-  }
+  // if (!patientTypeId) {
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: "patientid is required",
+  //   });
+  // }
 
   let connection;
 
@@ -162,9 +158,9 @@ const getReference = async (req, res) => {
 
     // Stored procedure call karo
     const result = await connection.execute(
-      `BEGIN get_reference( vpatientid => :patientTypeId , retval => :retval); END;`,
+      `BEGIN get_reference( retval => :retval); END;`,
       {
-        patientTypeId: patientTypeId,
+        // patientTypeId: patientTypeId,
         retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT },
@@ -198,7 +194,6 @@ const getReference = async (req, res) => {
     }
   }
 };
-
 
 const getAllMembers = async (req, res) => {
   let connection;
@@ -245,10 +240,8 @@ const getAllMembers = async (req, res) => {
   }
 };
 
-
 const getLastPatient = async (req, res) => {
-
-  const userName =  req?.params?.userName?.toString()
+  const userName = req?.params?.userName?.toString();
 
   let connection;
 
@@ -277,12 +270,59 @@ const getLastPatient = async (req, res) => {
       data: data,
       message: "LastPatient fetched successfully",
     });
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("Error in get LastPatient:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching LastPatient",
+      error: error.message,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
+
+
+const getLabTest = async (req, res) => {
+
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // Stored procedure call karo
+    const result = await connection.execute(
+      `BEGIN get_test( :retval ); END;`,
+      {
+        retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+
+    // Cursor se data fetch karo
+    const cursor = result.outBinds.retval;
+    const data = await cursor.getRows();
+    await cursor.close();
+
+    // Response bhejo
+    res.status(200).json({
+      success: true,
+      message: "lab Test fetched successfully",
+      data: data,
+    });
+  } 
+  catch (error) {
+    console.error("Error in get lab Test:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching lab Test",
       error: error.message,
     });
   } 
@@ -295,9 +335,8 @@ const getLastPatient = async (req, res) => {
       }
     }
   }
+
 };
-
-
 
 
 const addEditOpdReceipt = async (req, res) => {
@@ -412,14 +451,17 @@ const addEditOpdReceipt = async (req, res) => {
 
   } 
   catch (error) {
+
     console.error("Error in addEditOpdReceipt:", error);
     res.status(500).json({
       success: false,
       message: "Error processing OPD Receipt",
       error: error.message,
     });
-  } 
+
+  }
   finally {
+
     if (connection) {
       try {
         await connection.close();
@@ -427,8 +469,10 @@ const addEditOpdReceipt = async (req, res) => {
         console.error("Error closing connection:", err);
       }
     }
+
   }
 };
+
 
 
 module.exports = {
@@ -438,5 +482,6 @@ module.exports = {
   getReference,
   getAllMembers,
   addEditOpdReceipt,
-  getLastPatient
+  getLastPatient,
+  getLabTest
 };
