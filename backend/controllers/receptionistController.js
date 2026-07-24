@@ -141,14 +141,14 @@ const getAllConsultantByOpdCategory = async (req, res) => {
 };
 
 const getReference = async (req, res) => {
-  const patientTypeId = req?.params.patientid;
+  // const patientTypeId = req?.params.patientid;
 
-  if (!patientTypeId) {
-    return res.status(400).json({
-      success: false,
-      message: "patientid is required",
-    });
-  }
+  // if (!patientTypeId) {
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: "patientid is required",
+  //   });
+  // }
 
   let connection;
 
@@ -158,9 +158,9 @@ const getReference = async (req, res) => {
 
     // Stored procedure call karo
     const result = await connection.execute(
-      `BEGIN get_reference( vpatientid => :patientTypeId , retval => :retval); END;`,
+      `BEGIN get_reference( retval => :retval); END;`,
       {
-        patientTypeId: patientTypeId,
+        // patientTypeId: patientTypeId,
         retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT },
