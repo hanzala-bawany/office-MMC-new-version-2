@@ -1,6 +1,6 @@
 /* Tags ko vertically stack karo */
 .vertical-tags-select .ant-select-selector {
-    max-height: 90px;       /* roughly 3 tags ki height, apni tag height ke hisaab se adjust karo */
+    height: 90px;       /* roughly 3 tags ki height, apni tag height ke hisaab se adjust karo */
     overflow-y: auto;
     display: flex;
 }

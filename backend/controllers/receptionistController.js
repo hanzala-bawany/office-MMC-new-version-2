@@ -1,5 +1,7 @@
 const oracledb = require("oracledb");
 const poolPromise = require("../database.js");
+const { generateNewMrNumber } = require("../utills/helperFunctions/generateMrNum.js");
+
 
 const getOpdCategory = async (req, res) => {
   let connection;
@@ -240,6 +242,61 @@ const getAllMembers = async (req, res) => {
   }
 };
 
+const getMemberDependent = async (req, res) => {
+  const memberNewNum = req?.params.newNo?.toString();
+
+  if (!memberNewNum) {
+    return res.status(400).json({
+      success: false,
+      message: "memberNewNum is required",
+    });
+  }
+
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // Stored procedure call karo
+    const result = await connection.execute(
+      `BEGIN get_members_dependent(:memberNewNum , :retval); END;`,
+      {
+        memberNewNum,
+        retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+
+    // Cursor se data fetch karo
+    const cursor = result.outBinds.retval;
+    const data = await cursor.getRows();
+    await cursor.close();
+
+    // Response bhejo
+    res.status(200).json({
+      success: true,
+      data: data,
+      message: "Member Dependent fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error in get Member Dependent:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching Member Dependent",
+      error: error.message,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
+
 const getLastPatient = async (req, res) => {
   const userName = req?.params?.userName?.toString();
 
@@ -288,9 +345,7 @@ const getLastPatient = async (req, res) => {
   }
 };
 
-
 const getLabTest = async (req, res) => {
-
   let connection;
 
   try {
@@ -317,16 +372,14 @@ const getLabTest = async (req, res) => {
       message: "lab Test fetched successfully",
       data: data,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("Error in get lab Test:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching lab Test",
       error: error.message,
     });
-  } 
-  finally {
+  } finally {
     if (connection) {
       try {
         await connection.close();
@@ -335,12 +388,54 @@ const getLabTest = async (req, res) => {
       }
     }
   }
-
 };
 
+const getUsers = async (req, res) => {
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // Stored procedure call karo
+    const result = await connection.execute(
+      `BEGIN get_users( :retval ); END;`,
+      {
+        retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+
+    // Cursor se data fetch karo
+    const cursor = result.outBinds.retval;
+    const data = await cursor.getRows();
+    await cursor.close();
+
+    // Response bhejo
+    res.status(200).json({
+      success: true,
+      message: "Users fetched successfully",
+      data: data,
+    });
+  } catch (error) {
+    console.error("Error in get Users:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching Users",
+      error: error.message,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
 
 const addEditOpdReceipt = async (req, res) => {
-
   let connection;
   try {
     const pool = await poolPromise;
@@ -374,29 +469,29 @@ const addEditOpdReceipt = async (req, res) => {
       partialAmount,
       netbalance,
       electricitycharges,
-      MRNo,
-      Address,
-      CNIC,
-    } = req.body;
+      laboratoryConsultantid,
+    } = req.body || {};
 
     // Validation - Required fields check karo
-    if (!CatagoryId || !ConsultantID || !PatientName || !User) {
+    if (!CatagoryId || !ConsultantID || !PatientName || !User || !ContactNo) {
       return res.status(400).json({
         success: false,
         message:
-          "Missing required fields: CatagoryId, ConsultantID, PatientName, User are required",
+          "Missing required fields: CatagoryId, ConsultantID, PatientName,ContactNo , User are required",
       });
     }
 
+    const MrNo = await generateNewMrNumber(connection, ContactNo);
+
     // Stored procedure call karo
     const result = await connection.execute(
-      `BEGIN opdreceipt_add_edit(
+      `BEGIN opdreceipt_add_edit_react(
         :ReceiptNo, :TokenNo, :Vdate, :CatagoryId, :ConsultantID, 
         :PatientType, :MemberID, :PatientId, :PatientTitle, :PatientName, 
         :Gender, :ContactNo, :Age, :AgeUnit, :ReferenceId, 
         :Remarks, :GrossAmount, :Discount, :NetAmount, :User, 
         :TerminalId, :status, :isPartial, :partialAmount, :netbalance, 
-        :electricitycharges, :MRNo, :Address, :CNIC, :RetVoucherNo
+        :electricitycharges, :laboratoryConsultantid ,:MrNo , :RetVoucherNo
       ); END;`,
       {
         ReceiptNo: ReceiptNo || null,
@@ -425,9 +520,8 @@ const addEditOpdReceipt = async (req, res) => {
         partialAmount: partialAmount || 0,
         netbalance: netbalance || 0,
         electricitycharges: electricitycharges || 0,
-        MRNo: MRNo || null,
-        Address: Address || null,
-        CNIC: CNIC || null,
+        laboratoryConsultantid: laboratoryConsultantid || null,
+        MrNo: MrNo || null,
         RetVoucherNo: {
           type: oracledb.STRING,
           dir: oracledb.BIND_OUT,
@@ -443,25 +537,21 @@ const addEditOpdReceipt = async (req, res) => {
       success: true,
       data: {
         receiptNo: voucherNo,
+        mrNo: MrNo,
       },
-      message: ReceiptNo
-        ? "OPD Receipt updated successfully"
-        : "OPD Receipt created successfully",
+      message:
+        ReceiptNo && ReceiptNo !== "0" && ReceiptNo !== null
+          ? "OPD Receipt updated successfully"
+          : "OPD Receipt created successfully",
     });
-
-  } 
-  catch (error) {
-
+  } catch (error) {
     console.error("Error in addEditOpdReceipt:", error);
     res.status(500).json({
       success: false,
       message: "Error processing OPD Receipt",
       error: error.message,
     });
-
-  }
-  finally {
-
+  } finally {
     if (connection) {
       try {
         await connection.close();
@@ -469,7 +559,6 @@ const addEditOpdReceipt = async (req, res) => {
         console.error("Error closing connection:", err);
       }
     }
-
   }
 };
 
@@ -483,5 +572,7 @@ module.exports = {
   getAllMembers,
   addEditOpdReceipt,
   getLastPatient,
-  getLabTest
+  getLabTest,
+  getMemberDependent,
+  getUsers,
 };
