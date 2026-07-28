@@ -1,5 +1,5 @@
 const express = require("express");
-const { getPatientCategory, getOpdCategory, getAllConsultantByOpdCategory, getReference, getAllMembers, addEditOpdReceipt, getLastPatient, getLabTest } = require("../controllers/receptionistController");
+const { getPatientCategory, getUsers , getOpdCategory, getAllConsultantByOpdCategory, getReference, getAllMembers, addEditOpdReceipt, getLastPatient, getLabTest, getMemberDependent } = require("../controllers/receptionistController");
 const { verifyToken } = require("../middleware/authMiddleWare");
 
 const receptionistRoutes = express.Router();
@@ -10,12 +10,13 @@ receptionistRoutes.get("/opdCategory", getOpdCategory);
 receptionistRoutes.get("/patientCategory", getPatientCategory);
 receptionistRoutes.get("/allConsultant", getAllConsultantByOpdCategory);
 receptionistRoutes.get("/members", getAllMembers);
+receptionistRoutes.get("/members/:newNo", getMemberDependent);
 receptionistRoutes.get("/reference", getReference);
-// receptionistRoutes.get("/reference/:patientid", getReference);
 receptionistRoutes.get("/lastPatient/:userName", getLastPatient);
 receptionistRoutes.get("/getLabTest", getLabTest);
+receptionistRoutes.get("/users", getUsers);
 
-receptionistRoutes.post("/opdAddPatient", addEditOpdReceipt);
+receptionistRoutes.post("/opdAddandEditPatient", addEditOpdReceipt);
 
 
 module.exports = receptionistRoutes;
