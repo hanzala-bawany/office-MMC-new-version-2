@@ -1,5 +1,5 @@
 // frontend/src/pages/ReceptionistPage.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs } from 'antd';
 import { UserOutlined, SearchOutlined } from '@ant-design/icons';
 import hospitraxLogo from '../assets/productLogoBgRemove.png';
@@ -9,13 +9,15 @@ import OPDReceipt from '../components/Receptionist/OPDReceipt';
 import LastSlipIssuedModal from '../components/Receptionist/LastSlipIssuedModal';
 import LogoutModal from '../utills/LogoutModal';
 import { useSelector } from 'react-redux';
+import SeccionOpenAlertModal from '../components/Receptionist/SeccionOpenAlertModal';
 
 const ReceptionistPage = () => {
 
     const [activeTab, setActiveTab] = useState('1');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
-
+    const [showSessionAlertModal, setShowSessionAlertModal] = useState(false);
+    // console.log(loginUserData , "loginUserData ........");
 
 
     const items = [
@@ -41,6 +43,11 @@ const ReceptionistPage = () => {
         }
     ];
 
+    useEffect(() => {
+        if (loginUserData?.isprevioussessionopen == 1) {
+            setShowSessionAlertModal(true);
+        } 
+    }, [loginUserData]);
 
 
 
@@ -66,6 +73,8 @@ const ReceptionistPage = () => {
             `}</style>
 
             <LogoutModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} loginUserData={loginUserData} />
+
+            <SeccionOpenAlertModal isModalOpen={showSessionAlertModal} setIsModalOpen={setShowSessionAlertModal} loginUserData={loginUserData} />
 
             {/* HEADER - shrink-0 so it never gets squeezed */}
             <header className="shrink-0 flex items-center justify-between mb-4">

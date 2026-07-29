@@ -472,6 +472,9 @@ const addEditOpdReceipt = async (req, res) => {
       laboratoryConsultantid,
     } = req.body || {};
 
+    console.log(req.body , "req.body ...........");
+    
+
     // Validation - Required fields check karo
     if (!CatagoryId || !ConsultantID || !PatientName || !User || !ContactNo) {
       return res.status(400).json({
@@ -506,7 +509,7 @@ const addEditOpdReceipt = async (req, res) => {
         PatientName: PatientName,
         Gender: Gender || null,
         ContactNo: ContactNo || null,
-        Age: Age || null,
+        Age: Age?.toString() || null,
         AgeUnit: AgeUnit || null,
         ReferenceId: ReferenceId || null,
         Remarks: Remarks || null,
@@ -528,6 +531,7 @@ const addEditOpdReceipt = async (req, res) => {
           maxSize: 20,
         },
       },
+      {autoCommit : true}
     );
 
     // ✅ Return voucher number from OUT parameter
@@ -548,8 +552,8 @@ const addEditOpdReceipt = async (req, res) => {
     console.error("Error in addEditOpdReceipt:", error);
     res.status(500).json({
       success: false,
-      message: "Error processing OPD Receipt",
-      error: error.message,
+      message: error.message || "Error processing OPD Receipt",
+      error: error,
     });
   } finally {
     if (connection) {

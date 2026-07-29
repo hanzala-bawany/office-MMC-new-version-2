@@ -1,21 +1,19 @@
-
-// helper func to generate MR num
-// START
+import OracleDB from "oracledb";
 
 export const getOpdDetailsByContactNo = async (connection, contactNo) => {
   const result = await connection.execute(
-    `SELECT * FROM OPDReceipt WHERE contactno = :contactNo`,
+    `SELECT * FROM hms.OPDReceipt WHERE contactno = :contactNo`,
     { contactNo },
-    { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    { outFormat: OracleDB.OUT_FORMAT_OBJECT },
   );
   return result.rows;
 };
 
 export const getMaxMrNo = async (connection) => {
   const result = await connection.execute(
-    `SELECT MAX(MRNo) AS MRNO FROM opdreceipt`,
+    `SELECT    MAX(To_Number(MRNo)) AS MRNO FROM hms.opdreceipt`,
     {},
-    { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    { outFormat: OracleDB.OUT_FORMAT_OBJECT },
   );
   return result.rows;
 };

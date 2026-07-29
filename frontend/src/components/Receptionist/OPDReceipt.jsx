@@ -33,6 +33,7 @@ import useFetch from '../../hooks/useFetch';
 import { useSelector } from 'react-redux';
 import OpdReceiptModal from './opdReceiptModal';
 import './OPDReceipt.css';
+import { toast } from 'react-toastify';
 
 
 
@@ -59,6 +60,7 @@ const OPDReceipt = () => {
     const [selectedMemberNo, setSelectedMemberNo] = useState(null);
     const [selectedMemberPatientId, setSelectedMemberPatientId] = useState(null);
     const discountAmount = Form.useWatch('discountAmount', form);
+    const partialAmount = Form.useWatch('partialPayment', form);
 
     const { data: opdCategoryData, loading: opdCategorLoading, error: opdCategorError } = useFetch('/api/receptionist/opdCategory');
     const { data: patientCategoryData, loading: patientCategorLoading, error: patientCategorError } = useFetch('/api/receptionist/patientCategory');
@@ -102,8 +104,8 @@ const OPDReceipt = () => {
     ];
 
     const partialPayment = [
-        { value: '1', label: "No" },
-        { value: '2', label: "Yes" },
+        { value: 0, label: "No" },
+        { value: 1, label: "Yes" },
     ];
 
     const references = [
@@ -123,17 +125,39 @@ const OPDReceipt = () => {
     // console.log(consultantsData, "consultantsData ..............");
     // console.log(opdCategoryId, "opdCategoryId ..............");
     // console.log(selectedMemberPatientId, "selectedMemberPatientId ..............");
+    // console.log(lastPatientData, "lastPatientData ..............");
+    // console.log(labTestData, "labTestData ..............");
+    
 
     useEffect(() => {
+
         form.setFieldsValue({ grossPayment: grossAmount });
-        // form.setFieldsValue({ discountAmount: grossAmount });
+        if (grossAmount === 0) {
+            form.setFieldsValue({
+                discountAmount: 0,
+                partialPayment: 0,
+                netPayment: 0,
+                balancePayment: 0,
+            });
+
+        }
     }, [grossAmount])
 
     useEffect(() => {
+
         const discount = Number(discountAmount) || 0;
-        const net = grossAmount - discount;
-        form.setFieldsValue({ netPayment: net < 0 ? 0 : net });
-    }, [grossAmount, discountAmount]);
+        const partial = Number(partialAmount) || 0;
+
+        if (!partial) {
+            const net = grossAmount - discount;
+            form.setFieldsValue({ netPayment: net < 0 ? 0 : net });
+        } else {
+            form.setFieldsValue({ netPayment: partial });
+            const balance = (grossAmount - discount) - partial;
+            form.setFieldsValue({ balancePayment: balance < 0 ? 0 : balance });
+        }
+
+    }, [grossAmount, discountAmount, partialAmount]);
 
 
 
@@ -159,14 +183,14 @@ const OPDReceipt = () => {
 
         try {
             const payload = {
-                ReceiptNo: null,                      
-                TokenNo: null,                            
+                ReceiptNo: null,
+                TokenNo: null,
                 Vdate: values.date ? values.date.format('DD-MMM-YYYY HH:mm:ss') : null,
                 CatagoryId: values.opdCategory,
                 ConsultantID: values.consultant,
                 PatientType: values.type,
-                MemberID: values.members || null,        // member select kiya to uska NEWNO, warna null
-                PatientId: showMember ? selectedMemberPatientId : null,  // member dependent select karne se aayi value
+                MemberID: values.members || null,
+                PatientId: showMember ? selectedMemberPatientId : null,
                 PatientTitle: values.patientTitle,
                 PatientName: values.patientName || null,
                 Gender: values.gender,
@@ -180,25 +204,25 @@ const OPDReceipt = () => {
                 NetAmount: Number(values.netPayment),
                 partialAmount: Number(values.partialPayment) || 0,
                 netbalance: Number(values.balancePayment) || 0,
-                User: loginUserData?.username ||  null,
-                TerminalId: null,                          // agar redux/localStorage me terminal id ho to yahan daalo
-                status: 1,                                 // default active status, apne hisaab se adjust karo
-                isPartial: values.isPartial || null,    // "Yes"/"No" string ko boolean me convert kiya
-                electricitycharges: null,                  // form me abhi field nahi he, add karna ho to bata dena
-                laboratoryConsultantid: islabortaryAble ? values.consultant : null,  // lab category ho tab hi bhejna
+                User: loginUserData?.username || null,
+                TerminalId: null,                          //  ye kar na he 
+                status: 0,                                 // ye dekhn ahe 
+                isPartial: values.isPartial || null,
+                electricitycharges: null,                  // ye dekhna he 
+                laboratoryConsultantid: islabortaryAble ? values.consultant : null,  // ye bhi maaloom kar na he 
             };
 
-            console.log("payload........." , payload);
-            
+            console.log("payload.........", payload);
 
-            // const response = await axiosInstance.post('/api/receptionist/opdAddandEditPatient', payload);
 
-            // console.log('Saved successfully:', response.data);
-            // yahan success message/toast dikha sakte ho
+            const res = await axiosInstance.post('/api/receptionist/opdAddandEditPatient', payload);
+
+            console.log('Saved successfully:', res);
+            toast.success(res?.data?.message)
 
         } catch (err) {
             console.error('Error saving OPD receipt:', err);
-            // yahan error message/toast dikha sakte ho
+            toast.error(err?.response?.data?.message || "Failed to generate OPD reciept");
         } finally {
             setAddEditPatientLoading(false);
         }
@@ -234,38 +258,7 @@ const OPDReceipt = () => {
 
         setSelectedLabTestAmounts(amounts || []);
 
-        if (amounts?.length > 0) {
-            form.setFieldsValue({
-                labTestAmount: amounts.map(item => item.id)
-            });
-        } else {
-            form.setFieldsValue({
-                labTestAmount: []
-            });
-        }
-
     }
-
-    const labTestAmountHandler = (value) => {
-
-        const remaining = selectedLabTestAmounts?.filter(item =>
-            value.includes(item.id)
-        ) || [];
-
-        setSelectedLabTestAmounts(remaining);
-
-        // labTest field ko bhi sync karo
-        form.setFieldsValue({
-            labTest: remaining.map(item => item.id)
-        });
-
-        // gross amount wapas calculate karo
-        const total = remaining.reduce(
-            (sum, item) => sum + Number(item.amount || 0),
-            0
-        );
-        setGrossAmount(total);
-    };
 
     const opdCategoryHandler = (value, option) => {
         setIslabortaryAble(value == 2 ? true : false)
@@ -330,7 +323,7 @@ const OPDReceipt = () => {
 
                             <button
                                 onClick={() => {
-                                    console.log('Refresh clicked');
+                                    handleReset()
                                 }}
                                 className="flex cursor-pointer items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 transition-all duration-300 border border-blue-200"
                                 title="Refresh"
@@ -384,7 +377,7 @@ const OPDReceipt = () => {
                         gender: 'male',
                         payment: 'cash',
                         patientTitle: 'Mr.',
-                        isPartial: "No",
+                        isPartial: 0,
                         type: "1",
                     }}
                     onValuesChange={handleFieldChange}
@@ -406,75 +399,6 @@ const OPDReceipt = () => {
 
                                 <div className="grid grid-cols-3 gap-2">
 
-                                    {/* <div className="flex justify-between gap-2">
-
-                                        <Form.Item
-                                            name="type"
-                                            label={<span className="text-xs font-semibold text-gray-600">Patient Type</span>}
-                                            rules={[{ required: true, message: 'Please select type' }]}
-                                            className="mb-0 w-[50%]"
-                                        >
-                                            <Select
-                                                placeholder="Select Type"
-                                                className="rounded-lg"
-                                                allowClear
-                                                suffixIcon={<span className="text-gray-400">▼</span>}
-                                                onChange={(value, option) => {
-
-                                                    if (value == 2 || value == 4) {
-                                                        setShowZakatnSPD(option)
-                                                        setShowMember(null)
-                                                        setSelectedMemberNo(null)
-                                                    }
-                                                    else if (value == 3) {
-                                                        setShowMember(option)
-                                                        setShowZakatnSPD(null)
-                                                    }
-                                                    else {
-                                                        setShowZakatnSPD(null)
-                                                        setShowMember(null)
-                                                        setSelectedMemberNo(null)
-
-                                                    }
-
-                                                }}
-                                            >
-                                                {patientCategoryData?.data?.map(item => (
-                                                    <Option key={item?.ID} value={item?.ID}>{item?.TITLE}</Option>
-                                                ))}
-                                            </Select>
-                                        </Form.Item>
-
-
-                                        <Form.Item
-                                            name="partialPayment"
-                                            label={<span className="text-xs font-semibold text-gray-600">Partial Payment</span>}
-                                            rules={[{ required: true, message: 'Please select Partial Payment' }]}
-                                            className="mb-0 w-[50%]"
-                                        >
-                                            <Select
-                                                placeholder="Select Partial Payment"
-                                                className="rounded-lg"
-                                                allowClear
-                                                suffixIcon={<span className="text-gray-400">▼</span>}
-                                                onChange={(value, option) => {
-
-                                                    if (value == 2) {
-                                                        setShowPartialnBalance(true)
-                                                    }
-                                                    else (
-                                                        setShowPartialnBalance(false)
-                                                    )
-
-                                                }}
-                                            >
-                                                {partialPayment?.map(item => (
-                                                    <Option key={item.value} value={item.value}>{item.label}</Option>
-                                                ))}
-                                            </Select>
-                                        </Form.Item>
-
-                                    </div> */}
 
                                     <Form.Item
                                         name="type"
@@ -515,7 +439,7 @@ const OPDReceipt = () => {
 
                                     <Form.Item
                                         name="isPartial"
-                                        label={<span className="text-xs font-semibold text-gray-600">Partial Payment</span>}
+                                        label={<span className="text-xs font-semibold text-gray-600">Is Partial</span>}
                                         rules={[{ required: true, message: 'Please select Partial Payment' }]}
                                         className="mb-0"
                                     >
@@ -526,7 +450,7 @@ const OPDReceipt = () => {
                                             suffixIcon={<span className="text-gray-400">▼</span>}
                                             onChange={(value, option) => {
 
-                                                if (value == 2) {
+                                                if (value == 1) {
                                                     setShowPartialnBalance(true)
                                                 }
                                                 else (
@@ -654,11 +578,11 @@ const OPDReceipt = () => {
 
                                     </Form.Item>
 
-                                    <div className='col-span-3 grid grid-cols-2 gap-4 p-2'>
+                                    <div className='col-span-3  p-2'>
 
                                         <Form.Item
                                             name="labTest"
-                                            label={<span className="text-xs font-semibold text-gray-600">Lab test</span>}
+                                            label={<span className="text-xs font-semibold text-gray-600">Lab test & Amount</span>}
                                             className="mb-0 h-full"
                                         >
                                             <Select
@@ -669,42 +593,29 @@ const OPDReceipt = () => {
                                                 className="rounded-lg vertical-tags-select h-full w-full"
                                                 suffixIcon={<span className="text-gray-400">▼</span>}
                                                 onChange={labTestHandler}
-                                                filterOption={(input, option) =>
-                                                    option?.children?.toLowerCase()?.includes(input?.toLowerCase())
-                                                }
+                                                optionFilterProp="label"
+                                                filterOption={(input, option) => {
+                                                    // console.log(option, "option ,........");
+                                                    return option?.label?.toLowerCase().includes(input.toLowerCase())
+                                                }}
                                                 disabled={!islabortaryAble}
                                                 listHeight={200}
                                                 dropdownStyle={{ maxHeight: '300px' }}
                                             >
                                                 {labTestData?.data?.map(item => (
-                                                    <Option key={item?.ID} value={item?.ID}>{item?.TITLE}</Option>
-                                                ))}
-                                            </Select>
-                                        </Form.Item>
-
-                                        <Form.Item
-                                            name="labTestAmount"
-                                            label={<span className="text-xs font-semibold text-gray-600">Lab test Amount</span>}
-                                            className="mb-0 h-full"
-                                        >
-                                            <Select
-                                                placeholder="Select Lab test"
-                                                className="rounded-lg vertical-tags-select h-full w-full"
-                                                allowClear
-                                                suffixIcon={<span className="text-gray-400">▼</span>}
-                                                mode="multiple"
-                                                disabled={selectedLabTestAmounts?.length === 0}
-                                                listHeight={200}
-                                                dropdownStyle={{ maxHeight: '300px' }}
-                                                onChange={labTestAmountHandler}
-                                            >
-                                                {selectedLabTestAmounts?.map(item => (
-                                                    <Option key={item.id} value={item.id}>
-                                                        Rs. {item.amount}
+                                                    <Option key={item?.ID} value={item?.ID} label={item.TITLE}>
+                                                        <div className="flex justify-between items-center w-full">
+                                                            <span className="font-medium">{item?.TITLE}</span>
+                                                            <span className="text-green-600 font-semibold ml-4">
+                                                                Rs. {item?.HOSPITALRATE || 0}
+                                                            </span>
+                                                        </div>
                                                     </Option>
                                                 ))}
                                             </Select>
                                         </Form.Item>
+
+
                                     </div>
 
                                 </div>
@@ -880,7 +791,7 @@ const OPDReceipt = () => {
                                                 />
                                             </Form.Item>
                                         </div>
-                                        
+
                                     </Form.Item>
 
 
@@ -1088,18 +999,11 @@ const OPDReceipt = () => {
                                     Print
                                 </Button>
 
-                                <Button
-                                    icon={<CloseOutlined />}
-                                    className="hover:border-red-400 hover:text-red-600"
-                                    onClick={() => window.close()}
-                                >
-                                    Close
-                                </Button>
                             </div>
 
                             <div className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-blue-50/50 px-4 py-1.5 rounded-xl border border-blue-100/50">
                                 <span className="text-sm font-semibold text-gray-600">Current Cash:</span>
-                                <span className="text-xl font-bold text-green-600">Rs. 0</span>
+                                <span className="text-xl font-bold text-green-600">Rs. {lastPatientData?.data?.[0]?.NETAMOUNT}</span>
                             </div>
 
                         </div>
