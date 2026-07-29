@@ -80,9 +80,6 @@ const LoginPage = () => {
       else if (decoded.role === "Receptionist" || decoded.role?.split("|")[0] === "Receptionist") {
 
         navigate("/receptionist");
-        if (res?.data?.isprevioussessionopen == 1) {
-          toast.warning("Your previous Session is Already open")
-        }
 
       }
       else if (decoded?.role == "screen" && decoded?.id >= 6 && decoded?.id <= 10) {
