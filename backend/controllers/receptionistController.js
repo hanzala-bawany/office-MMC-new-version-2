@@ -1,7 +1,9 @@
 const oracledb = require("oracledb");
 const poolPromise = require("../database.js");
-const { generateNewMrNumber } = require("../utills/helperFunctions/generateMrNum.js");
-
+const {
+  generateNewMrNumber,
+} = require("../utills/helperFunctions/generateMrNum.js");
+const { formatForOracle } = require("../utills/dateFormatCoverter.js");
 
 const getOpdCategory = async (req, res) => {
   let connection;
@@ -472,8 +474,7 @@ const addEditOpdReceipt = async (req, res) => {
       laboratoryConsultantid,
     } = req.body || {};
 
-    console.log(req.body , "req.body ...........");
-    
+    console.log(req.body, "req.body ...........");
 
     // Validation - Required fields check karo
     if (!CatagoryId || !ConsultantID || !PatientName || !User || !ContactNo) {
@@ -531,7 +532,7 @@ const addEditOpdReceipt = async (req, res) => {
           maxSize: 20,
         },
       },
-      {autoCommit : true}
+      { autoCommit: true },
     );
 
     // ✅ Return voucher number from OUT parameter
@@ -566,7 +567,93 @@ const addEditOpdReceipt = async (req, res) => {
   }
 };
 
+const getPatientsbyFilter = async (req, res) => {
+  const {
+    fromDate = null,
+    toDate = null,
+    userId = null,
+    receiptNo = null,
+    contactNo = null,
+    categoryId = null,
+    pageNo = null,
+    pageSize = null,
+  } = req?.query || {};
 
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    const formattedFromDate = formatForOracle(fromDate);
+    const formattedToDate = formatForOracle(toDate);
+
+    const finalPageNo = pageNo ? Number(pageNo) : 1;
+    const finalPageSize = pageSize ? Number(pageSize) : 5;
+
+    const skipDataCount = (finalPageNo - 1) * finalPageSize; 
+
+    // Stored procedure call karo
+    const result = await connection.execute(
+      `BEGIN 
+      get_opdreceipt_list(     
+        :fromDate,
+        :toDate,
+        :userId,
+        :receiptNo,
+        :contactNo,
+        :categoryId,
+        :skipDataCount,
+        :pageSize,
+        :totalCount, 
+        :retval
+      ); 
+      END;`,
+      {
+        fromDate: formattedFromDate,
+        toDate: formattedToDate,
+        userId,
+        receiptNo,
+        contactNo,
+        categoryId,
+        skipDataCount: skipDataCount,
+        pageSize: finalPageSize,
+        totalCount: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
+        retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+      },
+      { outFormat: oracledb.OUT_FORMAT_OBJECT },
+    );
+
+    // Cursor se data fetch karo
+    const totalCountData = result.outBinds.totalCount;
+    const cursor = result.outBinds.retval;
+    const data = await cursor.getRows();
+    await cursor.close();
+
+    // Response bhejo
+    res.status(200).json({
+      success: true,
+      message: "Patients fetched successfully",
+      total: totalCountData,     
+      data: data,
+    });
+  } catch (error) {
+    console.error("Error in get Patients:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching Patients",
+      error: error.message,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
 
 module.exports = {
   getOpdCategory,
@@ -579,4 +666,5 @@ module.exports = {
   getLabTest,
   getMemberDependent,
   getUsers,
+  getPatientsbyFilter,
 };

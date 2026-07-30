@@ -11,7 +11,8 @@ import {
   Tag,
   Row,
   Col,
-  Badge
+  Badge,
+  Form
 } from 'antd';
 import {
   SearchOutlined,
@@ -21,149 +22,72 @@ import {
   EditOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import useFetch from '../../hooks/useFetch';
+import moment from 'moment';
 
 const { RangePicker } = DatePicker;
 
 const OPDSearch = () => {
 
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [searchParams, setSearchParams] = useState({
+    fromDate: moment().format('DD-MMM-YYYY'),
+    toDate: null,
+    userId: null,
+    receiptNo: null,
+    contactNo: null,
+    categoryId: null,
+    pageNo: 1,
+    pageSize: 10
+  });
 
-  // Mock data - replace with actual API data
-  const mockData = [
-    {
-      key: '1',
-      tokenNo: 50,
-      voucher: 'OP-03001337',
-      date: '16-Jul-2026',
-      category: 'Consultant',
-      consultant: 'Kulsoom Bhati',
-      patientType: 'PUBLIC',
-      patientName: 'Dua Nouman',
-      amount: 900,
-      createdBy: 'ZohraZakaria',
-    },
-    {
-      key: '2',
-      tokenNo: 49,
-      voucher: 'OP-03001336',
-      date: '16-Jul-2026',
-      category: 'Consultant',
-      consultant: 'Kulsoom Bhati',
-      patientType: 'PUBLIC',
-      patientName: 'Hina Aslam',
-      amount: 900,
-      createdBy: 'sakina',
-    },
-    {
-      key: '3',
-      tokenNo: 5,
-      voucher: 'OP-03001335',
-      date: '16-Jul-2026',
-      category: 'Consultant',
-      consultant: 'Saad Hassan',
-      patientType: 'ZAKAT',
-      patientName: 'Imran',
-      amount: 0,
-      createdBy: 'Sobia',
-    },
-    {
-      key: '4',
-      tokenNo: 52,
-      voucher: 'OP-03001334',
-      date: '16-Jul-2026',
-      category: 'General O.P.D',
-      consultant: 'Md. Jawaid',
-      patientType: 'PUBLIC',
-      patientName: 'Ambreen Adil',
-      amount: 200,
-      createdBy: 'ZohraZakaria',
-    },
-    {
-      key: '5',
-      tokenNo: 0,
-      voucher: 'OP-03001333',
-      date: '16-Jul-2026',
-      category: 'Medical Services',
-      consultant: 'Shumailla (R)',
-      patientType: 'PUBLIC',
-      patientName: 'Aliha',
-      amount: 200,
-      createdBy: 'sakina',
-    },
-    {
-      key: '6',
-      tokenNo: 0,
-      voucher: 'OP-03001333',
-      date: '16-Jul-2026',
-      category: 'Medical Services',
-      consultant: 'Shumailla (R)',
-      patientType: 'PUBLIC',
-      patientName: 'Aliha',
-      amount: 200,
-      createdBy: 'sakina',
-    }
-    ,
-    {
-      key: '7',
-      tokenNo: 0,
-      voucher: 'OP-03001333',
-      date: '16-Jul-2026',
-      category: 'Medical Services',
-      consultant: 'Shumailla (R)',
-      patientType: 'PUBLIC',
-      patientName: 'Aliha',
-      amount: 200,
-      createdBy: 'sakina',
-    },
-    {
-      key: '8',
-      tokenNo: 0,
-      voucher: 'OP-03001333',
-      date: '16-Jul-2026',
-      category: 'Medical Services',
-      consultant: 'Shumailla (R)',
-      patientType: 'PUBLIC',
-      patientName: 'Aliha',
-      amount: 200,
-      createdBy: 'sakina',
-    },
-  ];
+  const { data: patientsData, loading: patientsDataLoading, error: patientsDataError } =
+    useFetch('/api/receptionist/filterPatients', searchParams);
+  const { data: opdCategoryData, loading: opdCategorLoading, error: opdCategorError } = useFetch('/api/receptionist/opdCategory');
+  const { data: usersData, loading: usersLoading, error: usersError } = useFetch('/api/receptionist/users');
+
+  // console.log(patientsData, "patientsData ..........");
+  // console.log(opdCategoryData, "opdCategoryData ..........");
+  // console.log(usersData, "usersData ..........");
+
 
   const columns = [
     {
       title: 'Token No',
-      dataIndex: 'tokenNo',
-      key: 'tokenNo',
+      dataIndex: 'TOKENNO',
+      key: 'TOKENNO',
       width: 80,
       render: (text) => <span className="font-medium">{text}</span>,
     },
     {
-      title: 'Voucher #',
-      dataIndex: 'voucher',
-      key: 'voucher',
+      title: 'Reciept #',
+      dataIndex: 'RECEIPTNO',
+      key: 'RECEIPTNO',
       render: (text) => <span className="text-blue-600">{text}</span>,
     },
     {
       title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: 'VDATE',
+      key: 'VDATE',
       width: 120,
+      render: (date) => <span>{moment(date).format("DD-MMM-YYYY")}</span>,
     },
     {
       title: 'Category',
-      dataIndex: 'category',
-      key: 'category',
+      dataIndex: 'CATEGORYNAME',
+      key: 'CATEGORYNAME',
     },
     {
       title: 'Consultant',
-      dataIndex: 'consultant',
-      key: 'consultant',
+      dataIndex: 'CONSULTANTNAME',
+      key: 'CONSULTANTNAME',
     },
     {
       title: 'Patient Type',
-      dataIndex: 'patientType',
-      key: 'patientType',
+      dataIndex: 'PATIENTTYPENAME',
+      key: 'PATIENTTYPENAME',
       render: (text) => (
         <Tag color={text === 'PUBLIC' ? 'green' : text === 'ZAKAT' ? 'orange' : 'blue'}>
           {text}
@@ -172,13 +96,13 @@ const OPDSearch = () => {
     },
     {
       title: 'Patient Name',
-      dataIndex: 'patientName',
-      key: 'patientName',
+      dataIndex: 'PATIENTNAME',
+      key: 'PATIENTNAME',
     },
     {
-      title: 'Amount',
-      dataIndex: 'amount',
-      key: 'amount',
+      title: 'Net Amount',
+      dataIndex: 'NETAMOUNT',
+      key: 'NETAMOUNT',
       render: (text) => (
         <span className={`font-medium ${text === 0 ? 'text-gray-400' : 'text-green-600'}`}>
           Rs. {text}
@@ -187,8 +111,14 @@ const OPDSearch = () => {
     },
     {
       title: 'Created By',
-      dataIndex: 'createdBy',
-      key: 'createdBy',
+      dataIndex: 'CREATEDBY',
+      key: 'CREATEDBY',
+    },
+    {
+      title: 'Edit By',
+      dataIndex: 'EDITBY',
+      key: 'EDITBY',
+      render: (text) => <span >{text || "-"}</span>,
     },
     {
       title: 'Actions',
@@ -196,24 +126,52 @@ const OPDSearch = () => {
       width: 100,
       render: (_, record) => (
         <Space size="small">
-          <Button type="text" icon={<EyeOutlined />} size="small" />
           <Button type="text" icon={<EditOutlined />} size="small" />
         </Space>
       ),
     },
   ];
 
-  const handleSearch = () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+  const onFinish = (values) => {
+
+    const newParams = {
+      fromDate: values.from ? values.from.format('DD-MMM-YYYY') : null,
+      toDate: values.to ? values.to.format('DD-MMM-YYYY') : null,
+      userId: values.user || null,
+      receiptNo: values.receiptNo || null,
+      contactNo: values.contactNo || null,
+      categoryId: values.opdCategory || null,
+      pageNo: 1, // naya search hamesha page 1 se start ho
+      pageSize: searchParams.pageSize,
+    };
+
+    setSearchParams(newParams); // ye state change useFetch ko naye params ke sath re-run karwayega
+
   };
 
   const handleRefresh = () => {
-    setSearchText('');
-    handleSearch();
+
+    form.resetFields();
+    setSearchParams({
+      fromDate: moment().format('DD-MMM-YYYY'),
+      toDate: null,
+      userId: null,
+      receiptNo: null,
+      contactNo: null,
+      categoryId: null,
+      pageNo: 1,
+      pageSize: 10,
+    });
+
+  };
+
+  // Table pagination change (page badalne ya pageSize badalne par)
+  const handleTableChange = (pagination) => {
+    setSearchParams(prev => ({
+      ...prev,
+      pageNo: pagination.current,
+      pageSize: pagination.pageSize,
+    }));
   };
 
   return (
@@ -223,78 +181,99 @@ const OPDSearch = () => {
       {/* Filter Section */}
       <Card className="shadow-sm mb-4">
 
-        <Row gutter={[16, 12]} align="bottom">
-          <Col xs={24} sm={12} md={4}>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-600 mb-1">From</label>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{
+            from: moment(),
+          }}
+        >
+          <div className="grid grid-cols-6 gap-4">
+
+            <Form.Item name="from" label="From" className="w-full sm:w-auto">
               <DatePicker
-                defaultValue={dayjs('2026-07-16')}
                 format="DD-MMM-YYYY"
                 className="w-full"
+              // allowClear={false}
               />
-            </div>
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-600 mb-1">To</label>
-              <DatePicker format="DD-MMM-YYYY" className="w-full" />
-            </div>
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-600 mb-1">Users</label>
-              <Select placeholder="Select User" className="w-full" allowClear>
-                <Select.Option value="all">All Users</Select.Option>
-                <Select.Option value="zohra">ZohraZakaria</Select.Option>
-                <Select.Option value="sakina">Sakina</Select.Option>
-                <Select.Option value="sobia">Sobia</Select.Option>
-              </Select>
-            </div>
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-600 mb-1">Receipt#</label>
-              <Input placeholder="Receipt number" />
-            </div>
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-600 mb-1">Contact#</label>
-              <Input placeholder="Contact number" />
-            </div>
-          </Col>
-          <Col xs={24} sm={12} md={4}>
-            <div className="flex flex-col">
-              <label className="text-xs font-medium text-gray-600 mb-1">OPD Category</label>
-              <Select placeholder="All Categories" className="w-full" allowClear>
-                <Select.Option value="all">All Categories</Select.Option>
-                <Select.Option value="general">General O.P.D</Select.Option>
-                <Select.Option value="consultant">Consultant</Select.Option>
-                <Select.Option value="medical">Medical Services</Select.Option>
-                <Select.Option value="dental">Dental</Select.Option>
-              </Select>
-            </div>
-          </Col>
-        </Row>
+            </Form.Item>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
-          <Space size="middle">
-            <Button
-              type="primary"
-              icon={<SearchOutlined />}
-              onClick={handleSearch}
-              loading={loading}
+            <Form.Item name="to" label="To" className="w-full sm:w-auto">
+              <DatePicker format="DD-MMM-YYYY" className="w-full" />
+            </Form.Item>
+
+            <Form.Item
+              name="user"
+              label={<span className="text-xs font-semibold text-gray-600">User</span>}
+              className="mb-0"
             >
-              Find
-            </Button>
-            <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
-              Refresh
-            </Button>
-          </Space>
-          <div className="text-sm text-gray-500">
-            Total Records: <span className="font-semibold text-gray-700">540</span>
+              <Select
+                placeholder="Select User"
+                className="rounded-lg"
+                allowClear
+                suffixIcon={<span className="text-gray-400">▼</span>}
+                showSearch
+                filterOption={(input, option) => {
+                  return option.children.toLowerCase().includes(input.toLowerCase())
+                }}
+              >
+                {usersData?.data?.map((item, index) => (
+                  <Option key={`${item.USERID}-${index}`} value={item?.USERID}>{item?.USERNAME}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item name="receiptNo" label="Receipt#" className="w-full sm:w-auto">
+              <Input placeholder="Receipt number" />
+            </Form.Item>
+
+            <Form.Item name="contactNo" label="Contact#" className="w-full sm:w-auto">
+              <Input placeholder="Contact number" />
+            </Form.Item>
+
+            <Form.Item
+              name="opdCategory"
+              label={<span className="text-xs font-semibold text-gray-600">OPD Category</span>}
+              className="mb-0"
+            >
+              <Select
+                placeholder="Select OPD Category"
+                className="rounded-lg"
+                allowClear
+                suffixIcon={<span className="text-gray-400">▼</span>}
+                showSearch
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().includes(input.toLowerCase())
+                }
+              >
+                {opdCategoryData?.data?.map(item => (
+                  <Option key={item?.ID} value={item?.ID}>{item?.TITLE}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+
           </div>
-        </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
+            <Space size="middle">
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SearchOutlined />}
+                loading={loading}
+              >
+                Find
+              </Button>
+              <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
+                Refresh
+              </Button>
+            </Space>
+            <div className="text-sm text-gray-500">
+              Total Records: <span className="font-semibold text-gray-700">{patientsData?.total ?? 0}</span>
+            </div>
+          </div>
+        </Form>
       </Card>
 
       {/* Table Section */}
@@ -302,16 +281,18 @@ const OPDSearch = () => {
 
         <Table
           columns={columns}
-          dataSource={mockData}
-          loading={loading}
+          dataSource={patientsData?.data}
+          loading={patientsDataLoading}
+          rowKey={(record) => record?.RECEIPTNO || `${record.MRNO}-${record.RN}`}
+          onChange={handleTableChange}
           pagination={{
-            pageSize: 5,
+            current: searchParams.pageNo,
+            pageSize: searchParams.pageSize,
+            total: patientsData?.total ?? 0,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} records`,
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1200 , y: 200 }}
           className="opd-search-table"
           rowClassName="hover:bg-gray-50 transition-colors"
         />

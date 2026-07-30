@@ -9,6 +9,7 @@ const useFetch = (url, params = {}) => {
     const [error, setError] = useState(false)
 
     const fetchData = async (overrideParams) => {
+
         if (!url) return
 
         setLoading(true)
@@ -23,11 +24,14 @@ const useFetch = (url, params = {}) => {
             
         }
         catch (error) {
-            setError(error?.message)
+            setError(error?.response?.message)
+            console.log(error , "err .............");
+            
         }
         finally {
             setLoading(false)
         }
+        
     }
 
     useEffect(() => {
