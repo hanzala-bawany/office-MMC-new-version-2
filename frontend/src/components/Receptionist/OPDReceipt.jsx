@@ -946,8 +946,8 @@ const OPDReceipt = () => {
                                         }}
                                     // onChange={(value, fullOption) => setSelectedMemberNo(value || null)}
                                     >
-                                        {usersData?.data?.map(item => (
-                                            <Option key={item?.USERID} value={item?.USERID}>{item?.USERNAME}</Option>
+                                        {usersData?.data?.map((item, index) => (
+                                            <Option  key={`${item.USERID}-${index}`} value={item?.USERID}>{item?.USERNAME}</Option>
                                         ))}
                                     </Select>
                                 </Form.Item>
