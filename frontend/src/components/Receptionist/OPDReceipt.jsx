@@ -41,7 +41,7 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 
-const OPDReceipt = () => {
+const OPDReceipt = ({ editRecord, clearEditRecord }) => {
 
     const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
     const [form] = Form.useForm();
@@ -127,7 +127,8 @@ const OPDReceipt = () => {
     // console.log(selectedMemberPatientId, "selectedMemberPatientId ..............");
     // console.log(lastPatientData, "lastPatientData ..............");
     // console.log(labTestData, "labTestData ..............");
-    
+    // console.log(selectedLabTestAmounts, "selectedLabTestAmounts  ..............");
+
 
     useEffect(() => {
 
@@ -159,6 +160,60 @@ const OPDReceipt = () => {
 
     }, [grossAmount, discountAmount, partialAmount]);
 
+    useEffect(() => {
+        if (!editRecord) return;
+
+        setPatientTypeId(editRecord.PATIENTTYPE);
+        setOpdCategoryId(editRecord.CATAGORYID);
+        setIslabortaryAble(editRecord.CATAGORYID == 2);
+        setShowPartialnBalance(editRecord.ISPARTIAL == 1);
+        setSelectedMemberPatientId(editRecord.PATIENTID);
+        setGrossAmount(Number(editRecord.GROSSAMOUNT) || 0);
+
+        // type select ka onChange manually replicate kar rahe hen
+        if (editRecord.PATIENTTYPE == 2 || editRecord.PATIENTTYPE == 4) {
+            setShowZakatnSPD({ children: editRecord.PATIENTTYPENAME });
+            setShowMember(null);
+            setSelectedMemberNo(null);
+        } else if (editRecord.PATIENTTYPE == 3) {
+            setShowMember(true);
+            setShowZakatnSPD(null);
+            setSelectedMemberNo(editRecord.MEMBERID);
+        } else {
+            setShowZakatnSPD(null);
+            setShowMember(null);
+            setSelectedMemberNo(null);
+        }
+
+        form.setFieldsValue({
+            type: editRecord.PATIENTTYPE,
+            isPartial: editRecord.ISPARTIAL,
+            reference: editRecord.REFERENCEID || undefined,
+            members: editRecord.MEMBERID || undefined,
+            date: editRecord.VDATE ? moment(editRecord.VDATE) : null,
+            opdCategory: editRecord.CATAGORYID,
+            consultant: editRecord.CONSULTANTID,
+            patientTitle: editRecord.PATIENTTITLE,
+            patientName: editRecord.PATIENTNAME,
+            contact: editRecord.CONTACTNO,
+            gender: editRecord.GENDER,
+            remarks: editRecord.REMARKS,
+            ageValue: Number(editRecord.AGE),
+            ageType: editRecord.AGEUNIT,
+            grossPayment: Number(editRecord.GROSSAMOUNT) || 0,
+            discountAmount: Number(editRecord.DISCOUNT) || 0,
+            partialPayment: Number(editRecord.PARTIALAMOUNT) || 0,
+            netPayment: Number(editRecord.NETAMOUNT) || 0,
+            balancePayment: Number(editRecord.NETBALANCE) || 0,
+            refundBy: editRecord.REFUNDUSER || undefined,
+            tokenNo: editRecord.TOKENNO || undefined,
+            recieptNo: editRecord.RECEIPTNO || undefined,
+            mrNumber: editRecord.MRNO || undefined,
+            createdBy: `${editRecord.CREATEDBY} - ${moment(editRecord.CREATEDTIME).format('DD-MMM-YYYY | h:mm A')}` || undefined,
+            editBy: editRecord.EDITBY || undefined,
+        });
+
+    }, [editRecord]);
 
 
     const handleFieldChange = (changedValues, allValues) => {
@@ -183,7 +238,7 @@ const OPDReceipt = () => {
 
         try {
             const payload = {
-                ReceiptNo: null,
+                ReceiptNo: editRecord?.RECEIPTNO || null, 
                 TokenNo: null,
                 Vdate: values.date ? values.date.format('DD-MMM-YYYY HH:mm:ss') : null,
                 CatagoryId: values.opdCategory,
@@ -210,15 +265,18 @@ const OPDReceipt = () => {
                 isPartial: values.isPartial || null,
                 electricitycharges: null,                  // ye dekhna he 
                 laboratoryConsultantid: islabortaryAble ? values.consultant : null,  // ye bhi maaloom kar na he 
+                LabTestIds: islabortaryAble ? (values.labTest || []) : [],
+                LabTestAmounts: islabortaryAble ? selectedLabTestAmounts : [],
             };
-
-            console.log("payload.........", payload);
-
 
             const res = await axiosInstance.post('/api/receptionist/opdAddandEditPatient', payload);
 
             console.log('Saved successfully:', res);
             toast.success(res?.data?.message)
+            form.resetFields();
+            if (editRecord) {
+                clearEditRecord?.();
+            }
 
         } catch (err) {
             console.error('Error saving OPD receipt:', err);
@@ -235,6 +293,9 @@ const OPDReceipt = () => {
 
     const handleReset = () => {
         form.resetFields();
+        if (editRecord) {
+            clearEditRecord?.();
+        }
     };
 
     const labTestHandler = (value, option) => {
@@ -305,7 +366,7 @@ const OPDReceipt = () => {
                                 OPD RECEIPT
                             </span>
                             <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
-                                New Patient
+                                {editRecord ? "Edit" : "New"}  Patient
                             </span>
                         </div>
 
@@ -523,7 +584,7 @@ const OPDReceipt = () => {
                                     >
                                         <DatePicker
                                             showTime
-                                            format="DD-MMM-YYYY HH:mm:ss"
+                                            format="DD-MMM-YYYY hh:mm"
                                             className="w-full rounded-lg hover:border-blue-400 focus:border-blue-500"
                                             placeholder="Select Date & Time"
                                             allowClear
@@ -947,7 +1008,7 @@ const OPDReceipt = () => {
                                     // onChange={(value, fullOption) => setSelectedMemberNo(value || null)}
                                     >
                                         {usersData?.data?.map((item, index) => (
-                                            <Option  key={`${item.USERID}-${index}`} value={item?.USERID}>{item?.USERNAME}</Option>
+                                            <Option key={`${item.USERID}-${index}`} value={item?.USERID}>{item?.USERNAME}</Option>
                                         ))}
                                     </Select>
                                 </Form.Item>
@@ -980,7 +1041,7 @@ const OPDReceipt = () => {
                                     htmlType="submit"
                                     className="bg-gradient-to-r from-emerald-500 to-green-600 border-0 shadow-md shadow-green-500/30 hover:shadow-lg hover:shadow-green-500/40"
                                 >
-                                    Save
+                                    {editRecord ? "Edit" : "Save"}
                                 </Button>
 
                                 <Button
@@ -1020,32 +1081,6 @@ const OPDReceipt = () => {
 };
 
 export default OPDReceipt;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

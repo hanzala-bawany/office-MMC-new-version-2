@@ -17,8 +17,14 @@ const ReceptionistPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
     const [showSessionAlertModal, setShowSessionAlertModal] = useState(false);
+    const [editRecord, setEditRecord] = useState(null);
     // console.log(loginUserData , "loginUserData ........");
 
+    const handleEdit = (record) => {
+        console.log(record, "record .........");
+        setEditRecord(record);
+        setActiveTab('1');
+    }
 
     const items = [
         {
@@ -29,7 +35,7 @@ const ReceptionistPage = () => {
                     Add Patient
                 </span>
             ),
-            children: <OPDReceipt />,
+            children: <OPDReceipt editRecord={editRecord} clearEditRecord={() => setEditRecord(null)} />,
         },
         {
             key: '2',
@@ -39,15 +45,16 @@ const ReceptionistPage = () => {
                     Search Patient
                 </span>
             ),
-            children: <OPDSearch />,
+            children: <OPDSearch handleEdit={handleEdit} />,
         }
     ];
 
     useEffect(() => {
         if (loginUserData?.isprevioussessionopen == 1) {
             setShowSessionAlertModal(true);
-        } 
+        }
     }, [loginUserData]);
+
 
 
 

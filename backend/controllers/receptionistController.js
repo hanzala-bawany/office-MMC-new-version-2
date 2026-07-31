@@ -438,6 +438,7 @@ const getUsers = async (req, res) => {
 };
 
 const addEditOpdReceipt = async (req, res) => {
+
   let connection;
   try {
     const pool = await poolPromise;
@@ -472,9 +473,11 @@ const addEditOpdReceipt = async (req, res) => {
       netbalance,
       electricitycharges,
       laboratoryConsultantid,
+      LabTestIds,
+      LabTestAmounts,
     } = req.body || {};
 
-    console.log(req.body, "req.body ...........");
+    // console.log(req.body, "req.body ...........");
 
     // Validation - Required fields check karo
     if (!CatagoryId || !ConsultantID || !PatientName || !User || !ContactNo) {
@@ -535,28 +538,56 @@ const addEditOpdReceipt = async (req, res) => {
       { autoCommit: true },
     );
 
-    // ✅ Return voucher number from OUT parameter
-    const voucherNo = result.outBinds.RetVoucherNo;
+    const recieptNo = result.outBinds.RetVoucherNo;
+
+
+    if (Array.isArray(LabTestIds) && LabTestIds.length > 0) {
+
+      for (const testId of LabTestIds) {
+        const testInfo = LabTestAmounts?.find(
+          (t) => String(t.id) === String(testId),
+        );
+        const amount = Number(testInfo?.amount) || 0;
+
+        await connection.execute(
+          `BEGIN 
+            opdtestreceipt_add_edit1_new(
+             :VReceiptNo, :VfkTestId, :VRowId, :VAmount, :VUser, :Vstatus
+            ); 
+          END;`,
+          {
+            VReceiptNo: ReceiptNo || recieptNo,
+            VfkTestId: testId,
+            VAmount: amount,
+            VUser: User,
+            Vstatus: 0,
+          },
+          { autoCommit: false },   // sab tests ke baad ek sath commit karo
+        );
+      }
+
+      await connection.commit();    // sab inserts ek sath commit
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        receiptNo: voucherNo,
+        receiptNo: recieptNo,
         mrNo: MrNo,
       },
-      message:
-        ReceiptNo && ReceiptNo !== "0" && ReceiptNo !== null
-          ? "OPD Receipt updated successfully"
-          : "OPD Receipt created successfully",
+      message: ReceiptNo ? "OPD Receipt updated successfully" : "OPD Receipt created successfully",
     });
-  } catch (error) {
+
+  } 
+  catch (error) {
     console.error("Error in addEditOpdReceipt:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Error processing OPD Receipt",
       error: error,
     });
-  } finally {
+  } 
+  finally {
     if (connection) {
       try {
         await connection.close();
@@ -565,9 +596,11 @@ const addEditOpdReceipt = async (req, res) => {
       }
     }
   }
+
 };
 
 const getPatientsbyFilter = async (req, res) => {
+  
   const {
     fromDate = null,
     toDate = null,
@@ -591,7 +624,7 @@ const getPatientsbyFilter = async (req, res) => {
     const finalPageNo = pageNo ? Number(pageNo) : 1;
     const finalPageSize = pageSize ? Number(pageSize) : 5;
 
-    const skipDataCount = (finalPageNo - 1) * finalPageSize; 
+    const skipDataCount = (finalPageNo - 1) * finalPageSize;
 
     // Stored procedure call karo
     const result = await connection.execute(
@@ -634,7 +667,7 @@ const getPatientsbyFilter = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Patients fetched successfully",
-      total: totalCountData,     
+      total: totalCountData,
       data: data,
     });
   } catch (error) {
@@ -655,6 +688,8 @@ const getPatientsbyFilter = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   getOpdCategory,
   getPatientCategory,
@@ -668,3 +703,4 @@ module.exports = {
   getUsers,
   getPatientsbyFilter,
 };
+

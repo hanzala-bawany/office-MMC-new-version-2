@@ -39,7 +39,20 @@ const OpdReceiptModal = ({ open, onCancel, form }) => {
                         >
                             <Input
                                 placeholder="Reciept No"
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
+                                className="rounded-lg hover:border-blue-400 focus:border-blue-500 text-gray-700!"
+                                prefix={<span className="text-gray-400 text-xs">👤</span>}
+                                disabled={true}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="mrNumber"
+                            label={<span className="text-xs font-semibold text-gray-600">MR Number #</span>}
+                            className="mb-0"
+                        >
+                            <Input
+                                placeholder="MR Number"
+                                className="rounded-lg hover:border-blue-400 focus:border-blue-500 text-gray-700!"
                                 prefix={<span className="text-gray-400 text-xs">👤</span>}
                                 disabled={true}
                             />
@@ -47,12 +60,12 @@ const OpdReceiptModal = ({ open, onCancel, form }) => {
 
                         <Form.Item
                             name="tokenNo"
-                            label={<span className="text-xs font-semibold text-gray-600">Token No</span>}
+                            label={<span className="text-xs font-semibold text-gray-600 ">Token No</span>}
                             className="mb-0"
                         >
                             <Input
                                 placeholder="Token No"
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
+                                className="rounded-lg hover:border-blue-400 focus:border-blue-500 text-gray-700!"
                                 prefix={<span className="text-gray-400 text-xs">✏️</span>}
                                 disabled={true}
                             />
@@ -65,7 +78,7 @@ const OpdReceiptModal = ({ open, onCancel, form }) => {
                         >
                             <Input
                                 placeholder="Created By"
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
+                                className="rounded-lg hover:border-blue-400 focus:border-blue-500 text-gray-700!"
                                 prefix={<span className="text-gray-400 text-xs">👤</span>}
                                 disabled={true}
                             />
@@ -78,7 +91,7 @@ const OpdReceiptModal = ({ open, onCancel, form }) => {
                         >
                             <Input
                                 placeholder="Edit By"
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
+                                className="rounded-lg hover:border-blue-400 focus:border-blue-500 text-gray-700!"
                                 prefix={<span className="text-gray-400 text-xs">✏️</span>}
                                 disabled={true}
                             />
