@@ -606,6 +606,7 @@ const getPatientsbyFilter = async (req, res) => {
     categoryId = null,
     pageNo = null,
     pageSize = null,
+    mrNo = null,
   } = req?.query || {};
 
   let connection;
@@ -634,6 +635,7 @@ const getPatientsbyFilter = async (req, res) => {
         :categoryId,
         :skipDataCount,
         :pageSize,
+        :mrNo,
         :totalCount, 
         :retval,
         :retval_labtests
@@ -648,6 +650,7 @@ const getPatientsbyFilter = async (req, res) => {
         categoryId,
         skipDataCount: skipDataCount,
         pageSize: finalPageSize,
+        mrNo: mrNo,
         totalCount: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
         retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
         retval_labtests: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },

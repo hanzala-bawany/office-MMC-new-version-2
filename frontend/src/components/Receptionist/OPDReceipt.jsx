@@ -23,7 +23,8 @@ import {
     UserAddOutlined,
     PlusOutlined,
     UndoOutlined,
-    EyeOutlined
+    EyeOutlined,
+    ReloadOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import LastSlipIssuedModal from './LastSlipIssuedModal';
@@ -204,6 +205,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
             reference: editRecord.REFERENCEID || undefined,
             members: editRecord.MEMBERID || undefined,
             date: editRecord.VDATE ? moment(editRecord.VDATE) : null,
+            refundDatenTime: editRecord.VDATE ? moment(editRecord.VDATE) : null,
             opdCategory: editRecord.CATAGORYID,
             consultant: editRecord.CONSULTANTID,
             patientTitle: editRecord.PATIENTTITLE,
@@ -328,7 +330,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
         setGrossAmount(total);
 
         const amounts = selectedTests?.map(item => {
-            
+
             const existing = selectedLabTestAmounts.find(
                 prev => String(prev.id) === String(item.ID)
             );
@@ -408,19 +410,6 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
 
                             <button
                                 onClick={() => {
-                                    handleReset()
-                                }}
-                                className="flex cursor-pointer items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 transition-all duration-300 border border-blue-200"
-                                title="Refresh"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Refresh
-                            </button>
-
-                            <button
-                                onClick={() => {
                                     console.log('Save Patient clicked');
                                 }}
                                 className="flex cursor-pointer items-center gap-1.5 px-4 py-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-medium rounded-lg shadow-md shadow-green-500/30 hover:from-emerald-600 hover:to-green-700 transition-all duration-300"
@@ -484,6 +473,53 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
 
                                 <div className="grid grid-cols-3 gap-2">
 
+
+                                    <Form.Item
+                                        name="opdCategory"
+                                        label={<span className="text-xs font-semibold text-gray-600">OPD Category</span>}
+                                        rules={[{ required: true, message: 'Please select OPD category' }]}
+                                        className="mb-0"
+                                    >
+                                        <Select
+                                            placeholder="Select OPD Category"
+                                            className="rounded-lg"
+                                            allowClear
+                                            suffixIcon={<span className="text-gray-400">▼</span>}
+                                            onChange={opdCategoryHandler}
+                                            showSearch
+                                            filterOption={(input, option) =>
+                                                option.children.toLowerCase().includes(input.toLowerCase())
+                                            }
+                                        >
+                                            {opdCategoryData?.data?.map(item => (
+                                                <Option key={item?.ID} value={item?.ID}>{item?.TITLE}</Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
+
+                                    <Form.Item
+                                        name="consultant"
+                                        label={<span className="text-xs font-semibold text-gray-600">Consultant</span>}
+                                        rules={[{ required: true, message: 'Please select consultant' }]}
+                                        className="mb-0"
+                                    >
+                                        <Select
+                                            placeholder="Select Consultant"
+                                            showSearch
+                                            allowClear
+                                            className="rounded-lg"
+                                            suffixIcon={<span className="text-gray-400">▼</span>}
+                                            filterOption={(input, option) =>
+                                                option.children.toLowerCase().includes(input.toLowerCase())
+                                            }
+                                            onChange={consultantHandler}
+                                        >
+                                            {consultantsData?.data?.map(item => (
+                                                <Option key={item.ID} value={item.ID}>{item.NAME}</Option>
+                                            ))}
+                                        </Select>
+
+                                    </Form.Item>
 
                                     <Form.Item
                                         name="type"
@@ -614,53 +650,6 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                                             allowClear
                                             suffixIcon={<span className="text-gray-400">📅</span>}
                                         />
-                                    </Form.Item>
-
-                                    <Form.Item
-                                        name="opdCategory"
-                                        label={<span className="text-xs font-semibold text-gray-600">OPD Category</span>}
-                                        rules={[{ required: true, message: 'Please select OPD category' }]}
-                                        className="mb-0"
-                                    >
-                                        <Select
-                                            placeholder="Select OPD Category"
-                                            className="rounded-lg"
-                                            allowClear
-                                            suffixIcon={<span className="text-gray-400">▼</span>}
-                                            onChange={opdCategoryHandler}
-                                            showSearch
-                                            filterOption={(input, option) =>
-                                                option.children.toLowerCase().includes(input.toLowerCase())
-                                            }
-                                        >
-                                            {opdCategoryData?.data?.map(item => (
-                                                <Option key={item?.ID} value={item?.ID}>{item?.TITLE}</Option>
-                                            ))}
-                                        </Select>
-                                    </Form.Item>
-
-                                    <Form.Item
-                                        name="consultant"
-                                        label={<span className="text-xs font-semibold text-gray-600">Consultant</span>}
-                                        rules={[{ required: true, message: 'Please select consultant' }]}
-                                        className="mb-0"
-                                    >
-                                        <Select
-                                            placeholder="Select Consultant"
-                                            showSearch
-                                            allowClear
-                                            className="rounded-lg"
-                                            suffixIcon={<span className="text-gray-400">▼</span>}
-                                            filterOption={(input, option) =>
-                                                option.children.toLowerCase().includes(input.toLowerCase())
-                                            }
-                                            onChange={consultantHandler}
-                                        >
-                                            {consultantsData?.data?.map(item => (
-                                                <Option key={item.ID} value={item.ID}>{item.NAME}</Option>
-                                            ))}
-                                        </Select>
-
                                     </Form.Item>
 
                                     <div className='col-span-3  p-2'>
@@ -1038,8 +1027,20 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                             </div>
 
                             <div className="flex items-center gap-3 bg-white/60 p-1.5 rounded-lg">
-                                <span className="text-xs font-medium text-gray-500 min-w-[80px]">Refund Date:</span>
-                                <span className="text-sm font-semibold text-gray-800">16-Jul-2026 01:44 PM</span>
+                                <span className="text-xs font-medium text-gray-500 min-w-[80px]">Date & Time :</span>
+                                <Form.Item
+                                    name="refundDatenTime"
+                                    noStyle
+                                >
+                                    <DatePicker
+                                        showTime
+                                        format="DD-MMM-YYYY hh:mm"
+                                        className="w-full rounded-lg hover:border-blue-400 focus:border-blue-500"
+                                        placeholder="Select Date & Time"
+                                        allowClear
+                                        suffixIcon={<span className="text-gray-400">📅</span>}
+                                    />
+                                </Form.Item>
                             </div>
 
                         </div>
@@ -1081,6 +1082,17 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                                     className="hover:border-blue-400 hover:text-blue-600"
                                 >
                                     Print
+                                </Button>
+
+                                <Button
+                                    type="default"
+                                    icon={<ReloadOutlined />}
+                                    className="flex cursor-pointer items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600! hover:text-blue-700! hover:border-blue-700! text-sm font-medium rounded-lg hover:bg-blue-100 transition-all duration-300 border! border-blue-200!"
+                                    onClick={() => {
+                                        handleReset()
+                                    }}
+                                >
+                                    Reset
                                 </Button>
 
                             </div>
