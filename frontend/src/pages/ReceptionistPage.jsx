@@ -10,6 +10,13 @@ import LastSlipIssuedModal from '../components/Receptionist/LastSlipIssuedModal'
 import LogoutModal from '../utills/LogoutModal';
 import { useSelector } from 'react-redux';
 import SeccionOpenAlertModal from '../components/Receptionist/SeccionOpenAlertModal';
+import { MedicineBoxOutlined, ExperimentOutlined, HeartOutlined, TeamOutlined } from '@ant-design/icons';
+import GeneralOPDTab from '../components/Receptionist/OPDTabs/GeneralOPDTab';
+import LaboratoryTab from '../components/Receptionist/OPDTabs/LaboratoryTab';
+import ZakatSPDTab from '../components/Receptionist/OPDTabs/ZakatSPDTab';
+import MemberTab from '../components/Receptionist/OPDTabs/MemberTab';
+
+
 
 const ReceptionistPage = () => {
 
@@ -21,7 +28,7 @@ const ReceptionistPage = () => {
     // console.log(loginUserData , "loginUserData ........");
 
     const handleEdit = (record) => {
-        
+
         console.log(record, "record .........");
         setEditRecord(record);
         setActiveTab('1');
@@ -47,7 +54,11 @@ const ReceptionistPage = () => {
                 </span>
             ),
             children: <OPDSearch handleEdit={handleEdit} />,
-        }
+        },
+        // { key: 'general', label: <span className="flex items-center gap-1.5"><MedicineBoxOutlined />General OPD</span>, children: <GeneralOPDTab /> },
+        // { key: 'lab', label: <span className="flex items-center gap-1.5"><ExperimentOutlined />Laboratory</span>, children: <LaboratoryTab /> },
+        // { key: 'zakatSpd', label: <span className="flex items-center gap-1.5"><HeartOutlined />Zakat / SPD</span>, children: <ZakatSPDTab /> },
+        // { key: 'member', label: <span className="flex items-center gap-1.5"><TeamOutlined />Member</span>, children: <MemberTab /> },
     ];
 
     useEffect(() => {
@@ -61,7 +72,7 @@ const ReceptionistPage = () => {
 
     return (
         <div
-            className="h-screen overflow-hidden flex flex-col px-4 pb-3 pt-3"
+            className="h-screen flex flex-col px-4 pb-3 pt-3 "
             style={{
                 fontFamily: "'DM Sans', sans-serif",
                 background: "#f0f4ff",
@@ -157,7 +168,7 @@ const ReceptionistPage = () => {
             </header>
 
             {/* Tabs wrapper - flex-1 min-h-0 so it takes remaining screen height and can shrink for scrolling */}
-            <div className="flex-1 min-h-0 bg-white rounded-xl shadow-sm px-4 flex flex-col">
+            <div className="flex-1 min-h-0 bg-white rounded-xl shadow-sm px-4 flex flex-col overflow-hidden!">
 
                 <Tabs
                     activeKey={activeTab}
