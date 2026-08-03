@@ -21,6 +21,7 @@ const ReceptionistPage = () => {
     // console.log(loginUserData , "loginUserData ........");
 
     const handleEdit = (record) => {
+        
         console.log(record, "record .........");
         setEditRecord(record);
         setActiveTab('1');

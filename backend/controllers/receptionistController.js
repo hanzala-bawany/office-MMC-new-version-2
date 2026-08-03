@@ -438,7 +438,6 @@ const getUsers = async (req, res) => {
 };
 
 const addEditOpdReceipt = async (req, res) => {
-
   let connection;
   try {
     const pool = await poolPromise;
@@ -477,7 +476,7 @@ const addEditOpdReceipt = async (req, res) => {
       LabTestAmounts,
     } = req.body || {};
 
-    // console.log(req.body, "req.body ...........");
+    console.log(req.body, "req.body ...........");
 
     // Validation - Required fields check karo
     if (!CatagoryId || !ConsultantID || !PatientName || !User || !ContactNo) {
@@ -540,14 +539,13 @@ const addEditOpdReceipt = async (req, res) => {
 
     const recieptNo = result.outBinds.RetVoucherNo;
 
-
     if (Array.isArray(LabTestIds) && LabTestIds.length > 0) {
-
       for (const testId of LabTestIds) {
         const testInfo = LabTestAmounts?.find(
           (t) => String(t.id) === String(testId),
         );
         const amount = Number(testInfo?.amount) || 0;
+        const rowId = testInfo?.rowId || null;
 
         await connection.execute(
           `BEGIN 
@@ -558,15 +556,16 @@ const addEditOpdReceipt = async (req, res) => {
           {
             VReceiptNo: ReceiptNo || recieptNo,
             VfkTestId: testId,
+            VRowId: rowId,
             VAmount: amount,
             VUser: User,
             Vstatus: 0,
           },
-          { autoCommit: false },   // sab tests ke baad ek sath commit karo
+          { autoCommit: false }, // sab tests ke baad ek sath commit karo
         );
       }
 
-      await connection.commit();    // sab inserts ek sath commit
+      await connection.commit(); // sab inserts ek sath commit
     }
 
     res.status(200).json({
@@ -575,19 +574,18 @@ const addEditOpdReceipt = async (req, res) => {
         receiptNo: recieptNo,
         mrNo: MrNo,
       },
-      message: ReceiptNo ? "OPD Receipt updated successfully" : "OPD Receipt created successfully",
+      message: ReceiptNo
+        ? "OPD Receipt updated successfully"
+        : "OPD Receipt created successfully",
     });
-
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("Error in addEditOpdReceipt:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Error processing OPD Receipt",
       error: error,
     });
-  } 
-  finally {
+  } finally {
     if (connection) {
       try {
         await connection.close();
@@ -596,11 +594,9 @@ const addEditOpdReceipt = async (req, res) => {
       }
     }
   }
-
 };
 
 const getPatientsbyFilter = async (req, res) => {
-  
   const {
     fromDate = null,
     toDate = null,
@@ -639,7 +635,8 @@ const getPatientsbyFilter = async (req, res) => {
         :skipDataCount,
         :pageSize,
         :totalCount, 
-        :retval
+        :retval,
+        :retval_labtests
       ); 
       END;`,
       {
@@ -653,6 +650,7 @@ const getPatientsbyFilter = async (req, res) => {
         pageSize: finalPageSize,
         totalCount: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
         retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+        retval_labtests: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT },
     );
@@ -660,15 +658,31 @@ const getPatientsbyFilter = async (req, res) => {
     // Cursor se data fetch karo
     const totalCountData = result.outBinds.totalCount;
     const cursor = result.outBinds.retval;
-    const data = await cursor.getRows();
+    const mainData  = await cursor.getRows();
     await cursor.close();
+
+    const labtestsCursor = result.outBinds.retval_labtests;
+    const labTestRows  = await labtestsCursor.getRows();
+    await labtestsCursor.close();
+
+    const dataWithLabTests = mainData.map((record) => ({
+      ...record,
+      LABTESTS: labTestRows
+        .filter((lt) => lt.RECEIPTNO === record.RECEIPTNO)
+        .map((lt) => ({
+          testId: lt.TESTID,
+          rowId: lt.ROWID_STR,
+          testName: lt.TESTNAME,
+          amount: lt.AMOUNT,
+        })),
+    }));
 
     // Response bhejo
     res.status(200).json({
       success: true,
       message: "Patients fetched successfully",
       total: totalCountData,
-      data: data,
+      data: dataWithLabTests
     });
   } catch (error) {
     console.error("Error in get Patients:", error);
@@ -688,8 +702,6 @@ const getPatientsbyFilter = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   getOpdCategory,
   getPatientCategory,
@@ -703,4 +715,3 @@ module.exports = {
   getUsers,
   getPatientsbyFilter,
 };
-

@@ -185,6 +185,19 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
             setSelectedMemberNo(null);
         }
 
+        if (editRecord.LABTESTS?.length) {
+            const testIds = editRecord.LABTESTS.map(item => Number(item.testId));
+
+            const amounts = editRecord.LABTESTS.map(item => ({
+                id: Number(item.testId),
+                title: item.testName,
+                amount: item.amount,
+                rowId: item.rowId
+            }));
+
+            setSelectedLabTestAmounts(amounts);
+        }
+
         form.setFieldsValue({
             type: editRecord.PATIENTTYPE,
             isPartial: editRecord.ISPARTIAL,
@@ -211,6 +224,9 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
             mrNumber: editRecord.MRNO || undefined,
             createdBy: `${editRecord.CREATEDBY} - ${moment(editRecord.CREATEDTIME).format('DD-MMM-YYYY | h:mm A')}` || undefined,
             editBy: editRecord.EDITBY || undefined,
+            labTest: editRecord.LABTESTS?.length
+                ? editRecord.LABTESTS.map(item => item.testId)
+                : undefined,
         });
 
     }, [editRecord]);
@@ -238,7 +254,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
 
         try {
             const payload = {
-                ReceiptNo: editRecord?.RECEIPTNO || null, 
+                ReceiptNo: editRecord?.RECEIPTNO || null,
                 TokenNo: null,
                 Vdate: values.date ? values.date.format('DD-MMM-YYYY HH:mm:ss') : null,
                 CatagoryId: values.opdCategory,
@@ -311,11 +327,19 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
 
         setGrossAmount(total);
 
-        const amounts = selectedTests?.map(item => ({
-            id: item.ID,
-            title: item.TITLE,
-            amount: item.HOSPITALRATE
-        }));
+        const amounts = selectedTests?.map(item => {
+            
+            const existing = selectedLabTestAmounts.find(
+                prev => String(prev.id) === String(item.ID)
+            );
+
+            return {
+                id: item.ID,
+                title: item.TITLE,
+                amount: item.HOSPITALRATE,
+                rowId: existing?.rowId || null   // ✅ purana rowId preserve, naye ke liye null
+            };
+        });
 
         setSelectedLabTestAmounts(amounts || []);
 
@@ -675,7 +699,6 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                                                 ))}
                                             </Select>
                                         </Form.Item>
-
 
                                     </div>
 
