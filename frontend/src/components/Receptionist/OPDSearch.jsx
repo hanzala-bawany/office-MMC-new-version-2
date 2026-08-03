@@ -19,7 +19,8 @@ import {
   ReloadOutlined,
   FilterOutlined,
   EyeOutlined,
-  EditOutlined
+  EditOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import useFetch from '../../hooks/useFetch';
@@ -27,7 +28,7 @@ import moment from 'moment';
 
 const { RangePicker } = DatePicker;
 
-const OPDSearch = () => {
+const OPDSearch = ({handleEdit}) => {
 
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -51,7 +52,6 @@ const OPDSearch = () => {
   // console.log(patientsData, "patientsData ..........");
   // console.log(opdCategoryData, "opdCategoryData ..........");
   // console.log(usersData, "usersData ..........");
-
 
   const columns = [
     {
@@ -124,13 +124,25 @@ const OPDSearch = () => {
       title: 'Actions',
       key: 'actions',
       width: 100,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
-          <Button type="text" icon={<EditOutlined />} size="small" />
+          <Button type="text" icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)} />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined size={18} />}
+            size="small"
+            onClick={() => handleDelete(record)}
+          />
         </Space>
       ),
     },
   ];
+
+  const handleDelete = (record) => {
+    console.log(record, "record .........");
+  }
+
 
   const onFinish = (values) => {
 
@@ -165,7 +177,6 @@ const OPDSearch = () => {
 
   };
 
-  // Table pagination change (page badalne ya pageSize badalne par)
   const handleTableChange = (pagination) => {
     setSearchParams(prev => ({
       ...prev,
@@ -292,7 +303,7 @@ const OPDSearch = () => {
             showSizeChanger: true,
             showQuickJumper: true,
           }}
-          scroll={{ x: 1200 , y: 200 }}
+          scroll={{ x: 1200, y: 200 }}
           className="opd-search-table"
           rowClassName="hover:bg-gray-50 transition-colors"
         />

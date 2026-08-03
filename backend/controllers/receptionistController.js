@@ -472,6 +472,8 @@ const addEditOpdReceipt = async (req, res) => {
       netbalance,
       electricitycharges,
       laboratoryConsultantid,
+      LabTestIds,
+      LabTestAmounts,
     } = req.body || {};
 
     console.log(req.body, "req.body ...........");
@@ -535,19 +537,46 @@ const addEditOpdReceipt = async (req, res) => {
       { autoCommit: true },
     );
 
-    // ✅ Return voucher number from OUT parameter
-    const voucherNo = result.outBinds.RetVoucherNo;
+    const recieptNo = result.outBinds.RetVoucherNo;
+
+    if (Array.isArray(LabTestIds) && LabTestIds.length > 0) {
+      for (const testId of LabTestIds) {
+        const testInfo = LabTestAmounts?.find(
+          (t) => String(t.id) === String(testId),
+        );
+        const amount = Number(testInfo?.amount) || 0;
+        const rowId = testInfo?.rowId || null;
+
+        await connection.execute(
+          `BEGIN 
+            opdtestreceipt_add_edit1_new(
+             :VReceiptNo, :VfkTestId, :VRowId, :VAmount, :VUser, :Vstatus
+            ); 
+          END;`,
+          {
+            VReceiptNo: ReceiptNo || recieptNo,
+            VfkTestId: testId,
+            VRowId: rowId,
+            VAmount: amount,
+            VUser: User,
+            Vstatus: 0,
+          },
+          { autoCommit: false }, // sab tests ke baad ek sath commit karo
+        );
+      }
+
+      await connection.commit(); // sab inserts ek sath commit
+    }
 
     res.status(200).json({
       success: true,
       data: {
-        receiptNo: voucherNo,
+        receiptNo: recieptNo,
         mrNo: MrNo,
       },
-      message:
-        ReceiptNo && ReceiptNo !== "0" && ReceiptNo !== null
-          ? "OPD Receipt updated successfully"
-          : "OPD Receipt created successfully",
+      message: ReceiptNo
+        ? "OPD Receipt updated successfully"
+        : "OPD Receipt created successfully",
     });
   } catch (error) {
     console.error("Error in addEditOpdReceipt:", error);
@@ -591,7 +620,7 @@ const getPatientsbyFilter = async (req, res) => {
     const finalPageNo = pageNo ? Number(pageNo) : 1;
     const finalPageSize = pageSize ? Number(pageSize) : 5;
 
-    const skipDataCount = (finalPageNo - 1) * finalPageSize; 
+    const skipDataCount = (finalPageNo - 1) * finalPageSize;
 
     // Stored procedure call karo
     const result = await connection.execute(
@@ -606,7 +635,8 @@ const getPatientsbyFilter = async (req, res) => {
         :skipDataCount,
         :pageSize,
         :totalCount, 
-        :retval
+        :retval,
+        :retval_labtests
       ); 
       END;`,
       {
@@ -620,6 +650,7 @@ const getPatientsbyFilter = async (req, res) => {
         pageSize: finalPageSize,
         totalCount: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
         retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+        retval_labtests: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT },
     );
@@ -627,15 +658,31 @@ const getPatientsbyFilter = async (req, res) => {
     // Cursor se data fetch karo
     const totalCountData = result.outBinds.totalCount;
     const cursor = result.outBinds.retval;
-    const data = await cursor.getRows();
+    const mainData  = await cursor.getRows();
     await cursor.close();
+
+    const labtestsCursor = result.outBinds.retval_labtests;
+    const labTestRows  = await labtestsCursor.getRows();
+    await labtestsCursor.close();
+
+    const dataWithLabTests = mainData.map((record) => ({
+      ...record,
+      LABTESTS: labTestRows
+        .filter((lt) => lt.RECEIPTNO === record.RECEIPTNO)
+        .map((lt) => ({
+          testId: lt.TESTID,
+          rowId: lt.ROWID_STR,
+          testName: lt.TESTNAME,
+          amount: lt.AMOUNT,
+        })),
+    }));
 
     // Response bhejo
     res.status(200).json({
       success: true,
       message: "Patients fetched successfully",
-      total: totalCountData,     
-      data: data,
+      total: totalCountData,
+      data: dataWithLabTests
     });
   } catch (error) {
     console.error("Error in get Patients:", error);
