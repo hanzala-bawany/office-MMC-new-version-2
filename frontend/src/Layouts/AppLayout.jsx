@@ -1,21 +1,21 @@
-
 import { Layout, Menu, Breadcrumb, theme, Flex } from 'antd';
 import React, { useEffect, useState } from 'react';
 import NavImg from '../assets/MMC logo.png';
 import hospitraxLogo from '../assets/productLogoBgRemove.png';
-import { UserOutlined, LaptopOutlined } from '@ant-design/icons';
+import { UserOutlined, LaptopOutlined, MenuUnfoldOutlined, MenuFoldOutlined, FileTextOutlined } from '@ant-design/icons';
 import { FaChalkboardTeacher, FaMicrophone, FaTextWidth, FaUserMd, FaUserMinus } from 'react-icons/fa';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlineMenu } from "react-icons/ai";
 import { AiFillCloseCircle } from 'react-icons/ai';
 import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../reduxToolKit/authSlice';
 import "./AppLayout.css"
 import Time from '../components/Applayout/Time';
 import axios from 'axios';
 import { base_URL } from '../utills/baseUrl';
 import { updateDoctorsData } from '../reduxToolKit/doctorSlice';
+import LogoutModal from '../utills/LogoutModal';
 
 
 const { Header, Content, Sider } = Layout;
@@ -27,244 +27,115 @@ const AppLayout = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+
   const [isSiderOpen, setIsSiderOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const pageName = location.pathname.split("/")[1];
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
+  const userRole = loginUserData?.role;
+
+  console.log(loginUserData, "loginUserData ......");
 
   const menuData = [
     {
-      key: "1", icon: UserOutlined, label:
-        <NavLink
-          to={`/doctor`}
-        >
-          Doctors
-        </NavLink>
+      key: "1", icon: UserOutlined, roles: ["admin"], label:
+        <NavLink to={`/doctor`}>Doctors</NavLink>
     },
     {
-      key: "2",
-      icon: FaUserMd,
-      label: (
-        <NavLink to="/consultant">
-          Add Consultant
-        </NavLink>
-      ),
+      key: "2", icon: FaUserMd, roles: ["admin"],
+      label: <NavLink to="/consultant">Add Consultant</NavLink>,
     },
     {
-      key: "9",
-      icon: FaMicrophone,
-      label: (
-        <NavLink to="/pronunciation">
-          Add Doctor Pronunciation
-        </NavLink>
-      ),
+      key: "9", icon: FaMicrophone, roles: ["admin"],
+      label: <NavLink to="/pronunciation">Add Doctor Pronunciation</NavLink>,
     },
     {
-      key: "10",
-      icon: FaUserMinus,
-      label: (
-        <NavLink to="/removeDoctor">
-          Doctor Management
-        </NavLink>
-      ),
+      key: "10", icon: FaUserMinus, roles: ["admin"],
+      label: <NavLink to="/removeDoctor">Doctor Management</NavLink>,
     },
     {
-      key: "8", icon: FaTextWidth, label: (
-        <span >
-          <NavLink
-            to={`/addScreens`}
-          >
-            Add Screens
-          </NavLink>
-        </span>)
+      key: "8", icon: FaTextWidth, roles: ["admin"], label: (
+        <span><NavLink to={`/addScreens`}>Add Screens</NavLink></span>
+      )
     },
     {
-      key: "3",
-      icon: LaptopOutlined,
-      label: "Screen 1",
+      key: "16", icon: FileTextOutlined, roles: ["admin", "Receptionist"],
+      label: <NavLink to="/receptionist">Reception</NavLink>,
+    },
+    {
+      key: "3", icon: LaptopOutlined, roles: ["admin"], label: "Screen 1",
       children: [
-        {
-          key: "1-1", label:
-            <NavLink
-              to={`/screen1`}
-            >
-              Add Data
-            </NavLink>
-        },
-        {
-          key: "1-2", label:
-            <NavLink
-              to={`/screen1display`}
-            >
-              TV Screen
-            </NavLink>
-        },
+        { key: "1-1", label: <NavLink to={`/screen1`}>Add Data</NavLink> },
+        { key: "1-2", label: <NavLink to={`/screen1display`}>TV Screen</NavLink> },
       ],
     },
     {
-      key: "4",
-      icon: LaptopOutlined,
-      label: "Screen 2",
+      key: "4", icon: LaptopOutlined, roles: ["admin"], label: "Screen 2",
       children: [
         {
           key: "2-1",
           label: (
-            <span style={{
-              pointerEvents: "none",
-              opacity: 0.4,
-              color: 'gray',
-              fontWeight: "500",
-              cursor: "not-allowed",
-            }}>
-              <NavLink to="/screen2">
-                Add Data
-              </NavLink>
+            <span style={{ pointerEvents: "none", opacity: 0.4, color: 'gray', fontWeight: "500", cursor: "not-allowed" }}>
+              <NavLink to="/screen2">Add Data</NavLink>
             </span>
           ),
         },
-        {
-          key: "2-2",
-          label: (
-            <NavLink to="/screen2display">
-              TV Screen
-            </NavLink>
-          ),
-        },
+        { key: "2-2", label: <NavLink to="/screen2display">TV Screen</NavLink> },
       ],
     },
     {
-      key: "5",
-      icon: LaptopOutlined,
-      label: "Screen 3",
+      key: "5", icon: LaptopOutlined, roles: ["admin"], label: "Screen 3",
       children: [
-        {
-          key: "3-1", label:
-            <NavLink
-              to={`/screen3`}
-            >
-              Add Data
-            </NavLink>
-        },
-        {
-          key: "3-2", label:
-            <NavLink
-              to={`/screen3display`}
-            >
-              TV Screen
-            </NavLink>
-        },
+        { key: "3-1", label: <NavLink to={`/screen3`}>Add Data</NavLink> },
+        { key: "3-2", label: <NavLink to={`/screen3display`}>TV Screen</NavLink> },
       ],
     },
     {
-      key: "6",
-      icon: LaptopOutlined,
-      label: "Screen 4",
+      key: "6", icon: LaptopOutlined, roles: ["admin"], label: "Screen 4",
       children: [
-        {
-          key: "4-1", label:
-            <NavLink
-              to={`/screen4`}
-            >
-              Add Data
-            </NavLink>
-        },
-        {
-          key: "4-2", label:
-            <NavLink
-              to={`/screen4display`}
-            >
-              TV Screen
-            </NavLink>
-        },
+        { key: "4-1", label: <NavLink to={`/screen4`}>Add Data</NavLink> },
+        { key: "4-2", label: <NavLink to={`/screen4display`}>TV Screen</NavLink> },
       ],
     },
     {
-      key: "7",
-      icon: LaptopOutlined,
-      label: "Screen 5",
+      key: "7", icon: LaptopOutlined, roles: ["admin"], label: "Screen 5",
       children: [
-
-        {
-          key: "5-2", label:
-            <NavLink
-              to={`/screen/5`}
-            >
-              TV Screen
-            </NavLink>
-        },
+        { key: "5-2", label: <NavLink to={`/screen/5`}>TV Screen</NavLink> },
       ],
     },
     {
-      key: "11",
-      icon: LaptopOutlined,
-      label: "Screen 6",
+      key: "11", icon: LaptopOutlined, roles: ["admin"], label: "Screen 6",
       children: [
-        {
-          key: "6-2", label:
-            <NavLink
-              to={`/screen/6`}
-            >
-              TV Screen
-            </NavLink>
-        },
+        { key: "6-2", label: <NavLink to={`/screen/6`}>TV Screen</NavLink> },
       ],
     },
     {
-      key: "12",
-      icon: LaptopOutlined,
-      label: "Screen 7",
+      key: "12", icon: LaptopOutlined, roles: ["admin"], label: "Screen 7",
       children: [
-        {
-          key: "7-2", label:
-            <NavLink
-              to={`/screen/7`}
-            >
-              TV Screen
-            </NavLink>
-        },
+        { key: "7-2", label: <NavLink to={`/screen/7`}>TV Screen</NavLink> },
       ],
     },
     {
-      key: "13",
-      icon: LaptopOutlined,
-      label: "Screen 8",
+      key: "13", icon: LaptopOutlined, roles: ["admin"], label: "Screen 8",
       children: [
-        {
-          key: "8-2", label:
-            <NavLink
-              to={`/screen/8`}
-            >
-              TV Screen
-            </NavLink>
-        },
+        { key: "8-2", label: <NavLink to={`/screen/8`}>TV Screen</NavLink> },
       ],
     },
     {
-      key: "14",
-      icon: LaptopOutlined,
-      label: "Screen 9",
+      key: "14", icon: LaptopOutlined, roles: ["admin"], label: "Screen 9",
       children: [
-        {
-          key: "9-2", label:
-            <NavLink
-              to={`/screen/9`}
-            >
-              TV Screen
-            </NavLink>
-        },
+        { key: "9-2", label: <NavLink to={`/screen/9`}>TV Screen</NavLink> },
       ],
     },
     {
       key: "15",
+      roles: ["admin", "Receptionist"], // sabko Logout dikhna chahiye
       label: (
-        <button
-          onClick={() => {
-            dispatch(logoutUser());
-            toast.success("Logout Successful");
-            navigate("/login");
-          }}
-        >
+        <button onClick={() => setIsModalOpen(true)}>
           Logout
         </button>
       ),
@@ -272,20 +143,24 @@ const AppLayout = () => {
 
   ];
 
-  const items2 = menuData.map((item, i) => ({
-    key: `${i + 1}`,
-    icon: item.icon ? React.createElement(item.icon) : null,
-    label: item.label || null,
-    children: item.children
-      ? item.children.map((child) => ({
-        key: child.key,
-        label: child.label,
-      }))
-      : null,
-  }));
-
+  // Role ke hisaab se filter, aur original key preserve (regenerate mat karo!)
+  const items2 = menuData
+    .filter(item => !item.roles || item.roles.includes(userRole))
+    .map((item) => ({
+      key: item.key,
+      icon: item.icon ? React.createElement(item.icon) : null,
+      label: item.label || null,
+      children: item.children
+        ? item.children.map((child) => ({
+          key: child.key,
+          label: child.label,
+        }))
+        : null,
+    }));
 
   useEffect(() => {
+
+    if (userRole !== "admin") return;
     const fetchDoctors = async () => {
       try {
         const res = await axios.get(`${base_URL}/api/doctor/list`);
@@ -295,12 +170,16 @@ const AppLayout = () => {
       }
     };
     fetchDoctors();
-  }, []);
+  }, [userRole]);
 
 
   return (
 
     <Layout style={{ height: "100vh", width: "100%", display: "flex", backgroundColor: "red", overflowX: "hidden" }}>
+
+      {
+        <LogoutModal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} loginUserData={loginUserData} />
+      }
 
       {/* HEADER */}
       <Header
@@ -321,6 +200,7 @@ const AppLayout = () => {
 
             {/* Logo with gradient border */}
             <div className="relative ">
+
               {/* Animated gradient ring */}
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full blur-md opacity-75 group-hover:opacity-100 transition duration-300"></div>
               <img
@@ -338,6 +218,7 @@ const AppLayout = () => {
                 “Healthcare Management System”
               </p>
             </div>
+
           </div>
         </NavLink>
 
@@ -362,8 +243,12 @@ const AppLayout = () => {
       {/* BODY */}
       <Layout >
 
+
         {/* SIDEBAR */}
         <Sider
+          // collapsible
+          collapsed={collapsed}
+          trigger={null}
           style={{
             background: colorBgContainer,
             height: "88vh",
@@ -372,8 +257,39 @@ const AppLayout = () => {
           className={`2xl:!min-w-[240px] 2xl:!max-w-[240px] transition-all duration-300 ease-in-out z-50  ${isSiderOpen ? "!absolute left-0 ml-0 !h-[calc(100vh-70px)] shadow-lg" : "-ml-[200px] h-0"} md:ml-0 md:static md:h-full bg-white`}
         >
 
-          {/* Yeh wrapper div flex ka kaam karega */}
           <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+
+            {/* Yeh wrapper div flex ka kaam karega */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: collapsed ? "center" : "flex-start",
+                alignItems: "center",
+                padding: collapsed ? "14px 0" : "14px 16px",
+                borderBottom: "1px solid #f0f0f0",
+                flexShrink: 0,
+              }}
+            >
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                style={{
+                  background: "#f5f5f5",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  width: "32px",
+                  height: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  color: "#001529",
+                }}
+              >
+                {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              </button>
+
+            </div>
 
             {/* Scrollable area - logout ke bina */}
             <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
@@ -438,9 +354,9 @@ const AppLayout = () => {
           </Content>
         </Layout>
 
-      </Layout> 
+      </Layout>
 
-    </Layout>
+    </Layout >
   );
 };
 

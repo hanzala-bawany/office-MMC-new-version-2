@@ -42,8 +42,9 @@ function App() {
       <Routes>
 
         {/* AppLayout wale routes */}
-        <Route element={<AdminDisplayParent />}>
-          <Route element={<AppLayout />}>
+        <Route element={<AppLayout />}>
+
+          <Route element={<AdminDisplayParent />}>
             <Route index element={<Home />} />
             <Route path="/screen1" element={<Screen1Page />} />
             <Route path="/screen2" element={<Screen2Page />} />
@@ -57,8 +58,20 @@ function App() {
             <Route path="/removeDoctor" element={<AddRemoveLogoutDoctor />} />
             <Route path="/addScreens" element={<AddScreens />} />
           </Route>
+
+          <Route element={<ReceptionistParent />}>
+            <Route path="/receptionist" element={<ReceptionistPage />} />
+          </Route>
+
         </Route>
 
+        {/*  Reprts*/}
+        <Route path="/prescriptionReport" element={<PrescriptionReport />} />
+
+        {/*  Medical Assistant */}
+        <Route element={<MedicalAssistantParent />}>
+          <Route path="/medicalAssistant" element={<MedicalAssistant />} />
+        </Route>
 
         {/* Screen Displays */}
         <Route element={<ScreenDisplayParent />}>
@@ -70,28 +83,11 @@ function App() {
         <Route path="/screen/:screenNum" element={<Screen5Display />} />
 
 
-        {/*  Receptionist Page*/}
-        <Route element={<ReceptionistParent />}>
-          <Route path="/receptionist" element={<ReceptionistPage />} />
-        </Route>
-
-
-        {/*  Reprts*/}
-        <Route path="/prescriptionReport" element={<PrescriptionReport />} />
-
-
         {/*  Doctor*/}
         <Route element={<DocotorParent />}>
           <Route path="/doctorDashboard" element={<DoctorDashboard />} />
           <Route path="/doctorSetupPage" element={<DoctorSetupPage />} />
         </Route>
-
-
-        {/*  Medical Assistant */}
-        <Route element={<MedicalAssistantParent />}>
-          <Route path="/medicalAssistant" element={<MedicalAssistant />} />
-        </Route>
-
 
         {/* Auth Routes */}
         <Route element={<AuthParent />}>

@@ -1,111 +1,80 @@
-import React from 'react'
-import { Modal, Form, Input, Divider } from 'antd'
+import React from 'react';
+import { Modal, Table, Button, Tag } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
+import moment from 'moment';
 
+const LastSlipIssuedModal = ({ open, onCancel, last10PatientsData: lastPatientData, handleEdit }) => {
 
+    const patients = lastPatientData?.data || [];
 
-const LastSlipIssuedModal = ({ open, onCancel, lastPatientData }) => {
-
-    // console.log(lastPatientData?.data?.[0], "lastPatientData............");
-
-    const [lastPatientForm] = Form.useForm();
-    const {NETAMOUNT , PATIENTAGE, PATIENTNAME ,RECEIPTNO ,TOKENNO } = lastPatientData?.data?.[0] || {}
-
-
-
+    const columns = [
+        {
+            title: 'Patient Name',
+            dataIndex: 'PATIENTNAME',
+            key: 'PATIENTNAME',
+            render: (text, record) => (
+                <span className="font-medium text-gray-800">
+                    {record.PATIENTTITLE} {text}
+                </span>
+            ),
+        },
+        {
+            title: 'Receipt #',
+            dataIndex: 'RECEIPTNO',
+            key: 'RECEIPTNO',
+            render: (text) => <Tag color="blue">{text}</Tag>,
+        },
+        {
+            title: 'MR No',
+            dataIndex: 'MRNO',
+            key: 'MRNO',
+        },
+        {
+            title: 'Contact',
+            dataIndex: 'CONTACTNO',
+            key: 'CONTACTNO',
+        },
+        {
+            title: 'Action',
+            key: 'action',
+            width: 90,
+            render: (_, record) => (
+                <Button
+                    type="primary"
+                    size="small"
+                    icon={<EditOutlined />}
+                    onClick={() => {
+                        handleEdit?.(record);
+                        onCancel?.();
+                    }}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 border-0"
+                >
+                    Edit
+                </Button>
+            ),
+        },
+    ];
 
     return (
         <Modal
-            title="Last Slip Issued"
+            title="Last 10 Slip Issued"
             open={open}
             onCancel={onCancel}
             footer={null}
-            width={700}
+            width={900}
         >
-            <Form
-                form={lastPatientForm}
-                layout="vertical"
-                initialValues={{
-                    lastPatientName: PATIENTNAME,
-                    lastPatientAge: PATIENTAGE,
-                    lastRecieptNo: RECEIPTNO,
-                    lastTokenNo: TOKENNO,
-                }}
-            >
-
-                {/* Last Slip Issued - Readonly */}
-                <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 p-4 rounded-xl mb-6 border border-blue-100/50">
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-indigo-500 rounded-full"></div>
-                            <span className="text-sm font-semibold text-gray-700">Last Slip Issued</span>
-                        </div>
-                        <span className="text-sm text-blue-600 font-medium">Invoice Detail</span>
-                    </div>
-
-                    <Divider className="my-3" style={{ borderColor: '#e5e7eb' }} />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2  gap-x-4 gap-y-3">
-
-                        <Form.Item
-                            name="lastPatientName"
-                            label={<span className="text-xs font-semibold text-gray-600">Last Patient Name</span>}
-                            className="mb-0"
-                        >
-                            <Input
-                                placeholder="Patient Name"
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
-                                prefix={<span className="text-gray-400 text-xs">👤</span>}
-                                // disabled={true}
-                            />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="lastPatientAge"
-                            label={<span className="text-xs font-semibold text-gray-600">Last Patient Age</span>}
-                            className="mb-0"
-                        >
-                            <Input
-                                placeholder="Last Patient Age"
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
-                                prefix={<span className="text-gray-400 text-xs">✏️</span>}
-                                // disabled={true}
-                            />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="lastRecieptNo"
-                            label={<span className="text-xs font-semibold text-gray-600">last Reciept #</span>}
-                            className="mb-0"
-                        >
-                            <Input
-                                placeholder="last Reciept #"
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
-                                prefix={<span className="text-gray-400 text-xs">👤</span>}
-                                // disabled={true}
-                            />
-                        </Form.Item>
-
-                        <Form.Item
-                            name="lastTokenNo"
-                            label={<span className="text-xs font-semibold text-gray-600">Last Token No</span>}
-                            className="mb-0"
-                        >
-                            <Input
-                                placeholder="Token No"
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
-                                prefix={<span className="text-gray-400 text-xs">✏️</span>}
-                                // disabled={true}
-                            />
-                        </Form.Item>
-
-                    </div>
-
-                </div>
-
-            </Form>
+            <Table
+                columns={columns}
+                dataSource={patients}
+                rowKey={(record) => record.RECEIPTNO}
+                pagination={false}
+                size="small"
+                scroll={{ y: '50vh' }}   
+                locale={{ emptyText: 'No recent slips found' }}
+                style={{minHeight : "200px"}}
+            />
         </Modal>
-    )
-}
+    );
+};
 
-export default LastSlipIssuedModal
+export default LastSlipIssuedModal;

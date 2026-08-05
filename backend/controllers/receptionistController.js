@@ -299,7 +299,7 @@ const getMemberDependent = async (req, res) => {
   }
 };
 
-const getLastPatient = async (req, res) => {
+const getLast10Patient = async (req, res) => {
   const userName = req?.params?.userName?.toString();
 
   let connection;
@@ -310,30 +310,46 @@ const getLastPatient = async (req, res) => {
 
     // Stored procedure call karo
     const result = await connection.execute(
-      `BEGIN get_last_patient(:vusername , :retval); END;`,
+      `BEGIN get_last_patient(:vusername , :retval , :retval_labtests); END;`,
       {
         vusername: userName,
         retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+        retval_labtests: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT },
     );
 
-    // Cursor se data fetch karo
     const cursor = result.outBinds.retval;
-    const data = await cursor.getRows();
+    const mainData = await cursor.getRows();
     await cursor.close();
+
+    const labtestsCursor = result.outBinds.retval_labtests;
+    const labTestRows = await labtestsCursor.getRows();
+    await labtestsCursor.close();
+
+    const dataWithLabTests = mainData.map((record) => ({
+      ...record,
+      LABTESTS: labTestRows
+        .filter((lt) => lt.RECEIPTNO === record.RECEIPTNO)
+        .map((lt) => ({
+          testId: lt.TESTID,
+          rowId: lt.ROWID_STR,
+          testName: lt.TESTNAME,
+          amount: lt.AMOUNT,
+        })),
+    }));
 
     // Response bhejo
     res.status(200).json({
       success: true,
-      data: data,
-      message: "LastPatient fetched successfully",
+      data: dataWithLabTests,
+      message: "Last 10 Patients fetched successfully",
     });
   } catch (error) {
-    console.error("Error in get LastPatient:", error);
+    console.error("Error in get Last 10 Patient:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching LastPatient",
+      message: "Error fetching Last 10 Patient",
       error: error.message,
     });
   } finally {
@@ -437,6 +453,7 @@ const getUsers = async (req, res) => {
   }
 };
 
+
 const addEditOpdReceipt = async (req, res) => {
   let connection;
   try {
@@ -476,7 +493,7 @@ const addEditOpdReceipt = async (req, res) => {
       LabTestAmounts,
     } = req.body || {};
 
-    console.log(req.body, "req.body ...........");
+    // console.log(req.body, "req.body ...........");
 
     // Validation - Required fields check karo
     if (!CatagoryId || !ConsultantID || !PatientName || !User || !ContactNo) {
@@ -661,11 +678,11 @@ const getPatientsbyFilter = async (req, res) => {
     // Cursor se data fetch karo
     const totalCountData = result.outBinds.totalCount;
     const cursor = result.outBinds.retval;
-    const mainData  = await cursor.getRows();
+    const mainData = await cursor.getRows();
     await cursor.close();
 
     const labtestsCursor = result.outBinds.retval_labtests;
-    const labTestRows  = await labtestsCursor.getRows();
+    const labTestRows = await labtestsCursor.getRows();
     await labtestsCursor.close();
 
     const dataWithLabTests = mainData.map((record) => ({
@@ -685,7 +702,7 @@ const getPatientsbyFilter = async (req, res) => {
       success: true,
       message: "Patients fetched successfully",
       total: totalCountData,
-      data: dataWithLabTests
+      data: dataWithLabTests,
     });
   } catch (error) {
     console.error("Error in get Patients:", error);
@@ -705,6 +722,103 @@ const getPatientsbyFilter = async (req, res) => {
   }
 };
 
+const deleteRefundOpdReceipt = async (req, res) => {
+  let connection;
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // Request body se data lo
+    const {
+      ReceiptNo,
+      status,
+      User,
+      TerminalId,
+      Remarks,
+      refundBy,
+      refundDate,
+    } = req.body || {};
+
+    console.log(req.body, "req.body in  deleteRefundOpdReceipt ...........");
+
+    // Validation - Sirf required fields check karo
+    if (!ReceiptNo) {
+      return res.status(400).json({
+        success: false,
+        message: "ReceiptNo is required",
+      });
+    }
+
+    if (!User) {
+      return res.status(400).json({
+        success: false,
+        message: "User is required",
+      });
+    }
+
+    if (status === undefined || status === null) {
+      return res.status(400).json({
+        success: false,
+        message: "Status is required (1 for delete, 0 for restore)",
+      });
+    }
+
+    // Stored procedure call karo - SAHI PROCEDURE CALL
+    const result = await connection.execute(
+      `BEGIN hms.change_opdreceipt_status(
+        :VReceiptNo,
+        :VStatus,
+        :VUser,
+        :VTerminalId,
+        :VRemarks,
+        :VRefundBy,
+        :VRefunddate
+      ); END;`,
+      {
+        VReceiptNo: ReceiptNo,
+        VStatus: status,
+        VUser: User,
+        VTerminalId: TerminalId || null,
+        VRemarks: Remarks || null,
+        VRefundBy: refundBy || null,
+        VRefunddate: refundDate ? new Date(refundDate) : null,
+      },
+      { autoCommit: true },
+    );
+
+    // Success response
+    const message =
+      status === 1
+        ? `OPD Receipt ${ReceiptNo} deleted successfully`
+        : `OPD Receipt ${ReceiptNo} restored successfully`;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        receiptNo: ReceiptNo,
+        status: status,
+        action: status === 1 ? "deleted" : "restored",
+      },
+      message: message,
+    });
+  } catch (error) {
+    console.error("Error in deleteRefundOpdReceipt:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error processing OPD Receipt status change",
+      error: error,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
+
 module.exports = {
   getOpdCategory,
   getPatientCategory,
@@ -712,9 +826,10 @@ module.exports = {
   getReference,
   getAllMembers,
   addEditOpdReceipt,
-  getLastPatient,
+  getLast10Patient,
   getLabTest,
   getMemberDependent,
   getUsers,
   getPatientsbyFilter,
+  deleteRefundOpdReceipt,
 };
