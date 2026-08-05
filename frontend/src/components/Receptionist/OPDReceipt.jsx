@@ -12,7 +12,8 @@ import {
     Space,
     Radio,
     InputNumber,
-    Badge
+    Badge,
+    AutoComplete
 } from 'antd';
 import {
     SaveOutlined,
@@ -42,7 +43,7 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 
-const OPDReceipt = ({ editRecord, clearEditRecord }) => {
+const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
 
     const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
     const [form] = Form.useForm();
@@ -60,6 +61,10 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
     const [showMember, setShowMember] = useState(null);
     const [selectedMemberNo, setSelectedMemberNo] = useState(null);
     const [selectedMemberPatientId, setSelectedMemberPatientId] = useState(null);
+    const [searchType, setSearchType] = useState('contactNo');
+    const [searchValue, setSearchValue] = useState('');
+    const [searchPatientsData, setSearchPatientsData] = useState(null);
+    const [searchPatientsLoading, setSearchPatientsLoading] = useState(false);
     const discountAmount = Form.useWatch('discountAmount', form);
     const partialAmount = Form.useWatch('partialPayment', form);
 
@@ -72,7 +77,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
     const { data: memberDependentData, loading: memberDependentLoading, error: memberDependentError } =
         useFetch(selectedMemberNo ? `/api/receptionist/members/${selectedMemberNo}` : null);
 
-    const { data: lastPatientData, loading: lastPatientLoading, error: lastPatientError } =
+    const { data: last10PatientsData, loading: last10PatientsLoading, error: last10PatientsError, reFetchData: refetchLast10Patients } =
         useFetch(loginUserData?.username ? `/api/receptionist/lastPatient/${loginUserData?.username}` : null);
 
     const { data: referenceData, loading: referenceLoading, error: referenceError } =
@@ -80,6 +85,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
 
     const { data: consultantsData, loading: consultantsLoading, error: consultantsError } =
         useFetch('/api/receptionist/allConsultant', { facultyId: opdCategoryId || null });
+
 
 
     const titleOptions = [
@@ -117,6 +123,8 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
     ];
 
 
+
+
     // console.log(grossAmount, "grossAmount ..............");
     // console.log(patientCategoryData, "patientCategoryData ..............");
     // console.log(membersData, "membersData ..............");
@@ -126,7 +134,8 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
     // console.log(consultantsData, "consultantsData ..............");
     // console.log(opdCategoryId, "opdCategoryId ..............");
     // console.log(selectedMemberPatientId, "selectedMemberPatientId ..............");
-    // console.log(lastPatientData, "lastPatientData ..............");
+    // console.log(last10PatientsData, "last10PatientsData ..............");
+    // console.log(searchPatientsData, "searchPatientsData ..............");
     // console.log(labTestData, "labTestData ..............");
     // console.log(selectedLabTestAmounts, "selectedLabTestAmounts  ..............");
 
@@ -162,6 +171,184 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
     }, [grossAmount, discountAmount, partialAmount]);
 
     useEffect(() => {
+
+        handleEditPatient(editRecord)
+
+    }, [editRecord]);
+
+
+    const handleFieldChange = (changedValues, allValues) => {
+
+        // console.log(changedValues, "changedValues");
+        console.log(allValues, "allValues");
+
+
+        if (changedValues?.type) {
+            setPatientTypeId(changedValues.type);
+            form.setFieldsValue({ reference: undefined });
+        }
+        else if (changedValues?.opdCategory) {
+            setOpdCategoryId(changedValues.opdCategory);
+            form.setFieldsValue({ consultant: undefined });
+        }
+    };
+
+    const onFinish = async (values) => {
+
+        setAddEditPatientLoading(true);
+
+        try {
+            const payload = {
+                ReceiptNo: editRecord?.RECEIPTNO || null,
+                TokenNo: null,
+                Vdate: values.date ? values.date.format('DD-MMM-YYYY HH:mm:ss') : null,
+                CatagoryId: values.opdCategory,
+                ConsultantID: !islabortaryAble ? values.consultant : null,
+                PatientType: values.type,
+                MemberID: values.members || null,
+                PatientId: showMember ? selectedMemberPatientId : null,
+                PatientTitle: values.patientTitle,
+                PatientName: values.patientName || null,
+                Gender: values.gender,
+                ContactNo: values.contact,
+                Age: values.ageValue,
+                AgeUnit: values.ageType,
+                ReferenceId: values.reference || null,
+                Remarks: values.remarks,
+                GrossAmount: Number(values.grossPayment) || 0,
+                Discount: Number(values.discountAmount) || 0,
+                NetAmount: Number(values.netPayment),
+                partialAmount: Number(values.partialPayment) || 0,
+                netbalance: Number(values.balancePayment) || 0,
+                User: loginUserData?.username || null,
+                TerminalId: null,                          //  ye kar na he 
+                status: 0,                                 // ye dekhn ahe 
+                isPartial: values.isPartial || null,
+                electricitycharges: null,                  // ye dekhna he 
+                laboratoryConsultantid: islabortaryAble ? values.consultant : null,
+                LabTestIds: islabortaryAble ? (values.labTest || []) : [],
+                LabTestAmounts: islabortaryAble ? selectedLabTestAmounts : [],
+            };
+
+            const res = await axiosInstance.post('/api/receptionist/opdAddandEditPatient', payload);
+
+            console.log('Saved successfully:', res);
+            toast.success(res?.data?.message)
+            // form.resetFields();
+            refetchLastPatients();
+            if (editRecord) {
+                clearEditRecord?.();
+            }
+
+        } catch (err) {
+            console.error('Error saving OPD receipt:', err);
+            toast.error(err?.response?.data?.message || "Failed to generate OPD reciept");
+        } finally {
+            setAddEditPatientLoading(false);
+        }
+
+    };
+
+    const onFinishFailed = (errorInfo) => {
+        console.log('Form validation failed:', errorInfo);
+    };
+
+    const handleReset = () => {
+        form.resetFields();
+        setSearchType("contactNo")
+        setSearchValue('');
+        setSearchPatientsData(null);
+        if (editRecord) {
+            clearEditRecord?.();
+        }
+    };
+
+    const labTestHandler = (value, option) => {
+
+        const selectedTests = labTestData?.data?.filter(item =>
+            value.includes(item.ID)
+        );
+
+        const total = selectedTests?.reduce(
+            (sum, item) => sum + Number(item.HOSPITALRATE || 0),
+            0
+        ) || 0;
+
+        setGrossAmount(total);
+
+        const amounts = selectedTests?.map(item => {
+
+            const existing = selectedLabTestAmounts.find(
+                prev => String(prev.id) === String(item.ID)
+            );
+
+            return {
+                id: item.ID,
+                title: item.TITLE,
+                amount: item.HOSPITALRATE,
+                rowId: existing?.rowId || null   // ✅ purana rowId preserve, naye ke liye null
+            };
+        });
+
+        setSelectedLabTestAmounts(amounts || []);
+
+    }
+
+    const opdCategoryHandler = (value, option) => {
+        setIslabortaryAble(value == 2 ? true : false)
+        setGrossAmount(0);
+    }
+
+    const consultantHandler = (value, option) => {
+        const selectedConsultant = consultantsData?.data?.find(item => item.ID === value);
+        setGrossAmount(Number(selectedConsultant?.HOSPITALRATE) || 0);
+    }
+
+    const handleSearchPatient = async () => {
+        if (!searchValue?.trim()) return;
+
+        setSearchPatientsLoading(true);
+        try {
+            const res = await axiosInstance.get('/api/receptionist/filterPatients', {
+                params: {
+                    [searchType]: searchValue,
+                },
+            });
+            // console.log(res?.data, "search Patients Data ,,,,,,,,,");
+            setSearchPatientsData(res?.data);
+
+        } catch (error) {
+            console.log(error, "err .............");
+            toast.error(error?.response?.data?.message || "Patient not found");
+        } finally {
+            setSearchPatientsLoading(false);
+        }
+    };
+
+    const handleSelectSearchedPatient = (receiptNo) => {
+        const patient = searchPatientsData?.data?.find(p => p.RECEIPTNO === receiptNo);
+        // console.log(searchType, "searchType ...........");
+
+        if (patient) {
+            if (searchType != "receiptNo") {
+
+                form.setFieldsValue({
+                    patientTitle: patient.PATIENTTITLE,
+                    patientName: patient.PATIENTNAME,
+                    contact: patient.CONTACTNO,
+                    gender: patient.GENDER,
+                    remarks: patient.REMARKS,
+                    ageValue: Number(patient.AGE),
+                    ageType: patient.AGEUNIT,
+                })
+            }
+            else {
+                handleEdit?.(patient);
+            }
+        }
+    };
+
+    const handleEditPatient = (editRecord) => {
         if (!editRecord) return;
 
         setPatientTypeId(editRecord.PATIENTTYPE);
@@ -230,140 +417,20 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                 ? editRecord.LABTESTS.map(item => item.testId)
                 : undefined,
         });
-
-    }, [editRecord]);
-
-
-    const handleFieldChange = (changedValues, allValues) => {
-
-        // console.log(changedValues, "changedValues");
-        console.log(allValues, "allValues");
-
-
-        if (changedValues?.type) {
-            setPatientTypeId(changedValues.type);
-            form.setFieldsValue({ reference: undefined });
-        }
-        else if (changedValues?.opdCategory) {
-            setOpdCategoryId(changedValues.opdCategory);
-            form.setFieldsValue({ consultant: undefined });
-        }
-    };
-
-    const onFinish = async (values) => {
-
-        setAddEditPatientLoading(true);
-
-        try {
-            const payload = {
-                ReceiptNo: editRecord?.RECEIPTNO || null,
-                TokenNo: null,
-                Vdate: values.date ? values.date.format('DD-MMM-YYYY HH:mm:ss') : null,
-                CatagoryId: values.opdCategory,
-                ConsultantID: values.consultant,
-                PatientType: values.type,
-                MemberID: values.members || null,
-                PatientId: showMember ? selectedMemberPatientId : null,
-                PatientTitle: values.patientTitle,
-                PatientName: values.patientName || null,
-                Gender: values.gender,
-                ContactNo: values.contact,
-                Age: values.ageValue,
-                AgeUnit: values.ageType,
-                ReferenceId: values.reference || null,
-                Remarks: values.remarks,
-                GrossAmount: Number(values.grossPayment) || 0,
-                Discount: Number(values.discountAmount) || 0,
-                NetAmount: Number(values.netPayment),
-                partialAmount: Number(values.partialPayment) || 0,
-                netbalance: Number(values.balancePayment) || 0,
-                User: loginUserData?.username || null,
-                TerminalId: null,                          //  ye kar na he 
-                status: 0,                                 // ye dekhn ahe 
-                isPartial: values.isPartial || null,
-                electricitycharges: null,                  // ye dekhna he 
-                laboratoryConsultantid: islabortaryAble ? values.consultant : null,  // ye bhi maaloom kar na he 
-                LabTestIds: islabortaryAble ? (values.labTest || []) : [],
-                LabTestAmounts: islabortaryAble ? selectedLabTestAmounts : [],
-            };
-
-            const res = await axiosInstance.post('/api/receptionist/opdAddandEditPatient', payload);
-
-            console.log('Saved successfully:', res);
-            toast.success(res?.data?.message)
-            form.resetFields();
-            if (editRecord) {
-                clearEditRecord?.();
-            }
-
-        } catch (err) {
-            console.error('Error saving OPD receipt:', err);
-            toast.error(err?.response?.data?.message || "Failed to generate OPD reciept");
-        } finally {
-            setAddEditPatientLoading(false);
-        }
-
-    };
-
-    const onFinishFailed = (errorInfo) => {
-        console.log('Form validation failed:', errorInfo);
-    };
-
-    const handleReset = () => {
-        form.resetFields();
-        if (editRecord) {
-            clearEditRecord?.();
-        }
-    };
-
-    const labTestHandler = (value, option) => {
-
-        const selectedTests = labTestData?.data?.filter(item =>
-            value.includes(item.ID)
-        );
-
-        const total = selectedTests?.reduce(
-            (sum, item) => sum + Number(item.HOSPITALRATE || 0),
-            0
-        ) || 0;
-
-        setGrossAmount(total);
-
-        const amounts = selectedTests?.map(item => {
-
-            const existing = selectedLabTestAmounts.find(
-                prev => String(prev.id) === String(item.ID)
-            );
-
-            return {
-                id: item.ID,
-                title: item.TITLE,
-                amount: item.HOSPITALRATE,
-                rowId: existing?.rowId || null   // ✅ purana rowId preserve, naye ke liye null
-            };
-        });
-
-        setSelectedLabTestAmounts(amounts || []);
-
     }
-
-    const opdCategoryHandler = (value, option) => {
-        setIslabortaryAble(value == 2 ? true : false)
-        setGrossAmount(0);
-    }
-
-    const consultantHandler = (value, option) => {
-        const selectedConsultant = consultantsData?.data?.find(item => item.ID === value);
-        setGrossAmount(Number(selectedConsultant?.HOSPITALRATE) || 0);
-    }
-
 
 
     return (
         <div className="opd-receipt-container h-full flex flex-col">
 
             {
-                < LastSlipIssuedModal open={showLastVisitModal} onCancel={() => setShowLastVisitModal(false)} form={form} lastPatientData={lastPatientData} />
+                < LastSlipIssuedModal
+                    open={showLastVisitModal}
+                    onCancel={() => setShowLastVisitModal(false)}
+                    form={form}
+                    last10PatientsData={last10PatientsData}
+                    handleEdit={handleEdit}
+                />
             }
 
 
@@ -396,34 +463,69 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                             </span>
                         </div>
 
-                        <div className="flex-1 max-w-md min-w-[200px]">
-                            <Input
-                                placeholder="Search Patient by Name, CNIC or Phone"
-                                prefix={<SearchOutlined className="text-gray-400" />}
-                                className="rounded-lg hover:border-blue-400 focus:border-blue-500"
-                                allowClear
-                                onChange={(e) => console.log('Search:', e.target.value)}
-                            />
+                        <div className="flex-1 max-w-lg min-w-[280px]">
+
+                            <Space.Compact className="w-full">
+                                <Select
+                                    value={searchType}
+                                    onChange={(value) => setSearchType(value)}
+                                    style={{ width: 130 }}
+                                    options={[
+                                        { value: 'contactNo', label: 'Contact' },
+                                        { value: 'mrNo', label: 'MR No' },
+                                        { value: 'receiptNo', label: 'Receipt No' },
+                                    ]}
+                                />
+                                <AutoComplete
+                                    value={searchValue}
+                                    onChange={(value) => setSearchValue(value)}
+                                    onSelect={handleSelectSearchedPatient}
+                                    placeholder={
+                                        searchType === 'receiptNo'
+                                            ? 'Enter Receipt No'
+                                            : searchType === 'mrNo'
+                                                ? 'Enter MR No'
+                                                : 'Enter Contact No'
+                                    }
+                                    options={searchPatientsData?.data?.map(item => ({
+                                        value: item.RECEIPTNO,
+                                        label: item.PATIENTNAME,
+                                    }))}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleSearchPatient();
+                                        }
+                                    }}
+                                    allowClear
+                                    onClear={() => {
+                                        setSearchValue('');
+                                        setSearchPatientsData(null);
+                                    }}
+                                    style={{ flex: 1 }}
+                                    className="hover:border-blue-400 focus:border-blue-500"
+                                />
+                                <Button
+                                    type="primary"
+                                    icon={<SearchOutlined />}
+                                    onClick={() => handleSearchPatient()}
+                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 border-0"
+                                    loading={searchPatientsLoading}
+                                >
+                                    Search
+                                </Button>
+                            </Space.Compact>
+
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-
-                            <button
-                                onClick={() => {
-                                    console.log('Save Patient clicked');
-                                }}
-                                className="flex cursor-pointer items-center gap-1.5 px-4 py-1 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-medium rounded-lg shadow-md shadow-green-500/30 hover:from-emerald-600 hover:to-green-700 transition-all duration-300"
-                            >
-                                <SaveOutlined className="text-white" />
-                                Save Patient
-                            </button>
 
                             <button
                                 onClick={() => setShowOpdReceiptModal(true)}
                                 className="flex cursor-pointer items-center gap-1.5 px-4 py-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-lg shadow-md shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
                             >
                                 <SearchOutlined className="text-white" />
-                                OPD Patient
+                                OPD Receipt
                             </button>
 
                             <button
@@ -431,7 +533,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                                 className="flex cursor-pointer items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg shadow-md shadow-purple-500/30 hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
                             >
                                 <EyeOutlined className="text-white" />
-                                Last Receipt
+                                Last 10 Receipt
                             </button>
 
                         </div>
@@ -558,35 +660,6 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                                         </Select>
                                     </Form.Item>
 
-                                    <Form.Item
-                                        name="isPartial"
-                                        label={<span className="text-xs font-semibold text-gray-600">Is Partial</span>}
-                                        rules={[{ required: true, message: 'Please select Partial Payment' }]}
-                                        className="mb-0"
-                                    >
-                                        <Select
-                                            placeholder="Select Partial Payment"
-                                            className="rounded-lg"
-                                            allowClear
-                                            suffixIcon={<span className="text-gray-400">▼</span>}
-                                            onChange={(value, option) => {
-
-                                                if (value == 1) {
-                                                    setShowPartialnBalance(true)
-                                                }
-                                                else (
-                                                    setShowPartialnBalance(false)
-                                                )
-
-                                            }}
-                                        >
-                                            {partialPayment?.map(item => (
-                                                <Option key={item.value} value={item.value}>{item.label}</Option>
-                                            ))}
-                                        </Select>
-                                    </Form.Item>
-
-
                                     {
                                         showMember ?
                                             <Form.Item
@@ -635,6 +708,34 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                                                 </Select>
                                             </Form.Item>
                                     }
+
+                                    <Form.Item
+                                        name="isPartial"
+                                        label={<span className="text-xs font-semibold text-gray-600">Is Partial</span>}
+                                        rules={[{ required: true, message: 'Please select Partial Payment' }]}
+                                        className="mb-0"
+                                    >
+                                        <Select
+                                            placeholder="Select Partial Payment"
+                                            className="rounded-lg"
+                                            allowClear
+                                            suffixIcon={<span className="text-gray-400">▼</span>}
+                                            onChange={(value, option) => {
+
+                                                if (value == 1) {
+                                                    setShowPartialnBalance(true)
+                                                }
+                                                else (
+                                                    setShowPartialnBalance(false)
+                                                )
+
+                                            }}
+                                        >
+                                            {partialPayment?.map(item => (
+                                                <Option key={item.value} value={item.value}>{item.label}</Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
 
                                     <Form.Item
                                         name="date"
@@ -1048,25 +1149,6 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
                         <div className='flex justify-between w-full'>
 
                             <div className="flex flex-wrap gap-2">
-                                <Button
-                                    type="primary"
-                                    icon={<UserAddOutlined />}
-                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 border-0 shadow-md shadow-blue-500/30 hover:shadow-lg hover:shadow-blue-500/40"
-                                    htmlType="reset"
-                                    onClick={handleReset}
-                                >
-                                    New
-                                </Button>
-
-                                <Button
-                                    type="primary"
-                                    icon={<SaveOutlined />}
-                                    loading={addEditPatientLoading}
-                                    htmlType="submit"
-                                    className="bg-gradient-to-r from-emerald-500 to-green-600 border-0 shadow-md shadow-green-500/30 hover:shadow-lg hover:shadow-green-500/40"
-                                >
-                                    {editRecord ? "Edit" : "Save"}
-                                </Button>
 
                                 <Button
                                     danger
@@ -1086,20 +1168,31 @@ const OPDReceipt = ({ editRecord, clearEditRecord }) => {
 
                                 <Button
                                     type="default"
-                                    icon={<ReloadOutlined />}
+                                    icon={<UserAddOutlined />}
                                     className="flex cursor-pointer items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600! hover:text-blue-700! hover:border-blue-700! text-sm font-medium rounded-lg hover:bg-blue-100 transition-all duration-300 border! border-blue-200!"
                                     onClick={() => {
                                         handleReset()
                                     }}
                                 >
-                                    Reset
+                                    New
+                                </Button>
+
+
+                                <Button
+                                    type="primary"
+                                    icon={<SaveOutlined />}
+                                    loading={addEditPatientLoading}
+                                    htmlType="submit"
+                                    className="bg-linear-to-r from-emerald-500 to-green-600 border-0 shadow-md shadow-green-500/30 hover:shadow-lg hover:shadow-green-500/40"
+                                >
+                                    {editRecord ? "Edit" : "Save"}
                                 </Button>
 
                             </div>
 
                             <div className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-blue-50/50 px-4 py-1.5 rounded-xl border border-blue-100/50">
                                 <span className="text-sm font-semibold text-gray-600">Current Cash:</span>
-                                <span className="text-xl font-bold text-green-600">Rs. {lastPatientData?.data?.[0]?.NETAMOUNT}</span>
+                                <span className="text-xl font-bold text-green-600">Rs. {last10PatientsData?.data?.currrentCash || "0"}</span>
                             </div>
 
                         </div>

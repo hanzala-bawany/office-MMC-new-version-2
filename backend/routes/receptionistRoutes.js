@@ -1,5 +1,5 @@
 const express = require("express");
-const { getPatientCategory, getUsers , getOpdCategory, getAllConsultantByOpdCategory, getReference, getAllMembers, addEditOpdReceipt, getLastPatient, getLabTest, getMemberDependent, getPatientsbyFilter } = require("../controllers/receptionistController");
+const { getPatientCategory, getUsers , getOpdCategory, getAllConsultantByOpdCategory, getReference, getAllMembers, addEditOpdReceipt, getLast10Patient, getLabTest, getMemberDependent, getPatientsbyFilter } = require("../controllers/receptionistController");
 const { verifyToken } = require("../middleware/authMiddleWare");
 
 const receptionistRoutes = express.Router();
@@ -12,7 +12,7 @@ receptionistRoutes.get("/allConsultant", getAllConsultantByOpdCategory);
 receptionistRoutes.get("/members", getAllMembers);
 receptionistRoutes.get("/members/:newNo", getMemberDependent);
 receptionistRoutes.get("/reference", getReference);
-receptionistRoutes.get("/lastPatient/:userName", getLastPatient);
+receptionistRoutes.get("/lastPatient/:userName", getLast10Patient);
 receptionistRoutes.get("/getLabTest", getLabTest);
 receptionistRoutes.get("/users", getUsers);
 receptionistRoutes.get("/filterPatients", getPatientsbyFilter);

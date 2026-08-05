@@ -299,7 +299,7 @@ const getMemberDependent = async (req, res) => {
   }
 };
 
-const getLastPatient = async (req, res) => {
+const getLast10Patient = async (req, res) => {
   const userName = req?.params?.userName?.toString();
 
   let connection;
@@ -310,30 +310,46 @@ const getLastPatient = async (req, res) => {
 
     // Stored procedure call karo
     const result = await connection.execute(
-      `BEGIN get_last_patient(:vusername , :retval); END;`,
+      `BEGIN get_last_patient(:vusername , :retval , :retval_labtests); END;`,
       {
         vusername: userName,
         retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
+        retval_labtests: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT },
     );
 
-    // Cursor se data fetch karo
     const cursor = result.outBinds.retval;
-    const data = await cursor.getRows();
+    const mainData = await cursor.getRows();
     await cursor.close();
+
+    const labtestsCursor = result.outBinds.retval_labtests;
+    const labTestRows = await labtestsCursor.getRows();
+    await labtestsCursor.close();
+
+    const dataWithLabTests = mainData.map((record) => ({
+      ...record,
+      LABTESTS: labTestRows
+        .filter((lt) => lt.RECEIPTNO === record.RECEIPTNO)
+        .map((lt) => ({
+          testId: lt.TESTID,
+          rowId: lt.ROWID_STR,
+          testName: lt.TESTNAME,
+          amount: lt.AMOUNT,
+        })),
+    }));
 
     // Response bhejo
     res.status(200).json({
       success: true,
-      data: data,
-      message: "LastPatient fetched successfully",
+      data: dataWithLabTests,
+      message: "Last 10 Patients fetched successfully",
     });
   } catch (error) {
-    console.error("Error in get LastPatient:", error);
+    console.error("Error in get Last 10 Patient:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching LastPatient",
+      message: "Error fetching Last 10 Patient",
       error: error.message,
     });
   } finally {
@@ -476,7 +492,7 @@ const addEditOpdReceipt = async (req, res) => {
       LabTestAmounts,
     } = req.body || {};
 
-    console.log(req.body, "req.body ...........");
+    // console.log(req.body, "req.body ...........");
 
     // Validation - Required fields check karo
     if (!CatagoryId || !ConsultantID || !PatientName || !User || !ContactNo) {
@@ -661,11 +677,11 @@ const getPatientsbyFilter = async (req, res) => {
     // Cursor se data fetch karo
     const totalCountData = result.outBinds.totalCount;
     const cursor = result.outBinds.retval;
-    const mainData  = await cursor.getRows();
+    const mainData = await cursor.getRows();
     await cursor.close();
 
     const labtestsCursor = result.outBinds.retval_labtests;
-    const labTestRows  = await labtestsCursor.getRows();
+    const labTestRows = await labtestsCursor.getRows();
     await labtestsCursor.close();
 
     const dataWithLabTests = mainData.map((record) => ({
@@ -685,7 +701,7 @@ const getPatientsbyFilter = async (req, res) => {
       success: true,
       message: "Patients fetched successfully",
       total: totalCountData,
-      data: dataWithLabTests
+      data: dataWithLabTests,
     });
   } catch (error) {
     console.error("Error in get Patients:", error);
@@ -712,7 +728,7 @@ module.exports = {
   getReference,
   getAllMembers,
   addEditOpdReceipt,
-  getLastPatient,
+  getLast10Patient,
   getLabTest,
   getMemberDependent,
   getUsers,

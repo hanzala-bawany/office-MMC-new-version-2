@@ -43,7 +43,7 @@ const ReceptionistPage = () => {
                     Add Patient
                 </span>
             ),
-            children: <OPDReceipt editRecord={editRecord} clearEditRecord={() => setEditRecord(null)} />,
+            children: <OPDReceipt editRecord={editRecord} handleEdit={handleEdit} clearEditRecord={() => setEditRecord(null)} />,
         },
         {
             key: '2',
