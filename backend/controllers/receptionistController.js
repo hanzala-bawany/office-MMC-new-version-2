@@ -314,7 +314,7 @@ const getLast10Patient = async (req, res) => {
       {
         vusername: userName,
         retval: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
-        retval_labtests: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT }
+        retval_labtests: { type: oracledb.CURSOR, dir: oracledb.BIND_OUT },
       },
       { outFormat: oracledb.OUT_FORMAT_OBJECT },
     );
@@ -452,6 +452,7 @@ const getUsers = async (req, res) => {
     }
   }
 };
+
 
 const addEditOpdReceipt = async (req, res) => {
   let connection;
@@ -721,6 +722,103 @@ const getPatientsbyFilter = async (req, res) => {
   }
 };
 
+const deleteRefundOpdReceipt = async (req, res) => {
+  let connection;
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // Request body se data lo
+    const {
+      ReceiptNo,
+      status,
+      User,
+      TerminalId,
+      Remarks,
+      refundBy,
+      refundDate,
+    } = req.body || {};
+
+    console.log(req.body, "req.body in  deleteRefundOpdReceipt ...........");
+
+    // Validation - Sirf required fields check karo
+    if (!ReceiptNo) {
+      return res.status(400).json({
+        success: false,
+        message: "ReceiptNo is required",
+      });
+    }
+
+    if (!User) {
+      return res.status(400).json({
+        success: false,
+        message: "User is required",
+      });
+    }
+
+    if (status === undefined || status === null) {
+      return res.status(400).json({
+        success: false,
+        message: "Status is required (1 for delete, 0 for restore)",
+      });
+    }
+
+    // Stored procedure call karo - SAHI PROCEDURE CALL
+    const result = await connection.execute(
+      `BEGIN hms.change_opdreceipt_status(
+        :VReceiptNo,
+        :VStatus,
+        :VUser,
+        :VTerminalId,
+        :VRemarks,
+        :VRefundBy,
+        :VRefunddate
+      ); END;`,
+      {
+        VReceiptNo: ReceiptNo,
+        VStatus: status,
+        VUser: User,
+        VTerminalId: TerminalId || null,
+        VRemarks: Remarks || null,
+        VRefundBy: refundBy || null,
+        VRefunddate: refundDate ? new Date(refundDate) : null,
+      },
+      { autoCommit: true },
+    );
+
+    // Success response
+    const message =
+      status === 1
+        ? `OPD Receipt ${ReceiptNo} deleted successfully`
+        : `OPD Receipt ${ReceiptNo} restored successfully`;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        receiptNo: ReceiptNo,
+        status: status,
+        action: status === 1 ? "deleted" : "restored",
+      },
+      message: message,
+    });
+  } catch (error) {
+    console.error("Error in deleteRefundOpdReceipt:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error processing OPD Receipt status change",
+      error: error,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
+
 module.exports = {
   getOpdCategory,
   getPatientCategory,
@@ -733,4 +831,5 @@ module.exports = {
   getMemberDependent,
   getUsers,
   getPatientsbyFilter,
+  deleteRefundOpdReceipt,
 };

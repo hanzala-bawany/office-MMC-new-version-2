@@ -50,6 +50,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
     const [grossAmount, setGrossAmount] = useState(0);
     const [netAmount, setNetAmount] = useState(0);
     const [addEditPatientLoading, setAddEditPatientLoading] = useState(false);
+    const [deleteAndRefundLoading, setDeleteAndRefundLoading] = useState(false);
     const [showLastVisitModal, setShowLastVisitModal] = useState(false);
     const [showOpdReceiptModal, setShowOpdReceiptModal] = useState(false);
     const [selectedLabTestAmounts, setSelectedLabTestAmounts] = useState([]);
@@ -123,8 +124,6 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
     ];
 
 
-
-
     // console.log(grossAmount, "grossAmount ..............");
     // console.log(patientCategoryData, "patientCategoryData ..............");
     // console.log(membersData, "membersData ..............");
@@ -138,6 +137,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
     // console.log(searchPatientsData, "searchPatientsData ..............");
     // console.log(labTestData, "labTestData ..............");
     // console.log(selectedLabTestAmounts, "selectedLabTestAmounts  ..............");
+    // console.log(loginUserData, "loginUserData  ..............");
 
 
     useEffect(() => {
@@ -235,7 +235,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
             console.log('Saved successfully:', res);
             toast.success(res?.data?.message)
             // form.resetFields();
-            refetchLastPatients();
+            refetchLast10Patients?.();
             if (editRecord) {
                 clearEditRecord?.();
             }
@@ -245,6 +245,49 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
             toast.error(err?.response?.data?.message || "Failed to generate OPD reciept");
         } finally {
             setAddEditPatientLoading(false);
+        }
+
+    };
+
+    const onDeleteAndRefund = async () => {
+
+        setDeleteAndRefundLoading(true);
+        const values = form.getFieldsValue();
+
+        const receiptNo = values.recieptNo || editRecord?.RECEIPTNO;
+
+        if (!receiptNo) {
+            toast.warning("No receipt found to delete/refund");
+            return;
+        }
+
+        try {
+            const payload = {
+                ReceiptNo: receiptNo || null,
+                status: 1,
+                User: loginUserData?.username || null,
+                TerminalId: null,
+                Remarks: values.remarks,
+                refundBy: values.refundBy || null,
+                refundDate: values.refundDatenTime
+                    ? values.refundDatenTime.format('DD-MMM-YYYY HH:mm:ss')
+                    : null,
+            };
+
+            const res = await axiosInstance.post('/api/receptionist/deleteAndRefundPatient', payload);
+
+            console.log('Saved successfully:', res);
+            toast.success(res?.data?.message || "OPD reciept dleeted successfully")
+            // form.resetFields();
+            if (editRecord) {
+                clearEditRecord?.();
+            }
+
+        } catch (err) {
+            console.error('Error saving OPD receipt:', err);
+            toast.error(err?.response?.data?.message || "Failed to delete OPD reciept");
+        } finally {
+            setDeleteAndRefundLoading(false);
         }
 
     };
@@ -349,6 +392,8 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
     };
 
     const handleEditPatient = (editRecord) => {
+        console.log(editRecord, "editRecord ,,,,,,,,,");
+
         if (!editRecord) return;
 
         setPatientTypeId(editRecord.PATIENTTYPE);
@@ -393,6 +438,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
             members: editRecord.MEMBERID || undefined,
             date: editRecord.VDATE ? moment(editRecord.VDATE) : null,
             refundDatenTime: editRecord.VDATE ? moment(editRecord.VDATE) : null,
+            refundBy: editRecord.REFUNDUSER || editRecord.CREATEDBY || null,
             opdCategory: editRecord.CATAGORYID,
             consultant: editRecord.CONSULTANTID,
             patientTitle: editRecord.PATIENTTITLE,
@@ -407,7 +453,6 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
             partialPayment: Number(editRecord.PARTIALAMOUNT) || 0,
             netPayment: Number(editRecord.NETAMOUNT) || 0,
             balancePayment: Number(editRecord.NETBALANCE) || 0,
-            refundBy: editRecord.REFUNDUSER || undefined,
             tokenNo: editRecord.TOKENNO || undefined,
             recieptNo: editRecord.RECEIPTNO || undefined,
             mrNumber: editRecord.MRNO || undefined,
@@ -1095,56 +1140,59 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
                     {/* STICKY ACTION FOOTER */}
                     <div className="shrink-0 pt-2 mt-2 border-t border-gray-200 flex flex-col items-center justify-between gap-2">
 
-                        <div className="flex justify-between w-full bg-gradient-to-r from-red-50/70 to-orange-50/70 p-2 rounded-xl border border-red-200/50">
-                            <div className="flex items-center gap-2">
-                                <div className="w-1 h-5 bg-gradient-to-b from-red-400 to-orange-500 rounded-full"></div>
-                                <span className="text-sm font-semibold text-red-600">Refund Information</span>
-                                <span className="px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-medium rounded-full">Optional</span>
-                            </div>
+                        { loginUserData?.role == "admin" &&
+                            <div className="flex justify-between w-full bg-gradient-to-r from-red-50/70 to-orange-50/70 p-2 rounded-xl border border-red-200/50">
 
-                            <div className="flex items-center gap-3 bg-white/60 p-1.5 rounded-lg">
-                                <span className="text-xs font-medium text-gray-500 min-w-[80px]">Refund By:</span>
-                                <Form.Item
-                                    name="refundBy"
-                                    noStyle
-                                >
-                                    <Select
-                                        placeholder="Select Members"
-                                        className="rounded-lg"
-                                        allowClear
-                                        suffixIcon={<span className="text-gray-400">▼</span>}
-                                        showSearch
-                                        filterOption={(input, option) => {
-                                            console.log(option, "option ......")
-                                            return option.children.toLowerCase().includes(input.toLowerCase())
-                                        }}
-                                    // onChange={(value, fullOption) => setSelectedMemberNo(value || null)}
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1 h-5 bg-gradient-to-b from-red-400 to-orange-500 rounded-full"></div>
+                                    <span className="text-sm font-semibold text-red-600">Refund Information</span>
+                                    <span className="px-2 py-0.5 bg-red-100 text-red-600 text-[10px] font-medium rounded-full">Optional</span>
+                                </div>
+
+                                <div className="flex items-center gap-3 bg-white/60 p-1.5 rounded-lg">
+                                    <span className="text-xs font-medium text-gray-500 min-w-[80px]">Refund By:</span>
+                                    <Form.Item
+                                        name="refundBy"
+                                        noStyle
                                     >
-                                        {usersData?.data?.map((item, index) => (
-                                            <Option key={`${item.USERID}-${index}`} value={item?.USERID}>{item?.USERNAME}</Option>
-                                        ))}
-                                    </Select>
-                                </Form.Item>
-                            </div>
+                                        <Select
+                                            placeholder="Select Members"
+                                            className="rounded-lg"
+                                            allowClear
+                                            suffixIcon={<span className="text-gray-400">▼</span>}
+                                            showSearch
+                                            filterOption={(input, option) => {
+                                                console.log(option, "option ......")
+                                                return option.children.toLowerCase().includes(input.toLowerCase())
+                                            }}
+                                        // onChange={(value, fullOption) => setSelectedMemberNo(value || null)}
+                                        >
+                                            {usersData?.data?.map((item, index) => (
+                                                <Option key={`${item.USERID}-${index}`} value={item?.USERID}>{item?.USERID}</Option>
+                                            ))}
+                                        </Select>
+                                    </Form.Item>
+                                </div>
 
-                            <div className="flex items-center gap-3 bg-white/60 p-1.5 rounded-lg">
-                                <span className="text-xs font-medium text-gray-500 min-w-[80px]">Date & Time :</span>
-                                <Form.Item
-                                    name="refundDatenTime"
-                                    noStyle
-                                >
-                                    <DatePicker
-                                        showTime
-                                        format="DD-MMM-YYYY hh:mm"
-                                        className="w-full rounded-lg hover:border-blue-400 focus:border-blue-500"
-                                        placeholder="Select Date & Time"
-                                        allowClear
-                                        suffixIcon={<span className="text-gray-400">📅</span>}
-                                    />
-                                </Form.Item>
-                            </div>
+                                <div className="flex items-center gap-3 bg-white/60 p-1.5 rounded-lg">
+                                    <span className="text-xs font-medium text-gray-500 min-w-[80px]">Date & Time :</span>
+                                    <Form.Item
+                                        name="refundDatenTime"
+                                        noStyle
+                                    >
+                                        <DatePicker
+                                            showTime
+                                            format="DD-MMM-YYYY hh:mm A"
+                                            className="w-full rounded-lg hover:border-blue-400 focus:border-blue-500"
+                                            placeholder="Select Date & Time"
+                                            allowClear
+                                            suffixIcon={<span className="text-gray-400">📅</span>}
+                                        />
+                                    </Form.Item>
+                                </div>
 
-                        </div>
+                            </div>
+                        }
 
                         <div className='flex justify-between w-full'>
 
@@ -1154,6 +1202,9 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
                                     danger
                                     icon={<DeleteOutlined />}
                                     className="shadow-sm hover:shadow-md"
+                                    onClick={onDeleteAndRefund}
+                                    loading={deleteAndRefundLoading}
+                                    disabled={!editRecord || loginUserData?.role != "admin"}
                                 >
                                     Delete
                                 </Button>

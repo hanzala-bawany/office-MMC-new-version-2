@@ -1,5 +1,5 @@
 const express = require("express");
-const { getPatientCategory, getUsers , getOpdCategory, getAllConsultantByOpdCategory, getReference, getAllMembers, addEditOpdReceipt, getLast10Patient, getLabTest, getMemberDependent, getPatientsbyFilter } = require("../controllers/receptionistController");
+const { getPatientCategory, getUsers , getOpdCategory, getAllConsultantByOpdCategory, getReference, getAllMembers, addEditOpdReceipt, getLast10Patient, getLabTest, getMemberDependent, getPatientsbyFilter, deleteRefundOpdReceipt, getCurrentCashBySession } = require("../controllers/receptionistController");
 const { verifyToken } = require("../middleware/authMiddleWare");
 
 const receptionistRoutes = express.Router();
@@ -18,6 +18,7 @@ receptionistRoutes.get("/users", getUsers);
 receptionistRoutes.get("/filterPatients", getPatientsbyFilter);
 
 receptionistRoutes.post("/opdAddandEditPatient", addEditOpdReceipt);
+receptionistRoutes.post("/deleteAndRefundPatient", deleteRefundOpdReceipt);
 
 
 module.exports = receptionistRoutes;
