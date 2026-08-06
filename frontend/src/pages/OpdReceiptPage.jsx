@@ -1,4 +1,4 @@
-// frontend/src/pages/ReceptionistPage.jsx
+// frontend/src/pages/OpdReceiptPage.jsx
 import React, { useEffect, useState } from 'react';
 import { Tabs } from 'antd';
 import { UserOutlined, SearchOutlined } from '@ant-design/icons';
@@ -11,14 +11,10 @@ import LogoutModal from '../utills/LogoutModal';
 import { useSelector } from 'react-redux';
 import SeccionOpenAlertModal from '../components/Receptionist/SeccionOpenAlertModal';
 import { MedicineBoxOutlined, ExperimentOutlined, HeartOutlined, TeamOutlined } from '@ant-design/icons';
-import GeneralOPDTab from '../components/Receptionist/OPDTabs/GeneralOPDTab';
-import LaboratoryTab from '../components/Receptionist/OPDTabs/LaboratoryTab';
-import ZakatSPDTab from '../components/Receptionist/OPDTabs/ZakatSPDTab';
-import MemberTab from '../components/Receptionist/OPDTabs/MemberTab';
 
 
-// ReceptionistPage.jsx — trimmed version
-const ReceptionistPage = () => {
+// OpdReceiptPage.jsx — trimmed version
+const OpdReceiptPage = () => {
 
     const [activeTab, setActiveTab] = useState('1');
     const [editRecord, setEditRecord] = useState(null);
@@ -52,7 +48,7 @@ const ReceptionistPage = () => {
     );
 };
 
-export default ReceptionistPage;
+export default OpdReceiptPage;
 
 
 

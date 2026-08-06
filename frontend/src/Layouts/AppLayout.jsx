@@ -2,8 +2,8 @@ import { Layout, Menu, Breadcrumb, theme, Flex } from 'antd';
 import React, { useEffect, useState } from 'react';
 import NavImg from '../assets/MMC logo.png';
 import hospitraxLogo from '../assets/productLogoBgRemove.png';
-import { UserOutlined, LaptopOutlined, MenuUnfoldOutlined, MenuFoldOutlined, FileTextOutlined } from '@ant-design/icons';
-import { FaChalkboardTeacher, FaMicrophone, FaTextWidth, FaUserMd, FaUserMinus } from 'react-icons/fa';
+import { UserOutlined, LaptopOutlined, MenuUnfoldOutlined, MenuFoldOutlined, FileTextOutlined, TeamOutlined, FundOutlined, SettingOutlined } from '@ant-design/icons';
+import { FaChalkboardTeacher, FaMicrophone, FaTextWidth, FaUserMd, FaUserMinus, FaXRay } from 'react-icons/fa';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlineMenu } from "react-icons/ai";
 import { AiFillCloseCircle } from 'react-icons/ai';
@@ -38,7 +38,7 @@ const AppLayout = () => {
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
   const userRole = loginUserData?.role;
 
-  console.log(loginUserData, "loginUserData ......");
+  // console.log(loginUserData, "loginUserData ......");
 
   const menuData = [
     {
@@ -58,13 +58,80 @@ const AppLayout = () => {
       label: <NavLink to="/removeDoctor">Doctor Management</NavLink>,
     },
     {
-      key: "8", icon: FaTextWidth, roles: ["admin"], label: (
+      key: "8",
+      icon: FaTextWidth,
+      roles: ["admin"],
+      label: (
         <span><NavLink to={`/addScreens`}>Add Screens</NavLink></span>
       )
     },
     {
-      key: "16", icon: FileTextOutlined, roles: ["admin", "Receptionist"],
-      label: <NavLink to="/receptionist">Reception</NavLink>,
+      key: "16",
+      icon: FileTextOutlined,
+      roles: ["admin", "Receptionist"],
+      label: "Out Patient",
+      children: [
+        {
+          key: "16-1",
+          label: <NavLink to="/opdReceiptPage">OPD Receipt</NavLink>
+        },
+        {
+          key: "16-2",
+          label: <NavLink to="/partialPaymentPage">Patrtial Payment</NavLink>
+        },
+      ],
+    },
+    {
+      key: "17",
+      icon: TeamOutlined,
+      roles: ["admin", "Receptionist"],
+      label: "Management",
+      children: [
+        {
+          key: "17-1",
+          label: <NavLink to="/userSessionPage">User Session</NavLink>
+        },
+      ]
+    },
+    {
+      key: "18",
+      icon: FundOutlined,
+      roles: ["admin", "Receptionist"],
+      label: "Statistics",
+      children: [
+        {
+          key: "18-1",
+          label: <NavLink to="/currentCashPage">Current Cash Status</NavLink>
+        }
+      ]
+    },
+    {
+      key: "19",
+      icon: FaXRay,
+      roles: ["admin", "Receptionist"],
+      label: "X-Ray",
+      children: [
+        {
+          key: "19-1",
+          label: <NavLink to="/xray-request">X-Ray Tempelate Designer</NavLink>
+        },
+        {
+          key: "19-2",
+          label: <NavLink to="/xray-reports">X-Ray Reports</NavLink>
+        }
+      ]
+    },
+    {
+      key: "20",
+      icon: SettingOutlined,
+      roles: ["admin", "Receptionist"],
+      label: "Settings",
+      children: [
+        {
+          key: "20-1",
+          label: <NavLink to="/clinic-settings">Change Password</NavLink>
+        }
+      ]
     },
     {
       key: "3", icon: LaptopOutlined, roles: ["admin"], label: "Screen 1",
@@ -157,6 +224,7 @@ const AppLayout = () => {
         }))
         : null,
     }));
+
 
   useEffect(() => {
 
@@ -335,7 +403,7 @@ const AppLayout = () => {
         {/* MAIN CONTENT */}
         <Layout style={{ padding: "0 24px 24px" }}>
           <Breadcrumb
-            items={[{ title: <NavLink to="/">Home</NavLink> }, { title: pageName },]}
+            items={[{ title: <NavLink to={userRole == "Receptionist" ? `/receptionist` : `/`}>Home</NavLink> }, { title: pageName },]}
             style={{ margin: "16px 0" }}
           />
           <Content

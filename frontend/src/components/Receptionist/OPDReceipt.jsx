@@ -81,6 +81,9 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
     const { data: last10PatientsData, loading: last10PatientsLoading, error: last10PatientsError, reFetchData: refetchLast10Patients } =
         useFetch(loginUserData?.username ? `/api/receptionist/lastPatient/${loginUserData?.username}` : null);
 
+    const { data: currentCashData, loading: currentCashDataLoading, error: currentCashDataError, reFetchData: refetchcurrentCashData } =
+        useFetch(loginUserData?.username ? `/api/receptionist/getCurrentCash/${loginUserData?.username}` : null);
+
     const { data: referenceData, loading: referenceLoading, error: referenceError } =
         useFetch(`/api/receptionist/reference`);
 
@@ -138,6 +141,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
     // console.log(labTestData, "labTestData ..............");
     // console.log(selectedLabTestAmounts, "selectedLabTestAmounts  ..............");
     // console.log(loginUserData, "loginUserData  ..............");
+    // console.log(currentCashData, "currentCashData  ..............");
 
 
     useEffect(() => {
@@ -236,6 +240,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
             toast.success(res?.data?.message)
             // form.resetFields();
             refetchLast10Patients?.();
+            refetchcurrentCashData?.();
             if (editRecord) {
                 clearEditRecord?.();
             }
@@ -249,7 +254,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
 
     };
 
-    const onDeleteAndRefund = async () => {
+    const onDeleteAndRefund = async (type) => {
 
         setDeleteAndRefundLoading(true);
         const values = form.getFieldsValue();
@@ -264,11 +269,11 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
         try {
             const payload = {
                 ReceiptNo: receiptNo || null,
-                status: 1,
+                status: type == "restore" ? 0 : 1,
                 User: loginUserData?.username || null,
                 TerminalId: null,
                 Remarks: values.remarks,
-                refundBy: values.refundBy || null,
+                refundBy: type == "restore" ? null : values.refundBy || null,
                 refundDate: values.refundDatenTime
                     ? values.refundDatenTime.format('DD-MMM-YYYY HH:mm:ss')
                     : null,
@@ -278,7 +283,8 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
 
             console.log('Saved successfully:', res);
             toast.success(res?.data?.message || "OPD reciept dleeted successfully")
-            // form.resetFields();
+            handleReset()
+            refetchcurrentCashData?.()
             if (editRecord) {
                 clearEditRecord?.();
             }
@@ -1140,7 +1146,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
                     {/* STICKY ACTION FOOTER */}
                     <div className="shrink-0 pt-2 mt-2 border-t border-gray-200 flex flex-col items-center justify-between gap-2">
 
-                        { loginUserData?.role == "admin" &&
+                        {loginUserData?.role == "admin" &&
                             <div className="flex justify-between w-full bg-gradient-to-r from-red-50/70 to-orange-50/70 p-2 rounded-xl border border-red-200/50">
 
                                 <div className="flex items-center gap-2">
@@ -1198,16 +1204,30 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
 
                             <div className="flex flex-wrap gap-2">
 
-                                <Button
-                                    danger
-                                    icon={<DeleteOutlined />}
-                                    className="shadow-sm hover:shadow-md"
-                                    onClick={onDeleteAndRefund}
-                                    loading={deleteAndRefundLoading}
-                                    disabled={!editRecord || loginUserData?.role != "admin"}
-                                >
-                                    Delete
-                                </Button>
+                                {
+                                    editRecord?.STATUS != 1 ?
+                                        <Button
+                                            danger
+                                            icon={<DeleteOutlined />}
+                                            className="shadow-sm hover:shadow-md"
+                                            onClick={() => onDeleteAndRefund("delete")}
+                                            loading={deleteAndRefundLoading}
+                                            disabled={!editRecord || loginUserData?.role != "admin"}
+                                        >
+                                            Delete
+                                        </Button>
+                                        :
+
+                                        <Button
+                                            type="primary"
+                                            icon={<SaveOutlined />}
+                                            onClick={() => onDeleteAndRefund("restore")}
+                                            loading={deleteAndRefundLoading}
+                                            className="!bg-yellow-100/60 !text-yellow-700 !border-yellow-300 shadow-md shadow-yellow-500/20 hover:!bg-yellow-200/70 hover:shadow-lg hover:shadow-yellow-500/30"
+                                        >
+                                            Restore
+                                        </Button>
+                                }
 
                                 <Button
                                     type="default"
@@ -1243,7 +1263,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
 
                             <div className="flex items-center gap-3 bg-gradient-to-r from-gray-50 to-blue-50/50 px-4 py-1.5 rounded-xl border border-blue-100/50">
                                 <span className="text-sm font-semibold text-gray-600">Current Cash:</span>
-                                <span className="text-xl font-bold text-green-600">Rs. {last10PatientsData?.data?.currrentCash || "0"}</span>
+                                <span className="text-xl font-bold text-green-600">Rs. {currentCashData?.data?.[0]?.NETAMOUNT || "0"}</span>
                             </div>
 
                         </div>
