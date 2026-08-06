@@ -30,8 +30,12 @@ import PronunciationPage from './pages/PronunciationPage'
 import AddRemoveLogoutDoctor from './pages/AddRemoveLogoutDoctor'
 import DoctorSetupPage from './components/doctorDashboard/Doctorsetuppage'
 import AddScreens from './pages/AddScreens'
-import ReceptionistPage from './pages/ReceptionistPage'
 import PrescriptionReport from './pages/PrescriptionReport'
+import OpdReceiptPage from './pages/OpdReceiptPage'
+import ReceptionistPage from './pages/ReceptionistDashboard'
+import PartialPaymentPage from './pages/PartialPaymentPage'
+import UserSessionPage from './pages/UserSessionPage'
+import CurrentCashPage from './pages/CurrentCashPage'
 
 
 function App() {
@@ -61,6 +65,10 @@ function App() {
 
           <Route element={<ReceptionistParent />}>
             <Route path="/receptionist" element={<ReceptionistPage />} />
+            <Route path="/opdReceiptPage" element={<OpdReceiptPage />} />
+            <Route path="/partialPaymentPage" element={<PartialPaymentPage />} />
+            <Route path="/userSessionPage" element={<UserSessionPage />} />
+            <Route path="/currentCashPage" element={<CurrentCashPage />} />
           </Route>
 
         </Route>

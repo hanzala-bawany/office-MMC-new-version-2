@@ -1,5 +1,5 @@
 const express = require("express");
-const { getPatientCategory, getUsers , getOpdCategory, getAllConsultantByOpdCategory, getReference, getAllMembers, addEditOpdReceipt, getLast10Patient, getLabTest, getMemberDependent, getPatientsbyFilter, deleteRefundOpdReceipt, getCurrentCashBySession } = require("../controllers/receptionistController");
+const { getPatientCategory, getUsers , getOpdCategory, getAllConsultantByOpdCategory, getReference, getAllMembers, addEditOpdReceipt, getLast10Patient, getLabTest, getMemberDependent, getPatientsbyFilter, deleteRefundOpdReceipt, getCurrentCashBySession, ClosedUserSesseion, getCurrentSession, getCurrentCash } = require("../controllers/receptionistController");
 const { verifyToken } = require("../middleware/authMiddleWare");
 
 const receptionistRoutes = express.Router();
@@ -16,9 +16,12 @@ receptionistRoutes.get("/lastPatient/:userName", getLast10Patient);
 receptionistRoutes.get("/getLabTest", getLabTest);
 receptionistRoutes.get("/users", getUsers);
 receptionistRoutes.get("/filterPatients", getPatientsbyFilter);
+receptionistRoutes.get("/getCurrentSession/:userId", getCurrentSession);
+receptionistRoutes.get("/getCurrentCash/:userId", getCurrentCash);
 
 receptionistRoutes.post("/opdAddandEditPatient", addEditOpdReceipt);
 receptionistRoutes.post("/deleteAndRefundPatient", deleteRefundOpdReceipt);
+receptionistRoutes.post("/closedUserSession", ClosedUserSesseion);
 
 
 module.exports = receptionistRoutes;

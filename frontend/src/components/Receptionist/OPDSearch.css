@@ -1,0 +1,7 @@
+.row-deleted > td {
+  background-color: #ffc2be !important;
+}
+
+.row-deleted:hover > td {
+  background-color: #ffa8a0 !important;
+}

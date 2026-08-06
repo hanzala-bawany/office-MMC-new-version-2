@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Table,
   Button,
@@ -21,6 +21,9 @@ import useFetch from '../../hooks/useFetch';
 import moment from 'moment';
 import axiosInstance from '../../utills/axiosInstance';
 import { toast } from 'react-toastify'; // ✅ IMPORT TOAST
+import './OPDSearch.css';
+
+
 
 const { Option } = Select; // ✅ IMPORT OPTION
 
@@ -47,6 +50,10 @@ const OPDSearch = ({ handleEdit }) => {
     useFetch('/api/receptionist/opdCategory');
   const { data: usersData, loading: usersLoading, error: usersError } =
     useFetch('/api/receptionist/users');
+
+
+  console.log(patientsData, "patientsData .........");
+
 
 
   const columns = [
@@ -128,21 +135,10 @@ const OPDSearch = ({ handleEdit }) => {
             size="small"
             onClick={() => handleEdit(record)}
           />
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined size={18} />}
-            size="small"
-            onClick={() => handleDelete(record)}
-          />
         </Space>
       ),
     },
   ];
-
-  const handleDelete = (record) => {
-    console.log(record, "record .........");
-  };
 
   // ✅ SEARCH FUNCTION - Sirf "Find" button par data aayega
   const onFinish = async (values) => {
@@ -229,6 +225,7 @@ const OPDSearch = ({ handleEdit }) => {
       setPatientsDataLoading(false);
     }
   };
+
 
   return (
     <div className="opd-search-container">
@@ -350,7 +347,9 @@ const OPDSearch = ({ handleEdit }) => {
           }}
           scroll={{ x: 1200, y: 200 }}
           className="opd-search-table"
-          rowClassName="hover:bg-gray-50 transition-colors"
+          rowClassName={(record) =>
+            record?.STATUS == 1 ? 'row-deleted' : 'hover:bg-gray-50 transition-colors'
+          }
           locale={{
             emptyText: patientsData === null ? 'Search to view records' : 'No records found',
           }}

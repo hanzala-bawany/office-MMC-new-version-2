@@ -453,7 +453,6 @@ const getUsers = async (req, res) => {
   }
 };
 
-
 const addEditOpdReceipt = async (req, res) => {
   let connection;
   try {
@@ -496,7 +495,13 @@ const addEditOpdReceipt = async (req, res) => {
     // console.log(req.body, "req.body ...........");
 
     // Validation - Required fields check karo
-    if (!CatagoryId || !ConsultantID || !PatientName || !User || !ContactNo) {
+    if (
+      !CatagoryId ||
+      (CatagoryId == 2 ? !laboratoryConsultantid : !ConsultantID) ||
+      !PatientName ||
+      !User ||
+      !ContactNo
+    ) {
       return res.status(400).json({
         success: false,
         message:
@@ -819,6 +824,184 @@ const deleteRefundOpdReceipt = async (req, res) => {
   }
 };
 
+const ClosedUserSesseion = async (req, res) => {
+  let connection;
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // Request body se data lo
+    const { sessionId } = req.body || {};
+
+    // Validation - Sirf required fields check karo
+    if (!sessionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Session Id is required",
+      });
+    }
+
+    console.log(sessionId, "sessionId .......");
+
+    // Stored procedure call karo - SAHI PROCEDURE CALL
+    const result = await connection.execute(
+      `BEGIN hms.usersession_closed(
+        :VsessionId
+      ); END;`,
+      {
+        VsessionId: sessionId,
+      },
+      { autoCommit: true },
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Session Closed Successfully",
+      data: {
+        sessionId: sessionId,
+      },
+    });
+  } catch (error) {
+    console.error("Error in clossed Session Id:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error processing clossed Session Id",
+      error: error,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
+
+const getCurrentSession = async (req, res) => {
+  const userId = req?.params?.userId?.toString();
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "userId is required",
+    });
+  }
+
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // get_currsessionid FUNCTION hai (procedure nahi), isliye return value
+    // seedha :sessionId bind variable mein assign hogi
+    const result = await connection.execute(
+      `BEGIN 
+       :sessionId := hms.get_currsessionid(:userId); 
+      END;`,
+      {
+        userId: userId,
+        sessionId: {
+          type: oracledb.STRING,
+          dir: oracledb.BIND_OUT,
+          maxSize: 50,
+        },
+      },
+      { autoCommit: true }, // agar naya session banta hai to insert commit hona chahiye
+    );
+
+    const sessionId = result.outBinds.sessionId;
+
+    res.status(200).json({
+      success: true,
+      message: "Current session fetched successfully",
+      data: {
+        sessionId: sessionId,
+        userId: userId,
+      },
+    });
+  } catch (error) {
+    console.error("Error in getCurrentSession:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching current session",
+      error: error,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
+
+const getCurrentCash = async (req, res) => {
+  const userId = req?.params?.userId?.toString();
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "userId is required",
+    });
+  }
+
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // get_currsessionid FUNCTION hai (procedure nahi), isliye return value
+    // seedha :sessionId bind variable mein assign hogi
+    const result = await connection.execute(
+      `BEGIN 
+       get_current_cash(:userId , :retval); 
+      END;`,
+      {
+        userId: userId,
+        retval: {
+          type: oracledb.CURSOR,
+          dir: oracledb.BIND_OUT,
+        },
+      },
+      {
+        autoCommit: true,
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+      },
+    );
+
+    const cursor = result.outBinds.retval;
+    const data = await cursor.getRows();
+    await cursor.close();
+
+    res.status(200).json({
+      success: true,
+      message: "Current Cash fetched successfully",
+      data: data
+    });
+  } catch (error) {
+    console.error("Error in getCurrentCash:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching current session",
+      error: error,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
+
 module.exports = {
   getOpdCategory,
   getPatientCategory,
@@ -832,4 +1015,7 @@ module.exports = {
   getUsers,
   getPatientsbyFilter,
   deleteRefundOpdReceipt,
+  ClosedUserSesseion,
+  getCurrentSession,
+  getCurrentCash,
 };
