@@ -16,6 +16,9 @@ import {
 } from '@ant-design/icons';
 import moment from 'moment';
 import { useSelector } from 'react-redux';
+import useFetch from '../hooks/useFetch';
+import axiosInstance from '../utills/axiosInstance';
+import { toast } from 'react-toastify';
 
 const { Option } = Select;
 
@@ -103,32 +106,16 @@ const UserSessionPage = () => {
   const [printLoading, setPrintLoading] = useState(false);
   const [closeLoading, setCloseLoading] = useState(false);
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
-
-  // ✅ NEW: selected row keys track karne ke liye (highlight ke liye needed)
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-
+  const [openSessionId, setOpenSessionId] = useState(null);
   const filteredData = staticSessionData;
 
+  const { data: currentSessionHistoryData, loading: currentSessionHistoryDataLoading, error: currentSessionHistoryDataError, reFetchData: refetchcurrentSessionHistoryData }
+    = useFetch(loginUserData?.username ? `/api/receptionist/getCurrentSessionHistory/${selectedUser || loginUserData?.username}` : null);   // loginUserData?.username = usernID 
 
-  const handleRowSelect = (record, isSelected) => {
-    console.log("handleRowSelect chala he ");
-    console.log(record, "record .........");   // <-- pura row data yahan milega
-    console.log(isSelected, "checked ya unchecked .........");
-  };
+  const { data: usersData, loading: usersLoading, error: usersError } = useFetch('/api/receptionist/users');
 
-
-  const onOverAllSelectChange = (newSelectedRowKeys, selectedRows) => {
-    console.log("onOverAllSelectChange chala he ");
-    setSelectedRowKeys(newSelectedRowKeys);
-    console.log(newSelectedRowKeys , "newSelectedRowKeys ..............");
-    console.log(selectedRows, "selectedRows (poora data array) .........");
-  };
-
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: onOverAllSelectChange,
-    onSelect: handleRowSelect, // ✅ single row select/deselect hote hi trigger hoga
-  };
+  
 
   const columns = [
     {
@@ -140,16 +127,16 @@ const UserSessionPage = () => {
     },
     {
       title: 'From',
-      dataIndex: 'FROM',
-      key: 'FROM',
+      dataIndex: 'FROMDATE',
+      key: 'FROMDATE',
       render: (date) => (
         <span>{moment(date).format('DD-MMM-YYYY hh:mm:ss A')}</span>
       ),
     },
     {
-      title: 'To',
-      dataIndex: 'TO',
-      key: 'TO',
+      title: 'To Date',
+      dataIndex: 'TODATE',
+      key: 'TODATE',
       render: (date) =>
         date ? (
           <span>{moment(date).format('DD-MMM-YYYY hh:mm:ss A')}</span>
@@ -159,16 +146,18 @@ const UserSessionPage = () => {
     },
     {
       title: 'Closed',
-      dataIndex: 'CLOSED',
-      key: 'CLOSED',
+      dataIndex: 'STATUS',
+      key: 'STATUS',
       width: 100,
       align: 'center',
-      render: (closed) =>
-        closed === 1 ? (
-          <CheckCircleFilled className="text-green-500 text-base" />
-        ) : (
-          <ClockCircleOutlined className="text-orange-400 text-base" />
-        ),
+      render: (cellCalue, recordData, index) => {
+        if (cellCalue == 0) {  // status 0 means session is closed 
+          return <CheckCircleFilled className="text-green-500! text-base!" />;
+        } else {
+          setOpenSessionId(recordData?.SESSIONID);
+          return <ClockCircleOutlined className="text-orange-400! text-base!" />;
+        }
+      }
     },
     {
       title: 'Session Date',
@@ -188,9 +177,42 @@ const UserSessionPage = () => {
     },
   ];
 
-  const handleSessionClosed = () => {
+  const handleRowSelect = (record, isSelected) => {
+    console.log("handleRowSelect chala he ");
+    console.log(record, "record .........");   // <-- pura row data yahan milega
+    console.log(isSelected, "checked ya unchecked .........");
+  };
+
+  const onOverAllSelectChange = (newSelectedRowKeys, selectedRows) => {
+    console.log("onOverAllSelectChange chala he ");
+    setSelectedRowKeys(newSelectedRowKeys);
+    console.log(newSelectedRowKeys, "newSelectedRowKeys ..............");
+    console.log(selectedRows, "selectedRows (poora data array) .........");
+  };
+
+  const handleSessionClosed = async () => {
+
+    if (!openSessionId) {
+      toast.warning("No open session found to close!");
+      return;
+    }
+
     setCloseLoading(true);
-    setTimeout(() => setCloseLoading(false), 800);
+
+    try {
+      const res = await axiosInstance.post(`/api/receptionist/closedUserSession/${openSessionId}`);
+      toast.success(res?.data?.message)
+
+      refetchcurrentSessionHistoryData();
+      setOpenSessionId(null);
+
+    } catch (error) {
+      console.log(error, "err .............");
+      toast.error(error?.response?.data?.message || "Failed to Closed Session");
+    } finally {
+      setCloseLoading(false);
+    }
+
   };
 
   const handlePrint = () => {
@@ -200,6 +222,13 @@ const UserSessionPage = () => {
       window.print();
     }, 500);
   };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onOverAllSelectChange,
+    onSelect: handleRowSelect, // ✅ single row select/deselect hote hi trigger hoga
+  };
+
 
 
   return (
@@ -216,33 +245,38 @@ const UserSessionPage = () => {
           </p>
         </div>
 
-        <Form form={form} layout="vertical">
+        {
+          loginUserData?.role == "admin" &&
 
-          <Form.Item
-            name="userId"
-            label={<span className="text-xs font-semibold text-gray-600">User Id</span>}
-            className="mb-0 min-w-[220px]"
-          >
-            <Select
-              placeholder="Select User"
-              allowClear
-              showSearch
-              value={selectedUser}
-              onChange={(val) => setSelectedUser(val)}
-              filterOption={(input, option) =>
-                option.children.toLowerCase().includes(input.toLowerCase())
-              }
+          <Form form={form} layout="vertical">
+
+            <Form.Item
+              name="userId"
+              label={<span className="text-xs font-semibold text-gray-600">User Id</span>}
+              className="mb-0 min-w-[220px]"
             >
-              {staticUsers.map((item) => (
-                <Option key={item.USERID} value={item.USERID}>
-                  {item.USERNAME}
-                </Option>
-              ))}
-            </Select>
+              <Select
+                placeholder="Select User"
+                allowClear
+                value={selectedUser}
+                onChange={(val) => setSelectedUser(val)}
+                showSearch
+                filterOption={(input, option) => {
+                  // console.log(option , "option .......");
+                  return option.children.toLowerCase().includes(input.toLowerCase());
+                }}
+              >
+                {usersData?.data?.map((item, i) => (
+                  <Option key={`${item.USERID}-${i}`} value={item.USERID}>
+                    {item.USERID}
+                  </Option>
+                ))}
+              </Select>
 
-          </Form.Item>
+            </Form.Item>
 
-        </Form>
+          </Form>
+        }
 
       </div>
 
@@ -258,7 +292,11 @@ const UserSessionPage = () => {
               icon={<LockOutlined />}
               loading={closeLoading}
               onClick={handleSessionClosed}
-              className="!bg-red-500 hover:!bg-red-600 border-0 shadow-md shadow-red-500/30"
+              className={`shadow-md shadow-red-500/30 ${openSessionId
+                  ? '!bg-red-500 hover:!bg-red-600'
+                  : ' !text-gray-800 bg-red-100! !shadow-none border-red-500!'
+                }`}
+              disabled={!openSessionId}
             >
               Session Closed
             </Button>
@@ -282,7 +320,8 @@ const UserSessionPage = () => {
       <Card className="shadow-sm">
         <Table
           columns={columns}
-          dataSource={filteredData}
+          dataSource={currentSessionHistoryData?.data}
+          loading={currentSessionHistoryDataLoading}
           rowSelection={rowSelection}
           rowKey={(record) => record.SESSIONID}
           rowClassName={(record) =>
@@ -291,7 +330,7 @@ const UserSessionPage = () => {
               : 'hover:bg-gray-50 transition-colors'
           }
           pagination={{
-            pageSize: 10,
+            pageSize: 20,
             showSizeChanger: true,
             showQuickJumper: true,
           }}
@@ -299,6 +338,8 @@ const UserSessionPage = () => {
           className="user-session-table"
         />
       </Card>
+
+
 
       {/* ✅ Active session ko blue highlight (image jaisa) */}
       <style>{`
@@ -314,7 +355,7 @@ const UserSessionPage = () => {
   }
     
       .selected-row > td {
-          background-color: #e6f4ff !important;
+          background-color: #b3deff !important;
         }
         .selected-row:hover > td {
           background-color: #bae0ff !important;

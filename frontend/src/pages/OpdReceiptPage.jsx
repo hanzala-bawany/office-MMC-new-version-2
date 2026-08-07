@@ -19,7 +19,6 @@ const OpdReceiptPage = () => {
     const [activeTab, setActiveTab] = useState('1');
     const [editRecord, setEditRecord] = useState(null);
     const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
-    const [showSessionAlertModal, setShowSessionAlertModal] = useState(false);
 
     const handleEdit = (record) => {
         setEditRecord(record);
@@ -33,13 +32,10 @@ const OpdReceiptPage = () => {
           children: <OPDSearch handleEdit={handleEdit} /> },
     ];
 
-    useEffect(() => {
-        if (loginUserData?.isprevioussessionopen == 1) setShowSessionAlertModal(true);
-    }, [loginUserData]);
+
 
     return (
         <>
-            <SeccionOpenAlertModal isModalOpen={showSessionAlertModal} setIsModalOpen={setShowSessionAlertModal} loginUserData={loginUserData} />
 
             <div className="h-full flex flex-col">
                 <Tabs activeKey={activeTab} onChange={setActiveTab} items={items} className="receptionist-tabs" size="large" />

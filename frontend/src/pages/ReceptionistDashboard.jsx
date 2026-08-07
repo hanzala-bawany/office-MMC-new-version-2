@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { 
-  Card, 
-  Button, 
-  Input, 
-  Table, 
-  Tag, 
-  Badge, 
-  Typography, 
-  Row, 
-  Col, 
+import React, { useEffect, useState } from 'react';
+import {
+  Card,
+  Button,
+  Input,
+  Table,
+  Tag,
+  Badge,
+  Typography,
+  Row,
+  Col,
   Statistic,
   Space,
   Avatar,
@@ -17,10 +17,10 @@ import {
   Select,
   Divider
 } from 'antd';
-import { 
-  UserOutlined, 
-  CalendarOutlined, 
-  DollarOutlined, 
+import {
+  UserOutlined,
+  CalendarOutlined,
+  DollarOutlined,
   ClockCircleOutlined,
   PrinterOutlined,
   SearchOutlined,
@@ -30,6 +30,9 @@ import {
 } from '@ant-design/icons';
 import { FaUserMd } from 'react-icons/fa';
 import hospitalLogo from '../assets/MMC logo.png'; // Update path as needed
+import useFetch from '../hooks/useFetch';
+import { useSelector } from 'react-redux';
+import SeccionOpenAlertModal from '../components/Receptionist/SeccionOpenAlertModal';
 
 const { Title, Text } = Typography;
 
@@ -37,7 +40,17 @@ const ReceptionistPage = () => {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
+  const [showSessionAlertModal, setShowSessionAlertModal] = useState(false);
   const [form] = Form.useForm();
+
+  const { data: currentSessionData, loading: currentSessionDataLoading, error: currentSessionDataError, reFetchData: refetchcurrentSessionData }
+    = useFetch(loginUserData?.username ? `/api/receptionist/getCurrentSession/${loginUserData?.username}` : null);
+    
+
+  useEffect(() => {
+    if (currentSessionData?.data?.[0]?.STATUS == 2) setShowSessionAlertModal(true);
+  }, [currentSessionData]);
 
   // Sample Data
   const patients = [
@@ -55,10 +68,11 @@ const ReceptionistPage = () => {
     'Scheduled': 'cyan'
   }[status] || 'default');
 
+
   const columns = [
-    { 
-      title: 'Patient ID', 
-      dataIndex: 'id', 
+    {
+      title: 'Patient ID',
+      dataIndex: 'id',
       key: 'id',
       render: (text) => <Text strong className="text-blue-600">{text}</Text>
     },
@@ -121,9 +135,9 @@ const ReceptionistPage = () => {
       key: 'action',
       render: (_, record) => (
         <Space>
-          <Button 
-            type="primary" 
-            size="small" 
+          <Button
+            type="primary"
+            size="small"
             icon={<PrinterOutlined />}
             onClick={() => {
               setSelectedPatient(record);
@@ -140,6 +154,9 @@ const ReceptionistPage = () => {
 
   return (
     <div className="h-full bg-gray-50 p-4">
+
+      <SeccionOpenAlertModal currentSessionData={currentSessionData?.data?.[0]} isModalOpen={showSessionAlertModal} setIsModalOpen={setShowSessionAlertModal} loginUserData={loginUserData} />
+
       {/* Header with Company Logo */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-4 flex justify-between items-center">
         <div>
@@ -180,8 +197,8 @@ const ReceptionistPage = () => {
       <Card className="shadow-sm">
         {/* Search Bar */}
         <div className="flex flex-wrap gap-2 mb-4">
-          <Input 
-            placeholder="Search patient by name, ID or doctor" 
+          <Input
+            placeholder="Search patient by name, ID or doctor"
             prefix={<SearchOutlined />}
             className="flex-1 min-w-[200px]"
             allowClear
@@ -191,8 +208,8 @@ const ReceptionistPage = () => {
         </div>
 
         {/* Table */}
-        <Table 
-          columns={columns} 
+        <Table
+          columns={columns}
           dataSource={patients}
           pagination={{ pageSize: 5, showSizeChanger: true, showTotal: (total) => `Total ${total} patients` }}
           scroll={{ x: 1000 }}
@@ -288,6 +305,7 @@ const ReceptionistPage = () => {
           </>
         )}
       </Modal>
+
     </div>
   );
 };

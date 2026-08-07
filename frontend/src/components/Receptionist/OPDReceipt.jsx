@@ -1253,6 +1253,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
                                     type="primary"
                                     icon={<SaveOutlined />}
                                     loading={addEditPatientLoading}
+                                    disabled={editRecord && loginUserData?.username != "admin"}
                                     htmlType="submit"
                                     className="bg-linear-to-r from-emerald-500 to-green-600 border-0 shadow-md shadow-green-500/30 hover:shadow-lg hover:shadow-green-500/40"
                                 >
