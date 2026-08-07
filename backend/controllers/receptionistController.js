@@ -831,7 +831,7 @@ const ClosedUserSesseion = async (req, res) => {
     connection = await pool.getConnection();
 
     // Request body se data lo
-    const { sessionId } = req.body || {};
+    const { sessionId } = req.params || {};
 
     // Validation - Sirf required fields check karo
     if (!sessionId) {
@@ -880,6 +880,7 @@ const ClosedUserSesseion = async (req, res) => {
 };
 
 const getCurrentSession = async (req, res) => {
+
   const userId = req?.params?.userId?.toString();
 
   if (!userId) {
@@ -899,28 +900,28 @@ const getCurrentSession = async (req, res) => {
     // seedha :sessionId bind variable mein assign hogi
     const result = await connection.execute(
       `BEGIN 
-       :sessionId := hms.get_currsessionid(:userId); 
+       get_open_sessionid(:userId , :p_cur); 
       END;`,
       {
         userId: userId,
-        sessionId: {
-          type: oracledb.STRING,
+        p_cur: {
+          type: oracledb.CURSOR,
           dir: oracledb.BIND_OUT,
           maxSize: 50,
         },
       },
-      { autoCommit: true }, // agar naya session banta hai to insert commit hona chahiye
+      { autoCommit: true , outFormat: oracledb.OUT_FORMAT_OBJECT }, // agar naya session banta hai to insert commit hona chahiye
     );
 
-    const sessionId = result.outBinds.sessionId;
+    const cursor = result.outBinds.p_cur;
+    const data = await cursor.getRows();
+    await cursor.close();
+
 
     res.status(200).json({
       success: true,
       message: "Current session fetched successfully",
-      data: {
-        sessionId: sessionId,
-        userId: userId,
-      },
+      data: data,
     });
   } catch (error) {
     console.error("Error in getCurrentSession:", error);
@@ -1002,6 +1003,69 @@ const getCurrentCash = async (req, res) => {
   }
 };
 
+const getSessionHistory = async (req, res) => {
+
+  const userId = req?.params?.userId?.toString();
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "userId is required",
+    });
+  }
+
+  let connection;
+
+  try {
+    const pool = await poolPromise;
+    connection = await pool.getConnection();
+
+    // get_currsessionid FUNCTION hai (procedure nahi), isliye return value
+    // seedha :sessionId bind variable mein assign hogi
+    const result = await connection.execute(
+      `BEGIN 
+       get_user_sessions(:userId , :retval); 
+      END;`,
+      {
+        userId: userId,
+        retval: {
+          type: oracledb.CURSOR,
+          dir: oracledb.BIND_OUT,
+        },
+      },
+      {
+        autoCommit: true,
+        outFormat: oracledb.OUT_FORMAT_OBJECT,
+      },
+    );
+
+    const cursor = result.outBinds.retval;
+    const data = await cursor.getRows();
+    await cursor.close();
+
+    res.status(200).json({
+      success: true,
+      message: "Session History fetched successfully",
+      data: data
+    });
+  } catch (error) {
+    console.error("Error in getSessionHistory:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error fetching session History",
+      error: error,
+    });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error("Error closing connection:", err);
+      }
+    }
+  }
+};
+
 module.exports = {
   getOpdCategory,
   getPatientCategory,
@@ -1018,4 +1082,5 @@ module.exports = {
   ClosedUserSesseion,
   getCurrentSession,
   getCurrentCash,
+  getSessionHistory
 };

@@ -4,19 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { CloseOutlined, ExclamationCircleOutlined, LogoutOutlined, SafetyOutlined, UserOutlined } from "@ant-design/icons";
 import { Modal } from "antd";
 import { logoutUser } from "../../reduxToolKit/authSlice";
+import moment from "moment";
 
-const SeccionOpenAlertModal = ({ isModalOpen, setIsModalOpen, loginUserData }) => {
+const SeccionOpenAlertModal = ({ isModalOpen, setIsModalOpen, loginUserData, currentSessionData }) => {
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
-    const handleModalLogout = () => {
-        dispatch(logoutUser());
-        toast.success("Logout Successful");
-        navigate("/login");
+    const handleClosedSessionBtn = () => {
+        navigate("/userSessionPage");
     };
-
-
 
     return (
         <Modal
@@ -68,13 +65,8 @@ const SeccionOpenAlertModal = ({ isModalOpen, setIsModalOpen, loginUserData }) =
                         {/* Top Warning */}
                         <div className="flex items-center justify-center gap-2 text-amber-700 text-sm font-medium">
                             <ExclamationCircleOutlined className="text-lg" />
-                            <span>Your previous session is already open</span>
+                            <span>Your session is open</span>
                         </div>
-
-                        {/* Sub Message */}
-                        <p className="text-center text-amber-600 text-xs mt-1">
-                            Please close that session first before continuing.
-                        </p>
 
                         {/* User Info */}
                         <div className="mt-4 flex items-center justify-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2 shadow-sm">
@@ -86,9 +78,34 @@ const SeccionOpenAlertModal = ({ isModalOpen, setIsModalOpen, loginUserData }) =
                             </span>
                         </div>
 
+                        {/* Session Date Info */}
+                        <div className="mt-4 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500 font-medium">Start:</span>
+                                <span className="text-gray-800 font-semibold">
+                                    {currentSessionData?.FROMDATE
+                                        ? moment(currentSessionData?.FROMDATE).format("DD-MMM-YYYY  hh:mm A")
+                                        : "N/A"}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs mt-1.5 pt-1.5 border-t border-gray-100">
+                                <span className="text-gray-500 font-medium">End:</span>
+                                {currentSessionData?.TODATE ? (
+                                    <span className="text-gray-800 font-semibold">
+                                        {moment(currentSessionData?.TODATE).format("DD-MMM-YYYY hh:mm A")}
+                                    </span>
+                                ) : (
+                                    <span className="text-red-500 font-semibold">
+                                        Abhi tak band nahi hua
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Footer Text */}
                         <p className="text-xs text-gray-500 mt-3 text-center">
-                            You can log out here, or cancel to close this window.
+                            You can go to user Session page.
                         </p>
 
                     </div>
@@ -102,11 +119,11 @@ const SeccionOpenAlertModal = ({ isModalOpen, setIsModalOpen, loginUserData }) =
                             Cancel
                         </button>
                         <button
-                            onClick={handleModalLogout}
+                            onClick={handleClosedSessionBtn}
                             className="flex-1 px-4 py-2.5 rounded-xl cursor-pointer bg-amber-600 text-white font-medium hover:bg-amber-700 transition-all flex items-center justify-center gap-2"
                         >
                             <LogoutOutlined />
-                            Logout
+                            User Session
                         </button>
                     </div>
 

@@ -20,19 +20,21 @@ import {
 import useFetch from '../../hooks/useFetch';
 import moment from 'moment';
 import axiosInstance from '../../utills/axiosInstance';
-import { toast } from 'react-toastify'; // ✅ IMPORT TOAST
+import { toast } from 'react-toastify'; 
 import './OPDSearch.css';
+import { useSelector } from 'react-redux';
 
 
 
-const { Option } = Select; // ✅ IMPORT OPTION
+const { Option } = Select; 
 
 const OPDSearch = ({ handleEdit }) => {
 
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [patientsData, setPatientsData] = useState(null); // ✅ Initial null
+  const [patientsData, setPatientsData] = useState(null); 
   const [patientsDataLoading, setPatientsDataLoading] = useState(false);
+  const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
 
   // ✅ searchParams state define karo
   const [searchParams, setSearchParams] = useState({
@@ -53,6 +55,7 @@ const OPDSearch = ({ handleEdit }) => {
 
 
   console.log(patientsData, "patientsData .........");
+  console.log(loginUserData?.role, "loginUserData .........");
 
 
 
@@ -245,12 +248,16 @@ const OPDSearch = ({ handleEdit }) => {
             <Form.Item name="from" label="From" className="w-full sm:w-auto">
               <DatePicker
                 format="DD-MMM-YYYY"
-                className="w-full"
+                className={`w-full ${loginUserData?.role != "admin" ? "custom-disabled-date" : ""}`}
+                disabled={loginUserData?.role != "admin"}
               />
             </Form.Item>
 
             <Form.Item name="to" label="To" className="w-full sm:w-auto">
-              <DatePicker format="DD-MMM-YYYY" className="w-full" />
+              <DatePicker
+                format="DD-MMM-YYYY"
+                className="w-full"
+                disabled={loginUserData?.role != "admin"} />
             </Form.Item>
 
             <Form.Item
@@ -267,10 +274,11 @@ const OPDSearch = ({ handleEdit }) => {
                 filterOption={(input, option) => {
                   return option.children.toLowerCase().includes(input.toLowerCase());
                 }}
+                disabled={loginUserData?.role != "admin"}
               >
                 {usersData?.data?.map((item, index) => (
                   <Option key={`${item.USERID}-${index}`} value={item?.USERID}>
-                    {item?.USERNAME}
+                    {item?.role}
                   </Option>
                 ))}
               </Select>
@@ -626,7 +634,7 @@ export default OPDSearch;
 //                 }}
 //               >
 //                 {usersData?.data?.map((item, index) => (
-//                   <Option key={`${item.USERID}-${index}`} value={item?.USERID}>{item?.USERNAME}</Option>
+//                   <Option key={`${item.USERID}-${index}`} value={item?.USERID}>{item?.role}</Option>
 //                 ))}
 //               </Select>
 //             </Form.Item>
