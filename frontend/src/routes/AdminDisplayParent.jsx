@@ -26,7 +26,7 @@ const AdminDisplayParent = () => {
   if (!loginUserData) {
     return <Navigate to="/login" replace />;
   }
-  else if (loginUserData.role === "admin") {
+  else if (loginUserData.role === "Admin") {
     return <Outlet />;
   }
   else if (loginUserData.role == "doctor") {

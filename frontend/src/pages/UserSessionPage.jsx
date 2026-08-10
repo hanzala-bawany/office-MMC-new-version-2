@@ -246,7 +246,7 @@ const UserSessionPage = () => {
         </div>
 
         {
-          loginUserData?.role == "admin" &&
+          loginUserData?.role == "Admin" &&
 
           <Form form={form} layout="vertical">
 

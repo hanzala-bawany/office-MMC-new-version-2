@@ -105,7 +105,7 @@ const unifiedLogin = async (req, res) => {
       let role = "";
 
       if (userrole === 1) {
-        role = "admin";
+        role = "Admin";
       } else {
         role = "screen";
       }

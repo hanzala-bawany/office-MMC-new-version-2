@@ -38,7 +38,7 @@ const ScreenDisplayParent = () => {
     }
 
 
-    if (loginUserData?.role === "admin" || loginUserData?.username === "001Admin") {
+    if (loginUserData?.role === "Admin") {
         return <Outlet />;
     }
 

@@ -1,6 +1,7 @@
 import { Layout, Menu, Breadcrumb, theme, Flex } from 'antd';
 import React, { useEffect, useState } from 'react';
 import NavImg from '../assets/MMC logo.png';
+import nubitLogo from '../assets/nubit-logo.png';
 import hospitraxLogo from '../assets/productLogoBgRemove.png';
 import { UserOutlined, LaptopOutlined, MenuUnfoldOutlined, MenuFoldOutlined, FileTextOutlined, TeamOutlined, FundOutlined, SettingOutlined } from '@ant-design/icons';
 import { FaChalkboardTeacher, FaMicrophone, FaTextWidth, FaUserMd, FaUserMinus, FaXRay } from 'react-icons/fa';
@@ -41,173 +42,204 @@ const AppLayout = () => {
   // console.log(loginUserData, "loginUserData ......");
 
   const menuData = [
+    // ===== ADMIN ONLY =====
     {
-      key: "1", icon: UserOutlined, roles: ["admin"], label:
-        <NavLink to={`/doctor`}>Doctors</NavLink>
+      key: "1",
+      icon: UserOutlined,
+      roles: ["Admin"],
+      label: <NavLink to="/doctor">Doctors</NavLink>
     },
     {
-      key: "2", icon: FaUserMd, roles: ["admin"],
-      label: <NavLink to="/consultant">Add Consultant</NavLink>,
+      key: "2",
+      icon: FaUserMd,
+      roles: ["Admin"],
+      label: <NavLink to="/consultant">Add Consultant</NavLink>
     },
     {
-      key: "9", icon: FaMicrophone, roles: ["admin"],
-      label: <NavLink to="/pronunciation">Add Doctor Pronunciation</NavLink>,
+      key: "9",
+      icon: FaMicrophone,
+      roles: ["Admin"],
+      label: <NavLink to="/pronunciation">Add Doctor Pronunciation</NavLink>
     },
     {
-      key: "10", icon: FaUserMinus, roles: ["admin"],
-      label: <NavLink to="/removeDoctor">Doctor Management</NavLink>,
+      key: "10",
+      icon: FaUserMinus,
+      roles: ["Admin"],
+      label: <NavLink to="/removeDoctor">Doctor Management</NavLink>
     },
+
+    // ===== SCREENS MODULE (Admin Only) =====
     {
-      key: "8",
-      icon: FaTextWidth,
-      roles: ["admin"],
-      label: (
-        <span><NavLink to={`/addScreens`}>Add Screens</NavLink></span>
-      )
+      key: "screen-module",
+      icon: LaptopOutlined,
+      roles: ["Admin"],
+      label: "Screens",
+      children: [
+        {
+          key: "screen-add",
+          label: <NavLink to="/addScreens">Add Screens</NavLink>
+        },
+        {
+          key: "screen-1",
+          label: "Screen 1",
+          children: [
+            { key: "screen-1-add", label: <NavLink to="/screen1">Add Data</NavLink> },
+            { key: "screen-1-display", label: <NavLink to="/screen1display">TV Screen</NavLink> }
+          ]
+        },
+        {
+          key: "screen-2",
+          label: "Screen 2",
+          children: [
+            {
+              key: "screen-2-add",
+              label: (
+                <span style={{ pointerEvents: "none", opacity: 0.4, color: 'gray', fontWeight: "500", cursor: "not-allowed" }}>
+                  <NavLink to="/screen2">Add Data</NavLink>
+                </span>
+              )
+            },
+            { key: "screen-2-display", label: <NavLink to="/screen2display">TV Screen</NavLink> }
+          ]
+        },
+        {
+          key: "screen-3",
+          label: "Screen 3",
+          children: [
+            { key: "screen-3-add", label: <NavLink to="/screen3">Add Data</NavLink> },
+            { key: "screen-3-display", label: <NavLink to="/screen3display">TV Screen</NavLink> }
+          ]
+        },
+        {
+          key: "screen-4",
+          label: "Screen 4",
+          children: [
+            { key: "screen-4-add", label: <NavLink to="/screen4">Add Data</NavLink> },
+            { key: "screen-4-display", label: <NavLink to="/screen4display">TV Screen</NavLink> }
+          ]
+        },
+        {
+          key: "screen-5",
+          label: "Screen 5",
+          children: [
+            { key: "screen-5-display", label: <NavLink to="/screen/5">TV Screen</NavLink> }
+          ]
+        },
+        {
+          key: "screen-6",
+          label: "Screen 6",
+          children: [
+            { key: "screen-6-display", label: <NavLink to="/screen/6">TV Screen</NavLink> }
+          ]
+        },
+        {
+          key: "screen-7",
+          label: "Screen 7",
+          children: [
+            { key: "screen-7-display", label: <NavLink to="/screen/7">TV Screen</NavLink> }
+          ]
+        },
+        {
+          key: "screen-8",
+          label: "Screen 8",
+          children: [
+            { key: "screen-8-display", label: <NavLink to="/screen/8">TV Screen</NavLink> }
+          ]
+        },
+        {
+          key: "screen-9",
+          label: "Screen 9",
+          children: [
+            { key: "screen-9-display", label: <NavLink to="/screen/9">TV Screen</NavLink> }
+          ]
+        }
+      ]
     },
+
+    // ===== ADMIN & RECEPTIONIST =====
     {
       key: "16",
       icon: FileTextOutlined,
-      roles: ["admin", "Receptionist"],
+      roles: ["Admin", "Receptionist"],
       label: "Out Patient",
       children: [
-        {
-          key: "16-1",
-          label: <NavLink to="/opdReceiptPage">OPD Receipt</NavLink>
-        },
-        {
-          key: "16-2",
-          label: <NavLink to="/partialPaymentPage">Patrtial Payment</NavLink>
-        },
-      ],
+        { key: "16-1", label: <NavLink to="/opdReceiptPage">OPD Receipt</NavLink> },
+        { key: "16-2", label: <NavLink to="/partialPaymentPage">Partial Payment</NavLink> }
+      ]
     },
     {
       key: "17",
       icon: TeamOutlined,
-      roles: ["admin", "Receptionist"],
+      roles: ["Admin", "Receptionist"],
       label: "Management",
       children: [
-        {
-          key: "17-1",
-          label: <NavLink to="/userSessionPage">User Session</NavLink>
-        },
+        { key: "17-1", label: <NavLink to="/userSessionPage">User Session</NavLink> }
       ]
     },
     {
       key: "18",
       icon: FundOutlined,
-      roles: ["admin", "Receptionist"],
+      roles: ["Admin", "Receptionist"],
       label: "Statistics",
       children: [
-        {
-          key: "18-1",
-          label: <NavLink to="/currentCashPage">Current Cash Status</NavLink>
-        }
+        { key: "18-1", label: <NavLink to="/currentCashPage">Current Cash Status</NavLink> }
       ]
     },
     {
       key: "19",
       icon: FaXRay,
-      roles: ["admin", "Receptionist"],
+      roles: ["Admin", "Receptionist"],
       label: "X-Ray",
       children: [
-        {
-          key: "19-1",
-          label: <NavLink to="/xray-request">X-Ray Tempelate Designer</NavLink>
-        },
-        {
-          key: "19-2",
-          label: <NavLink to="/xray-reports">X-Ray Reports</NavLink>
-        }
+        { key: "19-1", label: <NavLink to="/xray-request">X-Ray Template Designer</NavLink> },
+        { key: "19-2", label: <NavLink to="/xray-reports">X-Ray Reports</NavLink> }
       ]
     },
     {
       key: "20",
       icon: SettingOutlined,
-      roles: ["admin", "Receptionist"],
+      roles: ["Admin", "Receptionist"],
       label: "Settings",
       children: [
-        {
-          key: "20-1",
-          label: <NavLink to="/clinic-settings">Change Password</NavLink>
-        }
+        { key: "20-1", label: <NavLink to="/changePassword">Change Password</NavLink> }
       ]
     },
-    {
-      key: "3", icon: LaptopOutlined, roles: ["admin"], label: "Screen 1",
-      children: [
-        { key: "1-1", label: <NavLink to={`/screen1`}>Add Data</NavLink> },
-        { key: "1-2", label: <NavLink to={`/screen1display`}>TV Screen</NavLink> },
-      ],
-    },
-    {
-      key: "4", icon: LaptopOutlined, roles: ["admin"], label: "Screen 2",
-      children: [
-        {
-          key: "2-1",
-          label: (
-            <span style={{ pointerEvents: "none", opacity: 0.4, color: 'gray', fontWeight: "500", cursor: "not-allowed" }}>
-              <NavLink to="/screen2">Add Data</NavLink>
-            </span>
-          ),
-        },
-        { key: "2-2", label: <NavLink to="/screen2display">TV Screen</NavLink> },
-      ],
-    },
-    {
-      key: "5", icon: LaptopOutlined, roles: ["admin"], label: "Screen 3",
-      children: [
-        { key: "3-1", label: <NavLink to={`/screen3`}>Add Data</NavLink> },
-        { key: "3-2", label: <NavLink to={`/screen3display`}>TV Screen</NavLink> },
-      ],
-    },
-    {
-      key: "6", icon: LaptopOutlined, roles: ["admin"], label: "Screen 4",
-      children: [
-        { key: "4-1", label: <NavLink to={`/screen4`}>Add Data</NavLink> },
-        { key: "4-2", label: <NavLink to={`/screen4display`}>TV Screen</NavLink> },
-      ],
-    },
-    {
-      key: "7", icon: LaptopOutlined, roles: ["admin"], label: "Screen 5",
-      children: [
-        { key: "5-2", label: <NavLink to={`/screen/5`}>TV Screen</NavLink> },
-      ],
-    },
-    {
-      key: "11", icon: LaptopOutlined, roles: ["admin"], label: "Screen 6",
-      children: [
-        { key: "6-2", label: <NavLink to={`/screen/6`}>TV Screen</NavLink> },
-      ],
-    },
-    {
-      key: "12", icon: LaptopOutlined, roles: ["admin"], label: "Screen 7",
-      children: [
-        { key: "7-2", label: <NavLink to={`/screen/7`}>TV Screen</NavLink> },
-      ],
-    },
-    {
-      key: "13", icon: LaptopOutlined, roles: ["admin"], label: "Screen 8",
-      children: [
-        { key: "8-2", label: <NavLink to={`/screen/8`}>TV Screen</NavLink> },
-      ],
-    },
-    {
-      key: "14", icon: LaptopOutlined, roles: ["admin"], label: "Screen 9",
-      children: [
-        { key: "9-2", label: <NavLink to={`/screen/9`}>TV Screen</NavLink> },
-      ],
-    },
+
+    // ===== LOGOUT (Common for all) =====
     {
       key: "15",
-      roles: ["admin", "Receptionist"], // sabko Logout dikhna chahiye
+      roles: ["Admin", "Receptionist"],
       label: (
-        <button onClick={() => setIsModalOpen(true)}>
-          Logout
-        </button>
-      ),
+        <div
+          onClick={() => setIsModalOpen(true)}
+          style={{
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            padding: "4px 0"
+          }}
+        >
+          <span style={{
+            fontSize: "12px",
+            color: "#8c8c8c",
+            fontWeight: "400"
+          }}>
+            Powered by
+          </span>
+          <img
+            src={nubitLogo}
+            alt="Nubit Logo"
+            style={{
+              width: "80px",
+              height: "24px",
+              objectFit: "contain"
+            }}
+          />
+        </div>
+      )
     }
-
   ];
 
   // Role ke hisaab se filter, aur original key preserve (regenerate mat karo!)
@@ -228,7 +260,7 @@ const AppLayout = () => {
 
   useEffect(() => {
 
-    if (userRole !== "admin") return;
+    if (userRole !== "Admin") return;
     const fetchDoctors = async () => {
       try {
         const res = await axios.get(`${base_URL}/api/doctor/list`);
@@ -300,7 +332,7 @@ const AppLayout = () => {
           <Time />
 
           <div className="flex gap-x-2 text-[18px] sm:text-[20px]">
-            <span >Admin</span>
+            <span >{`${userRole?.[0].toUpperCase()}${userRole?.slice(1)}`}</span>
             <UserOutlined style={{ fontSize: "25px", color: "white" }} />
           </div>
 

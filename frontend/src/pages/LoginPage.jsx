@@ -60,7 +60,7 @@ const LoginPage = () => {
       dispatch(loginUser(userData));
       setLoading(false);
 
-      if (decoded.role === "admin") {
+      if (decoded.role === "Admin") {
 
         navigate("/");
 
