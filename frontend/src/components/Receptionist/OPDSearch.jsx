@@ -248,8 +248,8 @@ const OPDSearch = ({ handleEdit }) => {
             <Form.Item name="from" label="From" className="w-full sm:w-auto">
               <DatePicker
                 format="DD-MMM-YYYY"
-                className={`w-full ${loginUserData?.role != "admin" ? "custom-disabled-date" : ""}`}
-                disabled={loginUserData?.role != "admin"}
+                className={`w-full ${loginUserData?.role != "Admin" ? "custom-disabled-date" : ""}`}
+                disabled={loginUserData?.role != "Admin"}
               />
             </Form.Item>
 
@@ -257,7 +257,7 @@ const OPDSearch = ({ handleEdit }) => {
               <DatePicker
                 format="DD-MMM-YYYY"
                 className="w-full"
-                disabled={loginUserData?.role != "admin"} />
+                disabled={loginUserData?.role != "Admin"} />
             </Form.Item>
 
             <Form.Item
@@ -274,7 +274,7 @@ const OPDSearch = ({ handleEdit }) => {
                 filterOption={(input, option) => {
                   return option.children.toLowerCase().includes(input.toLowerCase());
                 }}
-                disabled={loginUserData?.role != "admin"}
+                disabled={loginUserData?.role != "Admin"}
               >
                 {usersData?.data?.map((item, index) => (
                   <Option key={`${item.USERID}-${index}`} value={item?.USERID}>

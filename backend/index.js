@@ -25,6 +25,7 @@ const consultantFacultyRoutes = require("./routes/consultantFacultyRoutes");
 const doctorReportRoutes = require("./routes/doctorReport.Routes.js")
 const { initSocket } = require("./utills/socket.js");
 const receptionistRoutes = require("./routes/receptionistRoutes.js");
+const partialPaymentRoutes = require("./routes/partialpayment.js");
 
 
 
@@ -71,6 +72,7 @@ app.use("/api/admin", displayScreenRoutes);
 app.use("/api/consultants", consultantRoutes);
 app.use("/api/consultant", consultantFacultyRoutes);
 app.use("/api/receptionist", receptionistRoutes);
+app.use("/api/partialPayment", partialPaymentRoutes);
 app.use("/api/", doctorReportRoutes);
 
 

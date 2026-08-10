@@ -13,12 +13,12 @@ const MedicalAssistantParent = () => {
     
 
 
-    const isAllow = loginUserData?.role === "Medical Assistant" || loginUserData?.role === "admin";
+    const isAllow = loginUserData?.role === "Medical Assistant" || loginUserData?.role === "Admin";
 
     useEffect(() => {
         if (!isUserLogin) {
             toast.warning("You have to login first");
-        } else if (loginUserData?.role !== "Medical Assistant" && loginUserData?.role !== "admin") {
+        } else if (loginUserData?.role !== "Medical Assistant" && loginUserData?.role !== "Admin") {
             toast.error("Access denied");
         }
     }, [isUserLogin, loginUserData]);

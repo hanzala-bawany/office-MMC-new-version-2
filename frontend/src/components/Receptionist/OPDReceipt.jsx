@@ -1146,7 +1146,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
                     {/* STICKY ACTION FOOTER */}
                     <div className="shrink-0 pt-2 mt-2 border-t border-gray-200 flex flex-col items-center justify-between gap-2">
 
-                        {loginUserData?.role == "admin" &&
+                        {loginUserData?.role == "Admin" &&
                             <div className="flex justify-between w-full bg-gradient-to-r from-red-50/70 to-orange-50/70 p-2 rounded-xl border border-red-200/50">
 
                                 <div className="flex items-center gap-2">
@@ -1212,7 +1212,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
                                             className="shadow-sm hover:shadow-md"
                                             onClick={() => onDeleteAndRefund("delete")}
                                             loading={deleteAndRefundLoading}
-                                            disabled={!editRecord || loginUserData?.role != "admin"}
+                                            disabled={!editRecord || loginUserData?.role != "Admin"}
                                         >
                                             Delete
                                         </Button>
@@ -1253,7 +1253,7 @@ const OPDReceipt = ({ editRecord, clearEditRecord, handleEdit }) => {
                                     type="primary"
                                     icon={<SaveOutlined />}
                                     loading={addEditPatientLoading}
-                                    disabled={editRecord && loginUserData?.username != "admin"}
+                                    disabled={editRecord && loginUserData?.username != "Admin"}
                                     htmlType="submit"
                                     className="bg-linear-to-r from-emerald-500 to-green-600 border-0 shadow-md shadow-green-500/30 hover:shadow-lg hover:shadow-green-500/40"
                                 >

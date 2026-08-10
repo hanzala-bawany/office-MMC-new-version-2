@@ -36,6 +36,7 @@ import ReceptionistPage from './pages/ReceptionistDashboard'
 import PartialPaymentPage from './pages/PartialPaymentPage'
 import UserSessionPage from './pages/UserSessionPage'
 import CurrentCashPage from './pages/CurrentCashPage'
+import ChangePassword from './pages/settings/ChangePassword'
 
 
 function App() {
@@ -69,6 +70,7 @@ function App() {
             <Route path="/partialPaymentPage" element={<PartialPaymentPage />} />
             <Route path="/userSessionPage" element={<UserSessionPage />} />
             <Route path="/currentCashPage" element={<CurrentCashPage />} />
+            <Route path="/changePassword" element={<ChangePassword />} />
           </Route>
 
         </Route>

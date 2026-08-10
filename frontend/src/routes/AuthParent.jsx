@@ -27,7 +27,7 @@ const AuthParent = () => {
   const doctorPath = loginUserData?.role == "doctor";
   const medicalAssistantPath = loginUserData?.role == "Medical Assistant";
   const receptionistPath = loginUserData?.role == "Receptionist";
-  const adminPath = loginUserData?.role == "admin";
+  const adminPath = loginUserData?.role == "Admin";
 
 
   useEffect(() => {

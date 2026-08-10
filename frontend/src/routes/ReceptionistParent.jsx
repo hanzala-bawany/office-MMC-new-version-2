@@ -11,12 +11,12 @@ const ReceptionistParent = () => {
     // console.log(isUserLogin , "isUserLogin");
     // console.log(loginUserData , "loginUserData");
 
-    const isAllow = loginUserData?.role === "Receptionist" || loginUserData?.role === "admin";
+    const isAllow = loginUserData?.role === "Receptionist" || loginUserData?.role === "Admin";
 
     useEffect(() => {
         if (!isUserLogin) {
             toast.warning("You have to login first");
-        } else if (loginUserData?.role !== "Receptionist" && loginUserData?.role !== "admin") {
+        } else if (loginUserData?.role !== "Receptionist" && loginUserData?.role !== "Admin") {
             toast.error("Access denied");
         }
     }, [isUserLogin, loginUserData]);
