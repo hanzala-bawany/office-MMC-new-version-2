@@ -13,54 +13,156 @@ import dayjs from "dayjs";
 import moment from "moment";
 import useFetch from "../hooks/useFetch";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import axiosInstance from "../utills/axiosInstance";
 
 const PartialPaymentPage = () => {
 
   const [form] = Form.useForm();
   const [selectedRow, setSelectedRow] = useState(null);
+  const [patientAndHistoryDataLoading, setPatientAndHistoryDataLoading] = useState(false);
+  const [historyData, setHistoryData] = useState(false);
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
 
-  const { data: patientAndHistoryData , loading: patientAndHistoryDataLoading , error: patientAndHistoryDataError, reFetchData: refetchpatientAndHistoryData }
-    = useFetch(loginUserData?.username ? `/api/partialPayment/patientHistoryByReceipt/${loginUserData?.username}` : null);
 
+// on reciept seacrh enter
+  const handleReceiptSearch = async (e) => {
+
+    e.preventDefault();
+    const value = e.target.value?.trim();
+    if (!value) {
+      message.warning("Pehle receipt no likho");
+      return;
+    }
+
+    setPatientAndHistoryDataLoading(true)
+
+    try {
+
+      const res = await axiosInstance.get(`/api/partialPayment/patientHistoryByReceipt/${value}`);
+      console.log('Saved successfully:', res);
+      const patientData = res?.data?.data?.patientData
+      const historyData = res?.data?.data?.historyData || []
+
+      setHistoryData(historyData)
+
+      if (patientData) {
+        form.setFieldsValue({
+          receiptNo: patientData.RECEIPTNO,
+          patientName: patientData.PATIENTNAME,
+          gender: patientData.GENDER,
+          age: patientData.AGE,
+          admissionDate: patientData.VDATE ? moment(patientData.VDATE).format("DD-MMM-YYYY") : "",
+          contactNo: patientData.CONTACTNO,
+          consultant: patientData.CONSULTANTNAME,
+          totalBalance: patientData.NETBALANCE,
+        });
+      }
+
+    } catch (err) {
+      console.error('Error saving OPD receipt:', err);
+      toast.error(err?.response?.data?.message || "Failed to generate OPD reciept");
+    }
+    finally {
+      setPatientAndHistoryDataLoading(false)
+    }
+
+
+  };
+
+  // on save and update
   const onFinish = (values) => {
+
+    if (!values?.amount) return
+
     console.log("PartialPayment form values:", values);
   };
 
+  // on new
   const handleNew = useCallback(() => {
     form.resetFields();
     setSelectedRow(null);
+    setHistoryData([]);
   }, [form]);
 
+// on delete
   const handleDelete = useCallback(() => {
-    if (!selectedRow) {
-      message.warning("Pehle ek record select karo delete ke liye");
-      return;
-    }
+
     // delete API yahan wire hogi
   }, [selectedRow]);
 
-  const handleRowDoubleClick = (record) => {
+
+  const handleRowDoubleClick = (record, i) => {
+
+    if (i === 0) {
+      toast.warning("You cannot update generated slip");
+      return;
+    }
+
+    setSelectedRow(record)
+
     setSelectedRow(record);
     form.setFieldsValue({
-      receiptNo: record.receiptNo,
-      totalBill: record.totalBill,
-      amount: record.amount,
-      createdBy: record.createdBy,
+      id: record.ID,
+      amount: record.NETAMOUNT,
+      // totalBill: record.totalBill,
+      // createdBy: record.createdBy,
     });
   };
 
+
   const columns = [
-    { title: "Receipt*", dataIndex: "receiptNo", key: "receiptNo" },
-    { title: "Date", dataIndex: "date", key: "date" },
-    { title: "Total Bill", dataIndex: "totalBill", key: "totalBill" },
-    { title: "Amount", dataIndex: "amount", key: "amount" },
-    { title: "Created By", dataIndex: "createdBy", key: "createdBy" },
-    { title: "Edit By", dataIndex: "editBy", key: "editBy" },
-    { title: "Terminal Id", dataIndex: "terminalId", key: "terminalId" }
+    { title: "Receipt*", dataIndex: "RECEIPTNO", key: "RECEIPTNO" },
+    {
+      title: "Date",
+      dataIndex: "VDATE",
+      key: "VDATE",
+      render: (val) => (
+        val ? moment(val, "DD-MMM-YYYY HH:mm:ss").format("DD-MMM-YYYY") : "-"
+      ),
+    },
+    {
+      // har row me first row ka GROSSAMOUNT dikhana hai, apna wala nahi
+      title: "Total Bill",
+      dataIndex: "GROSSAMOUNT",
+      key: "GROSSAMOUNT",
+      render: () => historyData?.[0]?.GROSSAMOUNT ?? 0,
+    },
+    { title: "Amount", dataIndex: "NETAMOUNT", key: "NETAMOUNT" },
+    {
+      title: "Created By",
+      key: "createdByInfo",
+      render: (_, record) => (
+        <div className="flex flex-col leading-tight">
+          <span>{record.CREATEDBY || "-"}</span>
+          <span className="text-xs text-gray-400">
+            {
+              record.CREATEDTIME
+                ? moment(record.CREATEDTIME, "DD-MMM-YYYY HH:mm:ss").format("DD-MMM-YYYY hh:mm A")
+                : ""
+            }
+          </span>
+        </div>
+      ),
+    },
+    {
+      title: "Edit By",
+      key: "editByInfo",
+      render: (_, record) => (
+        <div className="flex flex-col leading-tight">
+          <span>{record.EDITBY || "-"}</span>
+          <span className="text-xs text-gray-400">
+            {record.EDITTIME
+              ? moment(record.EDITTIME, "DD-MMM-YYYY HH:mm:ss").format("DD-MMM-YYYY hh:mm A")
+              : ""}
+          </span>
+        </div>
+      ),
+    },
+    { title: "Terminal Id", dataIndex: "TERMINALID", key: "TERMINALID" },
   ];
 
-  // table header ko module-heading wale blue se match karne ke liye header cell override
+
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -77,7 +179,7 @@ const PartialPaymentPage = () => {
         layout="vertical"
         onFinish={onFinish}
         initialValues={{
-          date: moment() ,
+          date: dayjs(),
           amount: 0,
           modeOfPayment: "cash",
         }}
@@ -96,7 +198,7 @@ const PartialPaymentPage = () => {
             <div className="grid grid-cols-3 gap-3">
 
               <Form.Item label="Receipt. No" name="receiptNo" className="mb-0">
-                <Input placeholder="Enter receipt no" />
+                <Input placeholder="Enter receipt no" onPressEnter={handleReceiptSearch} />
               </Form.Item>
               <Form.Item label="Patient Name" name="patientName" className="mb-0">
                 <Input readOnly />
@@ -138,14 +240,15 @@ const PartialPaymentPage = () => {
 
                 <Form.Item label="Date" name="date" className="mb-0 col-span-2">
                   <DatePicker
+                    disabled          
                     showTime
                     format="DD-MMM-YYYY hh:mm A"
-                    className="w-full!"
+                      className="w-full! [&_.ant-picker-input>input]:text-gray-900! [&_.ant-picker-input>input]:bg-white! [&_.ant-picker-input>input]:opacity-100!"
                   />
                 </Form.Item>
 
-                <Form.Item label="Receipt" name="receipt" className="mb-0">
-                  <Input readOnly/>
+                <Form.Item label="Receipt" name="id" className="mb-0">
+                  <Input readOnly />
                 </Form.Item>
 
                 <Form.Item
@@ -170,12 +273,12 @@ const PartialPaymentPage = () => {
             <Button onClick={handleNew}>New</Button>
 
             <Button type="primary" htmlType="submit">
-              Save
+              {selectedRow ? "Update" : "Save"}
             </Button>
 
             <Button>Print</Button>
 
-            <Button danger onClick={handleDelete}>
+            <Button disabled={!selectedRow} danger onClick={handleDelete}>
               Delete
             </Button>
           </div>
@@ -193,14 +296,15 @@ const PartialPaymentPage = () => {
           </div>
           <Table
             columns={columns}
-            dataSource={patientAndHistoryData?.historyData}
+            dataSource={historyData}
             loading={patientAndHistoryDataLoading}
-            rowKey={(record) => record.receiptNo}
+            rowKey={(record, i) => `${record.receiptNo}-${i}`}
             size="small"
             pagination={false}
             scroll={{ y: 300 }}
-            onRow={(record) => ({
-              onDoubleClick: () => handleRowDoubleClick(record),
+            onRow={(record, index) => ({
+              onDoubleClick: () => handleRowDoubleClick(record, index),
+              className: 'cursor-pointer ',
             })}
           />
         </div>

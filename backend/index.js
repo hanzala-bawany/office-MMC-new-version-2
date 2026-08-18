@@ -22,10 +22,10 @@ const patientLoginRoutes = require("./routes/patientLogin.Routes.js")
 const displayScreenRoutes = require("./routes/screenDisplayRoutes.js");
 const consultantRoutes = require("./routes/consultantRoutes");
 const consultantFacultyRoutes = require("./routes/consultantFacultyRoutes");
-const doctorReportRoutes = require("./routes/doctorReport.Routes.js")
 const { initSocket } = require("./utills/socket.js");
 const receptionistRoutes = require("./routes/receptionistRoutes.js");
 const partialPaymentRoutes = require("./routes/partialpayment.js");
+const { startOpdWatcher } = require("./utills/opdPatientsWatcher.js");
 
 
 
@@ -73,46 +73,10 @@ app.use("/api/consultants", consultantRoutes);
 app.use("/api/consultant", consultantFacultyRoutes);
 app.use("/api/receptionist", receptionistRoutes);
 app.use("/api/partialPayment", partialPaymentRoutes);
-app.use("/api/", doctorReportRoutes);
 
 
-let lastCreatedTime = null;
 
-async function startOpdWatcher(io) {
-  setInterval(async () => {
-    let connection;
 
-    try {
-      const pool = await poolPromise;
-      connection = await pool.getConnection();
-
-      const result = await connection.execute(
-        `SELECT MAX(createdtime) FROM hms.opdreceipt`,
-      );
-
-      const currentValue = result.rows[0][0];
-
-      if (
-        lastCreatedTime !== null &&
-        currentValue &&
-        new Date(currentValue).getTime() !== new Date(lastCreatedTime).getTime()
-      ) {
-        io.emit("opdUpdated", {
-          message: "New OPD Receipt Added",
-          time: new Date(),
-        });
-      }
-
-      lastCreatedTime = currentValue;
-    } catch (err) {
-      console.error("Watcher Error:", err);
-    } finally {
-      if (connection) {
-        await connection.close();
-      }
-    }
-  }, 5000);
-}
 
 // ✅ Server Start
 server.listen(PORT, async () => {

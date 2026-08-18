@@ -8,7 +8,7 @@ const poolPromise = require("../database.js");
 
 //-------HELPER FUNCTIONS START--------------------
 
- const getScreensForFaculty = async (connection, facultyId) => {
+const getScreensForFaculty = async (connection, facultyId) => {
   try {
     const result = await connection.execute(
       `SELECT screen_id FROM screen_faculty_map 
@@ -22,7 +22,7 @@ const poolPromise = require("../database.js");
   }
 };
 
- const getDoctorFacultyId = async (connection, doctorId) => {
+const getDoctorFacultyId = async (connection, doctorId) => {
   try {
     const result = await connection.execute(
       `SELECT facultyid FROM hms.consultant WHERE id = :id`,
@@ -50,9 +50,7 @@ const emitToScreens = async (connection, io, doctorId, payload) => {
   }
 };
 
-
 //                END
-
 
 const unifiedLogin = async (req, res) => {
   const { username, password } = req.body;
@@ -154,11 +152,16 @@ const unifiedLogin = async (req, res) => {
       },
     );
 
-    const { status: hmsStatus, message: hmsMessage, userlevel , isprevioussessionopen = null } = hmsResult.outBinds;
+    const {
+      status: hmsStatus,
+      message: hmsMessage,
+      userlevel,
+      isprevioussessionopen = null,
+    } = hmsResult.outBinds;
 
     if (hmsStatus === 1) {
       const token = jwt.sign(
-        { username, role: userlevel  },
+        { username, role: userlevel },
         process.env.JWT_SECRET,
         { expiresIn: "30d" },
       );
@@ -351,6 +354,7 @@ const forceLogoutDoctor = async (req, res) => {
   let connection;
 
   try {
+ 
     const { consultantId } = req.body;
     const adminSession = req.user?.username || "Admin";
 
@@ -413,6 +417,5 @@ const forceLogoutDoctor = async (req, res) => {
     if (connection) await connection.close().catch(() => {});
   }
 };
-
 
 module.exports = { unifiedLogin, logoutDoctor, forceLogoutDoctor };

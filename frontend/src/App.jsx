@@ -37,6 +37,7 @@ import PartialPaymentPage from './pages/PartialPaymentPage'
 import UserSessionPage from './pages/UserSessionPage'
 import CurrentCashPage from './pages/CurrentCashPage'
 import ChangePassword from './pages/settings/ChangePassword'
+import SharingReportPage from './pages/SharingReportPage'
 
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
             <Route path="/pronunciation" element={<PronunciationPage />} />
             <Route path="/removeDoctor" element={<AddRemoveLogoutDoctor />} />
             <Route path="/addScreens" element={<AddScreens />} />
+            <Route path="/sharingReport" element={<SharingReportPage />} />
           </Route>
 
           <Route element={<ReceptionistParent />}>
@@ -97,6 +99,7 @@ function App() {
         <Route element={<DocotorParent />}>
           <Route path="/doctorDashboard" element={<DoctorDashboard />} />
           <Route path="/doctorSetupPage" element={<DoctorSetupPage />} />
+          <Route path="/doctorDashboard/report" element={<SharingReportPage />} />
         </Route>
 
         {/* Auth Routes */}
