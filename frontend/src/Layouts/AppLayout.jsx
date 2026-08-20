@@ -4,7 +4,7 @@ import NavImg from '../assets/MMC logo.png';
 import nubitLogo from '../assets/nubit-logo.png';
 import hospitraxLogo from '../assets/productLogoBgRemove.png';
 import { UserOutlined, LaptopOutlined, MenuUnfoldOutlined, MenuFoldOutlined, FileTextOutlined, TeamOutlined, FundOutlined, SettingOutlined } from '@ant-design/icons';
-import { FaChalkboardTeacher, FaMicrophone, FaTextWidth, FaUserMd, FaUserMinus, FaXRay } from 'react-icons/fa';
+import { FaChalkboardTeacher, FaFileInvoiceDollar, FaMicrophone, FaTextWidth, FaUserMd, FaUserMinus, FaXRay } from 'react-icons/fa';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlineMenu } from "react-icons/ai";
 import { AiFillCloseCircle } from 'react-icons/ai';
@@ -193,6 +193,15 @@ const AppLayout = () => {
       children: [
         { key: "19-1", label: <NavLink to="/xray-request">X-Ray Template Designer</NavLink> },
         { key: "19-2", label: <NavLink to="/xray-reports">X-Ray Reports</NavLink> }
+      ]
+    },
+    {
+      key: "setup-module",
+      icon: FaFileInvoiceDollar,
+      roles: ["Admin"],
+      label: "Setup",
+      children: [
+        { key: "setup-reports", label: <NavLink to="/sharingReport">Reports</NavLink> }
       ]
     },
     {

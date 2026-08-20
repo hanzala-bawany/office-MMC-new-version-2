@@ -48,11 +48,12 @@ const LoginPage = () => {
     try {
       setLoading(true);
       const res = await axios.post(`${base_URL}/api/auth/login`, inputs);
+      console.log(res , "login user res .....................");
       const token = res.data.token;
       const decoded = jwtDecode(token);
       const userData = { ...decoded , isprevioussessionopen : res?.data?.isprevioussessionopen }
 
-      console.log(userData, "login userData <<<<<<");
+      // console.log(userData, "login userData <<<<<<");
 
 
       localStorage.setItem("loginUserData", JSON.stringify(userData))
