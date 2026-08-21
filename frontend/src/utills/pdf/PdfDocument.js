@@ -7,15 +7,20 @@ const MARGIN = 12;
 export const COLORS = {
   primary: [22, 119, 255],
   primaryDark: [13, 71, 201],
+  purple: [147, 51, 234],
+  blue100: [219, 234, 254],
   slate700: [51, 65, 85],
   slate500: [100, 116, 139],
   slate200: [226, 232, 240],
+  slate100: [241, 245, 249],
+  slate300: [203, 213, 225],
   slate50: [248, 250, 252],
   white: [255, 255, 255],
   green: [16, 129, 88],
 };
 
 export class PdfDocument {
+  
   constructor({ orientation = "p" } = {}) {
     this.doc = new jsPDF({ orientation, unit: "mm", format: "a4" });
     this.pageWidth = this.doc.internal.pageSize.getWidth();
@@ -44,11 +49,24 @@ export class PdfDocument {
   }
 
   // ---- Logo (left) + Org info (right) ----
-  addBrandHeader({ logoDataUrl, logoWidth = 22, logoHeight = 22, titleLines = [], orgLines = [] }) {
+  addBrandHeader({
+    logoDataUrl,
+    logoWidth = 22,
+    logoHeight = 22,
+    titleLines = [],
+    orgLines = [],
+  }) {
     const startY = this.cursorY;
 
     if (logoDataUrl) {
-      this.doc.addImage(logoDataUrl, "PNG", this.margin, startY, logoWidth, logoHeight);
+      this.doc.addImage(
+        logoDataUrl,
+        "PNG",
+        this.margin,
+        startY,
+        logoWidth,
+        logoHeight,
+      );
     }
 
     let leftX = this.margin + (logoDataUrl ? logoWidth + 4 : 0);
@@ -67,7 +85,9 @@ export class PdfDocument {
       this.doc.setFont("helvetica", line.bold ? "bold" : "normal");
       this.doc.setFontSize(line.size || 9);
       this.doc.setTextColor(...(line.color || COLORS.slate500));
-      this.doc.text(line.text, this.pageWidth - this.margin, ry, { align: "right" });
+      this.doc.text(line.text, this.pageWidth - this.margin, ry, {
+        align: "right",
+      });
       ry += (line.size || 9) * 0.42 + 1.8;
     });
 
@@ -78,11 +98,17 @@ export class PdfDocument {
   _divider(color = COLORS.slate200) {
     this.doc.setDrawColor(...color);
     this.doc.setLineWidth(0.4);
-    this.doc.line(this.margin, this.cursorY, this.pageWidth - this.margin, this.cursorY);
+    this.doc.line(
+      this.margin,
+      this.cursorY,
+      this.pageWidth - this.margin,
+      this.cursorY,
+    );
     this.cursorY += 5;
   }
 
-  addSectionHeading(text, fill = COLORS.primary) {
+  addSectionHeading(text, opts = {}) {
+    const { fill = COLORS.primary, gapAfter = 4 } = opts;
     this.ensureSpace(9);
     const h = 7;
     this.doc.setFillColor(...fill);
@@ -91,7 +117,87 @@ export class PdfDocument {
     this.doc.setFontSize(10);
     this.doc.setTextColor(...COLORS.white);
     this.doc.text(text, this.margin + 3, this.cursorY + h - 2.3);
-    this.cursorY += h + 4;
+    this.cursorY += h + gapAfter;
+  }
+
+  // left-aligned heading — bg sirf text ke content tak hoti he, poori width nahi
+  addInlineHeading(text, opts = {}) {
+    const {
+      fill = COLORS.blue100,
+      textColor = COLORS.primaryDark,
+      fontSize = 10.5,
+      paddingX = 4,
+      paddingY = 2.2,
+      gapAfter = 4,
+    } = opts;
+
+    this.doc.setFont("helvetica", "bold");
+    this.doc.setFontSize(fontSize);
+
+    const textWidth = this.doc.getTextWidth(text);
+    const boxWidth = textWidth + paddingX * 2;
+    const boxHeight = fontSize * 0.42 + paddingY * 2;
+
+    this.ensureSpace(boxHeight + gapAfter);
+
+    this.doc.setFillColor(...fill);
+    this.doc.roundedRect(
+      this.margin,
+      this.cursorY,
+      boxWidth,
+      boxHeight,
+      1.2,
+      1.2,
+      "F",
+    );
+
+    this.doc.setTextColor(...textColor);
+    this.doc.text(
+      text,
+      this.margin + paddingX,
+      this.cursorY + boxHeight - paddingY - 0.6,
+    );
+
+    this.cursorY += boxHeight + gapAfter;
+  }
+
+  // table jaise hi columns/widths use kar ke ek highlighted totals row draw karta he
+  addSummaryRow(columns, summaryData = {}, opts = {}) {
+    const {
+      fill = COLORS.slate100,
+      textColor = COLORS.slate700,
+      gapAfter = 6,
+    } = opts;
+    const rowH = 8;
+    this.ensureSpace(rowH + gapAfter);
+
+    this.doc.setFillColor(...fill);
+    this.doc.rect(this.margin, this.cursorY, this.contentWidth, rowH, "F");
+
+    // top border — table se alag dikhane ke liye thin line, gap nahi
+    this.doc.setDrawColor(...COLORS.slate200);
+    this.doc.setLineWidth(0.3);
+    this.doc.line(
+      this.margin,
+      this.cursorY,
+      this.margin + this.contentWidth,
+      this.cursorY,
+    );
+
+    let x = this.margin;
+    this.doc.setFont("helvetica", "bold");
+    this.doc.setFontSize(8);
+    this.doc.setTextColor(...textColor);
+
+    columns.forEach((col) => {
+      const align = col.align || "left";
+      const value = col.summaryRender ? col.summaryRender(summaryData) : "";
+      const textX = align === "right" ? x + col.width - 2 : x + 2;
+      this.doc.text(value, textX, this.cursorY + rowH - 2.6, { align });
+      x += col.width;
+    });
+
+    this.cursorY += rowH + gapAfter;
   }
 
   // 2-column label:value grid (doctor info + filters ke liye)
@@ -151,7 +257,13 @@ export class PdfDocument {
   }
 
   // Auto page-break + header repeat table — columns: [{key,label,width,align,render}]
-  addTable({ columns, rows, zebra = true }) {
+  addTable({
+    columns,
+    rows,
+    zebra = true,
+    bottomGap = 4,
+    bottomBorder = true,
+  }) {
     const headerH = 7.5;
     const rowH = 6;
 
@@ -166,7 +278,9 @@ export class PdfDocument {
       columns.forEach((col) => {
         const align = col.align || "left";
         const textX = align === "right" ? x + col.width - 2 : x + 2;
-        this.doc.text(col.label, textX, this.cursorY + headerH - 2.3, { align });
+        this.doc.text(col.label, textX, this.cursorY + headerH - 2.3, {
+          align,
+        });
         x += col.width;
       });
       this.cursorY += headerH;
@@ -202,11 +316,17 @@ export class PdfDocument {
       this.cursorY += rowH;
     });
 
-    this.doc.setDrawColor(...COLORS.slate200);
-    this.doc.line(this.margin, this.cursorY, this.margin + this.contentWidth, this.cursorY);
-    this.cursorY += 4;
+    if (bottomBorder) {
+      this.doc.setDrawColor(...COLORS.slate200);
+      this.doc.line(
+        this.margin,
+        this.cursorY,
+        this.margin + this.contentWidth,
+        this.cursorY,
+      );
+    }
+    this.cursorY += bottomGap;
   }
-
   addSpacer(h = 4) {
     this.cursorY += h;
   }
@@ -220,7 +340,12 @@ export class PdfDocument {
       this.doc.setFontSize(7.3);
       this.doc.setTextColor(...COLORS.slate500);
       this.doc.text(footerText, this.margin, this.pageHeight - 6);
-      this.doc.text(`Page ${i} of ${pageCount}`, this.pageWidth - this.margin, this.pageHeight - 6, { align: "right" });
+      this.doc.text(
+        `Page ${i} of ${pageCount}`,
+        this.pageWidth - this.margin,
+        this.pageHeight - 6,
+        { align: "right" },
+      );
     }
   }
 

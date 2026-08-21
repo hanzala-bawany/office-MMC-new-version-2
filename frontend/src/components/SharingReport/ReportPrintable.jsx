@@ -81,6 +81,7 @@ const RevenueRow = ({ label, icon, data, isLast }) => {
             <td className="p-3 text-right text-slate-600">{money(data?.gross)}</td>
             <td className="p-3 text-right text-slate-600">{money(data?.total_charges)}</td>
             <td className="p-3 text-right text-slate-600">{money(data?.net_after_charges)}</td>
+            <td className="p-3 text-right text-slate-600">{money(data?.tax)}</td>
             <td className="p-3 text-right text-slate-600">
                 {data?.consultant_share_percent != null ? `${data.consultant_share_percent}%` : "—"}
             </td>
@@ -148,8 +149,8 @@ const ReportPrintable = forwardRef(
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <StatCard icon={<TeamOutlined />} label="Total Patients" value={summary.total_patients} tone="blue" />
                             <StatCard icon={<DollarCircleOutlined />} label="Gross Amount" value={summary.total_gross} isCurrency tone="slate" />
-                            <StatCard icon={<PercentageOutlined />} label="Discount" value={summary.total_discount} isCurrency tone="orange" />
-                            <StatCard icon={<DollarCircleOutlined />} label="Net Revenue" value={summary.total_revenue} isCurrency tone="green" />
+                            <StatCard icon={<PercentageOutlined />} label="WHT (15%)" value={summary.total_tax} isCurrency tone="orange" />
+                            <StatCard icon={<DollarCircleOutlined />} label="Doctor Earning " value={summary.total_consultant_share} isCurrency tone="green" />
                         </div>
 
                         {/* Queue status sirf OPD me hota he, IPD me nahi — isliye label clear kiya */}
@@ -211,8 +212,9 @@ const ReportPrintable = forwardRef(
                                         <th className="p-3 text-left rounded-l-lg">Type</th>
                                         <th className="p-3 text-right">Patients</th>
                                         <th className="p-3 text-right">Gross</th>
-                                        <th className="p-3 text-right">Charges</th>
+                                        <th className="p-3 text-right">Less BMJ</th>
                                         <th className="p-3 text-right">Net (After Charges)</th>
+                                        <th className="p-3 text-right">WHT (15%)</th>
                                         <th className="p-3 text-right">Doctor Share</th>
                                         <th className="p-3 text-right rounded-r-lg">Doctor Earning</th>
                                     </tr>

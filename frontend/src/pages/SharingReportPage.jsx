@@ -109,14 +109,19 @@ const SharingReportPage = () => {
   };
 
   const handleDownloadDeepPdf = async () => {
+
     if (!deepReport) return;
     setDeepPdfLoading(true);
+
     try {
       const effectiveToDate = toDate || fromDate;
       await buildDeepReportPdf({
         doctorInfo: deepReport?.docotrInfo,
         opdData: deepReport?.opdData,
         ipdData: deepReport?.ipdData,
+        opdSummary: deepReport?.opdSummary,
+        ipdSummary: deepReport?.ipdSummary,
+        overallSummary: deepReport?.overallSummary,
         fromDate: fromDate.format("YYYY-MM-DD"),
         toDate: effectiveToDate.format("YYYY-MM-DD"),
       });

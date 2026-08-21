@@ -4,52 +4,54 @@ import { loadImageAsDataURL } from "./pdfImageLoader";
 import { formatMoney } from "../formatters";
 import MMCLogo from "../../assets/MMC logo.png";
 
-const summarize = (rows = []) => {
-  return rows.reduce(
-    (acc, r) => {
-      acc.patients += Number(r.TOTAL_PATIENT || 0);
-      acc.gross += Number(r.GROSS || 0);
-      acc.discount += Number(r.DISCOUNT || 0);
-      acc.net += Number(r.NET || 0);
-      return acc;
-    },
-    { patients: 0, gross: 0, discount: 0, net: 0 },
-  );
-};
-
 // jaani — ye placeholder he, apne actual hospital ke address/phone/email se update kar lena
-// PDF header me yahi info top-right pe show hogi
 export const HOSPITAL_INFO = {
   name: "Memon Medical Complex",
   tagline: "Hospitrax — Hospital Management System",
   addressLine: "Karachi, Pakistan",
-  phone: "",
+  phone: "0311-5533152",
   email: "",
 };
 
-// yehi column set OPD aur IPD dono tables me reuse hota he
+// ✅ har column ka `summaryRender` bhi define he — ye totals row (backend se aayi summary) draw karta he
 const TABLE_COLUMNS = [
   {
     key: "DATES",
     label: "Date",
-    width: 24,
+    width: 20,
     render: (r) => moment(r.DATES).format("DD-MMM-YY"),
+    summaryRender: () => "TOTAL",
   },
-  // { key: "RECEIPTTYPE", label: "Type", width: 14 },
-  { key: "TOTAL_PATIENT", label: "Patients", width: 18, align: "right" },
+  {
+    key: "TOTAL_PATIENT",
+    label: "Patients",
+    width: 18,
+    align: "right",
+    summaryRender: (s) => String(s.patients ?? 0),
+  },
   {
     key: "GROSS",
     label: "Gross",
     width: 24,
     align: "right",
     render: (r) => formatMoney(r.GROSS),
+    summaryRender: (s) => formatMoney(s.gross),
   },
+  // {
+  //   key: "DISCOUNT",
+  //   label: "Discount",
+  //   width: 18,
+  //   align: "right",
+  //   render: (r) => formatMoney(r.DISCOUNT),
+  //   summaryRender: (s) => formatMoney(s.discount),
+  // },
   {
     key: "TOTAL_CHARGES",
-    label: "Charges",
+    label: "Less BMJ",
     width: 22,
     align: "right",
     render: (r) => formatMoney(r.TOTAL_CHARGES),
+    summaryRender: (s) => formatMoney(s.charges),
   },
   {
     key: "NETAMTAFTERCHARGES",
@@ -57,6 +59,15 @@ const TABLE_COLUMNS = [
     width: 30,
     align: "right",
     render: (r) => formatMoney(r.NETAMTAFTERCHARGES),
+    summaryRender: (s) => formatMoney(s.netAfterCharges),
+  },
+  {
+    key: "WITHHOLDINGTAX",
+    label: "WHT (15%)",
+    width: 18,
+    align: "right",
+    render: (r) => formatMoney(r.WITHHOLDINGTAX),
+    summaryRender: (s) => formatMoney(s.tax), // ⚠️ summarizeRows mein s.tax banana hoga
   },
   {
     key: "CONSULTANTSHARE",
@@ -64,20 +75,28 @@ const TABLE_COLUMNS = [
     width: 22,
     align: "right",
     render: (r) => `${r.CONSULTANTSHARE ?? 0}%`,
+    summaryRender: (s) => `${s.doctorSharePercent ?? 0}%`,
   },
   {
-    key: "COUNSULTANTSHAREAMT",
+    key: "NETPAYABLE",
     label: "Doctor Earning",
     width: 32,
     align: "right",
-    render: (r) => formatMoney(r.COUNSULTANTSHAREAMT),
+    render: (r) => formatMoney(r.NETPAYABLE),
+    summaryRender: (s) => formatMoney(s.doctorEarning),
   },
 ];
 
-export const buildDeepReportPdf = async ({ doctorInfo, opdData = [], ipdData = [], fromDate, toDate, }) => {
-  
-  // console.log(doctorInfo, ".........");
-
+export const buildDeepReportPdf = async ({
+  doctorInfo,
+  opdData = [],
+  ipdData = [],
+  opdSummary = {},
+  ipdSummary = {},
+  overallSummary = {},
+  fromDate,
+  toDate,
+}) => {
   let logoDataUrl = null;
   try {
     logoDataUrl = await loadImageAsDataURL(MMCLogo);
@@ -114,45 +133,61 @@ export const buildDeepReportPdf = async ({ doctorInfo, opdData = [], ipdData = [
   };
 
   drawHeader(pdf);
-  pdf.setRepeatingHeader(drawHeader); // aage jitne page auto-banenge sab pe ye header repeat hoga
+  pdf.setRepeatingHeader(drawHeader);
 
   pdf.addInfoGrid([
     { label: "Consultant", value: doctorInfo?.name },
     { label: "Degrees", value: doctorInfo?.degrees },
     { label: "Faculty", value: doctorInfo?.faculty },
-    // { label: "Consultant Share", value: `${doctorInfo?.consultantShare ?? "-"}%` },
     { label: "Period", value: periodLabel },
     { label: "Generated On", value: moment().format("DD MMM YYYY, hh:mm A") },
   ]);
 
-  const opdSummary = summarize(opdData);
-  pdf.addSectionHeading("OPD Summary");
+  // ---- ✅ naya: OPD Records se pehle Total Summary (OPD+IPD combined) ----
+  pdf.addInlineHeading("Total Summary");
   pdf.addStatCards([
-    { label: "Total Patients", value: opdSummary.patients },
-    { label: "Gross Amount", value: formatMoney(opdSummary.gross) },
-    { label: "Total Discount", value: formatMoney(opdSummary.discount) },
-    { label: "Net Revenue", value: formatMoney(opdSummary.net), valueColor: COLORS.green },
+    { label: "Total Patients", value: overallSummary.patients ?? 0 },
+    { label: "Total Gross", value: formatMoney(overallSummary.gross) },
+    // { label: "Total Discount", value: formatMoney(overallSummary.discount) },
+    { label: "Total Charges", value: formatMoney(overallSummary.charges) },
+    {
+      label: "Net (After Charges)",
+      value: formatMoney(overallSummary.netAfterCharges),
+    },
+    { label: "Total Tax (WHT)", value: formatMoney(overallSummary.tax) },
+    {
+      label: "Doctor Earning",
+      value: formatMoney(overallSummary.doctorEarning),
+      valueColor: COLORS.green,
+    },
   ]);
 
-  const ipdSummary = summarize(ipdData);
-  pdf.addSectionHeading("IPD Summary");
-  pdf.addStatCards([
-    { label: "Total Patients", value: ipdSummary.patients },
-    { label: "Gross Amount", value: formatMoney(ipdSummary.gross) },
-    { label: "Total Discount", value: formatMoney(ipdSummary.discount) },
-    { label: "Net Revenue", value: formatMoney(ipdSummary.net), valueColor: COLORS.green },
-  ]);
+  pdf.addSectionHeading(`OPD Records`, { gapAfter: 0 });
+  if (opdData.length) {
+    pdf.addTable({
+      columns: TABLE_COLUMNS,
+      rows: opdData,
+      bottomGap: 0,
+      bottomBorder: false,
+    });
+    pdf.addSummaryRow(TABLE_COLUMNS, opdSummary, { fill: COLORS.slate300 });
+  } else {
+    pdf.addSpacer(6);
+  }
 
-  // ---- pehle saari OPD rows, phir saari IPD rows ----
-  pdf.addSectionHeading(`OPD Records (${opdData.length})`);
-  opdData.length
-    ? pdf.addTable({ columns: TABLE_COLUMNS, rows: opdData })
-    : pdf.addSpacer(6);
-
-  pdf.addSectionHeading(`IPD Records (${ipdData.length})`);
-  ipdData.length
-    ? pdf.addTable({ columns: TABLE_COLUMNS, rows: ipdData })
-    : pdf.addSpacer(6);
+  // ---- IPD: same treatment ----
+  pdf.addSectionHeading(`IPD Records`, { gapAfter: 0 });
+  if (ipdData.length) {
+    pdf.addTable({
+      columns: TABLE_COLUMNS,
+      rows: ipdData,
+      bottomGap: 0,
+      bottomBorder: false,
+    });
+    pdf.addSummaryRow(TABLE_COLUMNS, ipdSummary, { fill: COLORS.slate300 });
+  } else {
+    pdf.addSpacer(6);
+  }
 
   pdf.finalizeFooters(`${HOSPITAL_INFO.name} — Hospitrax`);
 

@@ -2,6 +2,11 @@ const oracledb = require("oracledb");
 const poolPromise = require("../database.js");
 const fs = require("fs");
 const path = require("path");
+const {
+  summarizeRows,
+  combineSummaries,
+} = require("../utills/helperFunctions/summarizeRows.js");
+const { handleError } = require("../utills/resHanlder.js");
 
 // ----------------- ASSETS FOLDER -----------------
 const doctorAssetDir = path.join(process.cwd(), "assets", "doctor");
@@ -387,12 +392,12 @@ const getDoctorReport = async (req, res) => {
     const opdData = rows.find((row) => row.RECEIPTTYPE === "OPD") || {};
     const ipdData = rows.find((row) => row.RECEIPTTYPE === "IPD") || {};
 
-    console.log(opdData, "opdData");
-    console.log(ipdData, "ipdData");
+    // console.log(opdData, "opdData");
+    // console.log(ipdData, "ipdData");
 
     // ✅ Extract consultant info from first row
     const firstRow = rows[0] || {};
-
+    
     // ✅ Build report response
     const report = {
       period: {
@@ -411,10 +416,9 @@ const getDoctorReport = async (req, res) => {
           (opdData.TOTAL_PATIENT || 0) + (ipdData.TOTAL_PATIENT || 0),
         total_gross: (opdData.GROSS || 0) + (ipdData.GROSS || 0),
         total_discount: (opdData.DISCOUNT || 0) + (ipdData.DISCOUNT || 0),
-        total_revenue: (opdData.NET || 0) + (ipdData.NET || 0),
+        total_tax: (opdData.WITHHOLDINGTAX || 0) + (ipdData.WITHHOLDINGTAX || 0),
         total_consultant_share:
-          (opdData.COUNSULTANTSHAREAMT || 0) +
-          (ipdData.COUNSULTANTSHAREAMT || 0),
+          (opdData.NETPAYABLE || 0) + (ipdData.NETPAYABLE || 0),
         total_hospital_share:
           (opdData.HOSPITALSHAREAMT || 0) + (ipdData.HOSPITALSHAREAMT || 0),
       },
@@ -422,10 +426,10 @@ const getDoctorReport = async (req, res) => {
         patients: opdData.TOTAL_PATIENT || 0,
         gross: opdData.GROSS || 0,
         discount: opdData.DISCOUNT || 0,
-        net: opdData.NET || 0,
+        tax: opdData.WITHHOLDINGTAX || 0,
         consultant_share_percent: opdData.CONSULTANTSHARE || 0,
         hospital_share_percent: opdData.HOSPITALSHARE || 0,
-        consultant_share: opdData.COUNSULTANTSHAREAMT || 0,
+        consultant_share: opdData.NETPAYABLE || 0,
         hospital_share: opdData.HOSPITALSHAREAMT || 0,
         total_charges: opdData.TOTAL_CHARGES || 0,
         net_after_charges: opdData.NETAMTAFTERCHARGES || 0,
@@ -459,10 +463,10 @@ const getDoctorReport = async (req, res) => {
         patients: ipdData.TOTAL_PATIENT || 0,
         gross: ipdData.GROSS || 0,
         discount: ipdData.DISCOUNT || 0,
-        net: ipdData.NET || 0,
+        tax: ipdData.WITHHOLDINGTAX || 0,
         consultant_share_percent: ipdData.CONSULTANTSHARE || 0,
         hospital_share_percent: ipdData.HOSPITALSHARE || 0,
-        consultant_share: ipdData.COUNSULTANTSHAREAMT || 0,
+        consultant_share: ipdData.NETPAYABLE || 0,
         hospital_share: ipdData.HOSPITALSHAREAMT || 0,
         total_charges: ipdData.TOTAL_CHARGES || 0,
         net_after_charges: ipdData.NETAMTAFTERCHARGES || 0,
@@ -513,11 +517,7 @@ const getDoctorReport = async (req, res) => {
       data: report,
     });
   } catch (err) {
-    console.error("getDoctorReport error:", err);
-    res.status(500).json({
-      success: false,
-      message: err.message || "Internal server error",
-    });
+    return handleError(res, err, "Get doctor dashboard report error", 500);
   } finally {
     if (connection) {
       try {
@@ -533,12 +533,12 @@ const getDoctorDeepReportData = async (req, res) => {
   let { doctorId, fromDate, toDate } = req.query;
 
   // ✅ Validation
-  if (!doctorId) {
-    return res.status(400).json({
-      success: false,
-      message: "doctorId is required",
-    });
-  }
+  // if (!doctorId) {
+  //   return res.status(400).json({
+  //     success: false,
+  //     message: "doctorId is required",
+  //   });
+  // }
 
   if (!fromDate) {
     return res.status(400).json({
@@ -571,7 +571,7 @@ const getDoctorDeepReportData = async (req, res) => {
       END;
       `,
       {
-        doc_id: Number(doctorId),
+        doc_id: doctorId ? Number(doctorId) : null,
         from_date: new Date(fromDate),
         to_date: new Date(toDate),
         cursor: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR },
@@ -609,22 +609,24 @@ const getDoctorDeepReportData = async (req, res) => {
       hospitalshare: firstRow.HOSPITALSHARE || 0,
     };
 
+    const opdSummary = summarizeRows(opdData);
+    const ipdSummary = summarizeRows(ipdData);
+    const overallSummary = combineSummaries(opdSummary, ipdSummary);
+
     res.status(200).json({
       success: true,
       message: "Deep Report data fetched successfully",
       data: {
         docotrInfo,
+        opdSummary,
+        ipdSummary,
+        overallSummary,
         opdData,
         ipdData,
-        // docotrSharesData : rows,
       },
     });
   } catch (err) {
-    console.error("getDoctorDeepReportData error:", err);
-    res.status(500).json({
-      success: false,
-      message: err.message || "Internal server error",
-    });
+    return handleError(res, err, "Get deep reports error", 500);
   } finally {
     if (connection) {
       try {
