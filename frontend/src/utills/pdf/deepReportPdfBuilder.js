@@ -97,6 +97,7 @@ export const buildDeepReportPdf = async ({
   fromDate,
   toDate,
 }) => {
+
   let logoDataUrl = null;
   try {
     logoDataUrl = await loadImageAsDataURL(MMCLogo);
@@ -149,12 +150,12 @@ export const buildDeepReportPdf = async ({
     { label: "Total Patients", value: overallSummary.patients ?? 0 },
     { label: "Total Gross", value: formatMoney(overallSummary.gross) },
     // { label: "Total Discount", value: formatMoney(overallSummary.discount) },
-    { label: "Total Charges", value: formatMoney(overallSummary.charges) },
+    { label: "Less BMJ", value: formatMoney(overallSummary.charges) },
     {
       label: "Net (After Charges)",
       value: formatMoney(overallSummary.netAfterCharges),
     },
-    { label: "Total Tax (WHT)", value: formatMoney(overallSummary.tax) },
+    { label: "WHT (15%)", value: formatMoney(overallSummary.tax) },
     {
       label: "Doctor Earning",
       value: formatMoney(overallSummary.doctorEarning),
