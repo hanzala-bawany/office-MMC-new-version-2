@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -15,6 +15,7 @@ import useFetch from "../hooks/useFetch";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import axiosInstance from "../utills/axiosInstance";
+import { base_URL } from "../utills/baseUrl";
 
 const PartialPaymentPage = () => {
 
@@ -22,16 +23,29 @@ const PartialPaymentPage = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [patientAndHistoryDataLoading, setPatientAndHistoryDataLoading] = useState(false);
   const [historyData, setHistoryData] = useState(false);
+  const [saveEditLoading, setSaveEditLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
 
+  const calculateTotalBalance = (data) => {
 
-// on reciept seacrh enter
-  const handleReceiptSearch = async (e) => {
+    const grossAmount = Number(data?.[0]?.GROSSAMOUNT) || 0;
+    const paidTotal = data
+      .filter((row) => String(row.STATUS) !== "1")
+      .reduce((sum, row) => sum + (Number(row.NETAMOUNT) || 0), 0);
+    const totalBalance = grossAmount - paidTotal;
 
-    e.preventDefault();
-    const value = e.target.value?.trim();
-    if (!value) {
-      message.warning("Pehle receipt no likho");
+    return totalBalance;
+
+  }
+
+  // console.log(loginUserData , "loginUserData");
+
+
+  // on reciept seacrh enter
+  const fetchPatientHistory = async (receiptNo) => {
+    if (!receiptNo) {
+      message.warning("First write reciept no");
       return;
     }
 
@@ -39,7 +53,7 @@ const PartialPaymentPage = () => {
 
     try {
 
-      const res = await axiosInstance.get(`/api/partialPayment/patientHistoryByReceipt/${value}`);
+      const res = await axiosInstance.get(`/api/partialPayment/patientHistoryByReceipt/${receiptNo}`);
       console.log('Saved successfully:', res);
       const patientData = res?.data?.data?.patientData
       const historyData = res?.data?.data?.historyData || []
@@ -55,7 +69,7 @@ const PartialPaymentPage = () => {
           admissionDate: patientData.VDATE ? moment(patientData.VDATE).format("DD-MMM-YYYY") : "",
           contactNo: patientData.CONTACTNO,
           consultant: patientData.CONSULTANTNAME,
-          totalBalance: patientData.NETBALANCE,
+          totalBalance: calculateTotalBalance(historyData),
         });
       }
 
@@ -67,15 +81,55 @@ const PartialPaymentPage = () => {
       setPatientAndHistoryDataLoading(false)
     }
 
+  };
 
+  const handleReceiptSearch = (e) => {
+    e.preventDefault();
+    const value = e.target.value?.trim();
+    fetchPatientHistory(value);
   };
 
   // on save and update
-  const onFinish = (values) => {
+  const onFinish = async (values) => {
 
     if (!values?.amount) return
-
     console.log("PartialPayment form values:", values);
+
+    setSaveEditLoading(true);
+    try {
+      const res = await axiosInstance.post(
+        `${base_URL}/api/partialPayment/addEditPartialReceipt`,
+        {
+          id: values?.id || null,
+          receiptNo: values?.receiptNo,
+          vdate: moment(),
+          partialAmount: values?.amount,
+          balanceAmount: values?.totalBalance,
+          receiptMode: values?.paymentMode,
+          editBy: loginUserData?.username,
+          status: 0,
+          terminalId: null
+        },
+      );
+      console.log(res, "res of handle Remove Doctor by id");
+
+      toast.success(res?.data?.message || "Saved successfully");
+      // form.resetFields();
+      await fetchPatientHistory(values?.receiptNo);
+      form.setFieldsValue({
+        id: null,
+        amount: 0,
+        paymentMode: "CASH",
+      });
+      setSelectedRow(null);
+
+    } catch (err) {
+      console.log(err, "err in save / edit");
+      toast.error(err?.response?.data?.message || "Saved failed");
+    } finally {
+      setSaveEditLoading(false);
+    }
+
   };
 
   // on new
@@ -85,11 +139,46 @@ const PartialPaymentPage = () => {
     setHistoryData([]);
   }, [form]);
 
-// on delete
-  const handleDelete = useCallback(() => {
+  // on delete
+  const handleDelete = async () => {
 
-    // delete API yahan wire hogi
-  }, [selectedRow]);
+    if (!selectedRow?.ID) {
+      return toast.warning("select a receipt first")
+    }
+    // console.log("PartialPayment form values:", values);
+    const receiptNo = form.getFieldValue("receiptNo");
+
+    setDeleteLoading(true);
+    try {
+      const res = await axiosInstance.delete(
+        `${base_URL}/api/partialPayment/deletePartialPayment/${selectedRow.ID}`,
+        {
+          data: {
+            editBy: loginUserData?.username,
+            terminalId: null,
+          },
+        },
+      );
+      console.log(res, "res of handle Remove Doctor by id");
+
+      toast.success(res?.data?.message || "Deleted successfully");
+      // form.resetFields();
+      await fetchPatientHistory(receiptNo);
+      form.setFieldsValue({
+        id: null,
+        amount: 0,
+        paymentMode: "CASH",
+      });
+      setSelectedRow(null);
+
+    } catch (err) {
+      console.log(err, "err in Deleted receipt");
+      toast.error(err?.response?.data?.message || "Deleted failed");
+    } finally {
+      setDeleteLoading(false);
+    }
+
+  };
 
 
   const handleRowDoubleClick = (record, i) => {
@@ -105,6 +194,8 @@ const PartialPaymentPage = () => {
     form.setFieldsValue({
       id: record.ID,
       amount: record.NETAMOUNT,
+      paymentMode: record.RECEIPTMODE,
+      date: record.VDATE ? moment(record.CREATEDTIME, "DD-MMM-YYYY HH:mm:ss") : dayjs(),
       // totalBill: record.totalBill,
       // createdBy: record.createdBy,
     });
@@ -181,7 +272,7 @@ const PartialPaymentPage = () => {
         initialValues={{
           date: dayjs(),
           amount: 0,
-          modeOfPayment: "cash",
+          paymentMode: "CASH",
         }}
         className="flex-1 min-h-0 overflow-y-auto space-y-4 px-4!"
       >
@@ -240,10 +331,10 @@ const PartialPaymentPage = () => {
 
                 <Form.Item label="Date" name="date" className="mb-0 col-span-2">
                   <DatePicker
-                    disabled          
+                    disabled
                     showTime
                     format="DD-MMM-YYYY hh:mm A"
-                      className="w-full! [&_.ant-picker-input>input]:text-gray-900! [&_.ant-picker-input>input]:bg-white! [&_.ant-picker-input>input]:opacity-100!"
+                    className="w-full! [&_.ant-picker-input>input]:text-gray-900! [&_.ant-picker-input>input]:bg-white! [&_.ant-picker-input>input]:opacity-100!"
                   />
                 </Form.Item>
 
@@ -272,19 +363,32 @@ const PartialPaymentPage = () => {
           <div className="flex flex-wrap gap-2">
             <Button onClick={handleNew}>New</Button>
 
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={saveEditLoading}>
               {selectedRow ? "Update" : "Save"}
             </Button>
 
             <Button>Print</Button>
 
-            <Button disabled={!selectedRow} danger onClick={handleDelete}>
+            <Button disabled={!selectedRow} danger onClick={handleDelete} loading={deleteLoading}>
               Delete
             </Button>
           </div>
 
+          {/* Payment Mode */}
+          <Form.Item
+            label="Payment Mode"
+            name="paymentMode"
+            className="mb-0"
+          >
+            <Radio.Group>
+              <Radio value="CASH">CASH</Radio>
+              <Radio value="CHEQUE">CHEQUE</Radio>
+              <Radio value="CARD">CREDIT CARD</Radio>
+            </Radio.Group>
+          </Form.Item>
+
           <Form.Item label="Total Balance" name="totalBalance" className="mb-0">
-            <Input className="w-50!" />
+            <Input readOnly className="w-50!" />
           </Form.Item>
 
         </div>

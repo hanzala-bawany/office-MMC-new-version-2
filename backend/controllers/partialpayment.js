@@ -89,7 +89,6 @@ const getPatientPartialHistoryByReceipt = async (req, res) => {
 };
 
 const getReceiptInfoByReceiptnId = async (req, res) => {
-
   const receiptNum = req?.params?.receiptNum?.toString();
   const partialPaymentId = req?.params?.id?.toString();
 
@@ -288,14 +287,14 @@ const deletePartialPayment = async (req, res) => {
     // Stored procedure call
     const result = await connection.execute(
       `BEGIN delete_partial_payment(
-        :id,
-        :user,
-        :terminalId
+        :p_id,
+        :p_user,
+        :p_terminalid
       ); END;`,
       {
-        id: id,
-        editBy: editBy,
-        terminalId: terminalId || null,
+        p_id: id,
+        p_user: editBy,
+        p_terminalid: terminalId || null,
       },
       { autoCommit: true },
     );
