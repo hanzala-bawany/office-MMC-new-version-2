@@ -22,7 +22,7 @@ const PartialPaymentPage = () => {
   const [form] = Form.useForm();
   const [selectedRow, setSelectedRow] = useState(null);
   const [patientAndHistoryDataLoading, setPatientAndHistoryDataLoading] = useState(false);
-  const [historyData, setHistoryData] = useState(false);
+  const [historyData, setHistoryData] = useState([]);
   const [saveEditLoading, setSaveEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
@@ -40,6 +40,9 @@ const PartialPaymentPage = () => {
   }
 
   // console.log(loginUserData , "loginUserData");
+  // console.log(historyData , "historyData");
+
+  const formattedHistoryData = loginUserData?.role == "Admin" ? historyData :  historyData?.filter((i) => i?.STATUS == 0);
 
 
   // on reciept seacrh enter
@@ -259,8 +262,8 @@ const PartialPaymentPage = () => {
     <div className="flex h-full flex-col overflow-hidden">
 
       {/* Module Heading */}
-      <div className="shrink-0 bg-[#1677ff] px-6 py-3 mb-4 rounded-md">
-        <h2 className="text-xl font-semibold text-white text-center">
+      <div className="shrink-0 bg-gray-50 px-6 py-3 mb-4 rounded-md border border-gray-200">
+        <h2 className="text-xl font-bold text-black text-center">
           Partial Payment Information
         </h2>
       </div>
@@ -399,21 +402,27 @@ const PartialPaymentPage = () => {
             <h3 className="text-sm font-bold text-gray-800">Advance History</h3>
           </div>
           <Table
+            // bordered
             columns={columns}
-            dataSource={historyData}
+            dataSource={formattedHistoryData}
             loading={patientAndHistoryDataLoading}
             rowKey={(record, i) => `${record.receiptNo}-${i}`}
-            size="small"
+            // size="small"
             pagination={false}
             scroll={{ y: 300 }}
             onRow={(record, index) => ({
               onDoubleClick: () => handleRowDoubleClick(record, index),
-              className: 'cursor-pointer ',
+              className: 'cursor-pointer hover:bg-blue-50',
             })}
+            className="user-session-table"
+            rowClassName={(record) =>
+              record?.STATUS == 1 ? 'row-deleted' : 'hover:bg-gray-50 transition-colors'
+            }
           />
         </div>
 
       </Form>
+
 
     </div>
   );

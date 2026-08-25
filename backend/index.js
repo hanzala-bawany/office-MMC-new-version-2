@@ -26,6 +26,7 @@ const { initSocket } = require("./utills/socket.js");
 const receptionistRoutes = require("./routes/receptionistRoutes.js");
 const partialPaymentRoutes = require("./routes/partialpayment.js");
 const { startOpdWatcher } = require("./utills/opdPatientsWatcher.js");
+const routes = require("./routes/index.js");
 
 
 
@@ -73,6 +74,7 @@ app.use("/api/consultants", consultantRoutes);
 app.use("/api/consultant", consultantFacultyRoutes);
 app.use("/api/receptionist", receptionistRoutes);
 app.use("/api/partialPayment", partialPaymentRoutes);
+app.use("/api", routes);
 
 
 

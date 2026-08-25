@@ -22,81 +22,7 @@ import { toast } from 'react-toastify';
 
 const { Option } = Select;
 
-// ✅ STATIC DUMMY DATA (image ke pattern ke acc)
-const staticSessionData = [
-  {
-    SESSIONID: 28802,
-    FROM: '2026-08-06 12:52:03',
-    TO: null,
-    CLOSED: 0,
-    SESSIONDATE: '2026-08-06',
-    SHIFTNAME: 'OTHERS',
-  },
-  {
-    SESSIONID: 33173,
-    FROM: '2026-08-06 11:32:23',
-    TO: '2026-08-06 12:45:36',
-    CLOSED: 1,
-    SESSIONDATE: '2026-08-06',
-    SHIFTNAME: 'MORNING',
-  },
-  {
-    SESSIONID: 33169,
-    FROM: '2026-08-05 15:59:14',
-    TO: '2026-08-05 16:40:10',
-    CLOSED: 1,
-    SESSIONDATE: '2026-08-05',
-    SHIFTNAME: 'EVENING',
-  },
-  {
-    SESSIONID: 28794,
-    FROM: '2026-08-04 12:10:28',
-    TO: '2026-08-04 14:20:00',
-    CLOSED: 1,
-    SESSIONDATE: '2026-08-04',
-    SHIFTNAME: 'OTHERS',
-  },
-  {
-    SESSIONID: 28793,
-    FROM: '2026-08-03 11:52:37',
-    TO: '2026-08-03 13:10:00',
-    CLOSED: 1,
-    SESSIONDATE: '2026-08-03',
-    SHIFTNAME: 'MORNING',
-  },
-  {
-    SESSIONID: 28792,
-    FROM: '2026-08-03 11:38:11',
-    TO: '2026-08-03 11:50:00',
-    CLOSED: 1,
-    SESSIONDATE: '2026-08-03',
-    SHIFTNAME: 'MORNING',
-  },
-  {
-    SESSIONID: 28791,
-    FROM: '2026-08-03 11:25:09',
-    TO: '2026-08-03 11:36:00',
-    CLOSED: 1,
-    SESSIONDATE: '2026-08-03',
-    SHIFTNAME: 'MORNING',
-  },
-  {
-    SESSIONID: 28790,
-    FROM: '2026-07-31 16:11:36',
-    TO: '2026-07-31 17:00:00',
-    CLOSED: 1,
-    SESSIONDATE: '2026-07-31',
-    SHIFTNAME: 'EVENING',
-  },
-];
 
-// ✅ STATIC USER LIST (dropdown ke liye)
-const staticUsers = [
-  { USERID: 1, USERNAME: 'Hanzala Ahmed' },
-  { USERID: 2, USERNAME: 'Ayesha Khan' },
-  { USERID: 3, USERNAME: 'Bilal Sheikh' },
-  { USERID: 4, USERNAME: 'Front Desk 1' },
-];
 
 const UserSessionPage = () => {
 
@@ -108,12 +34,12 @@ const UserSessionPage = () => {
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [openSessionId, setOpenSessionId] = useState(null);
-  const filteredData = staticSessionData;
 
   const { data: currentSessionHistoryData, loading: currentSessionHistoryDataLoading, error: currentSessionHistoryDataError, reFetchData: refetchcurrentSessionHistoryData }
     = useFetch(loginUserData?.username ? `/api/receptionist/getCurrentSessionHistory/${selectedUser || loginUserData?.username}` : null);   // loginUserData?.username = usernID 
 
   const { data: usersData, loading: usersLoading, error: usersError } = useFetch('/api/receptionist/users');
+  
 
   
 
@@ -341,26 +267,6 @@ const UserSessionPage = () => {
 
 
 
-      {/* ✅ Active session ko blue highlight (image jaisa) */}
-      <style>{`
-  .user-session-table .ant-table-thead > tr > th {
-    background-color: #1677ff !important;
-    color: #fff !important;
-    font-weight: 600;
-    border-bottom: none !important;
-  }
-
-  .user-session-table .ant-table-thead > tr > th::before {
-    display: none !important;
-  }
-    
-      .selected-row > td {
-          background-color: #b3deff !important;
-        }
-        .selected-row:hover > td {
-          background-color: #bae0ff !important;
-        }
-`}</style>
 
     </div>
   );

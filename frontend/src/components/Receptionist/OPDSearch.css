@@ -1,11 +1,3 @@
-.row-deleted > td {
-  background-color: #ffc2be !important;
-}
-
-.row-deleted:hover > td {
-  background-color: #ffa8a0 !important;
-}
-
 .custom-disabled-date.ant-picker-disabled .ant-picker-input > input {
   color: #1f2937 !important; 
   -webkit-text-fill-color: #1f2937 !important; 
