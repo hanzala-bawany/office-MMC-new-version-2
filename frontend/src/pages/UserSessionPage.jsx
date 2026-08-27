@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Table,
   Button,
@@ -19,6 +19,9 @@ import { useSelector } from 'react-redux';
 import useFetch from '../hooks/useFetch';
 import axiosInstance from '../utills/axiosInstance';
 import { toast } from 'react-toastify';
+import { useReactToPrint } from 'react-to-print';
+import ReportsLayout from '../Layouts/ReportsLayout';
+import UserSessionSummeryPrint from '../components/management/UserSessionSummeryPrint';
 
 const { Option } = Select;
 
@@ -29,19 +32,24 @@ const UserSessionPage = () => {
 
   const [form] = Form.useForm();
   const [selectedUser, setSelectedUser] = useState(null);
-  const [printLoading, setPrintLoading] = useState(false);
   const [closeLoading, setCloseLoading] = useState(false);
   const loginUserData = useSelector((state) => state?.authSlice?.loginUser);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [openSessionId, setOpenSessionId] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [sessionPrintData, setSessionPrintData] = useState(null);
+  const [sessionPrintLoading, setSessionPrintLoading] = useState(null);
+  const printRef = useRef();
 
   const { data: currentSessionHistoryData, loading: currentSessionHistoryDataLoading, error: currentSessionHistoryDataError, reFetchData: refetchcurrentSessionHistoryData }
     = useFetch(loginUserData?.username ? `/api/receptionist/getCurrentSessionHistory/${selectedUser || loginUserData?.username}` : null);   // loginUserData?.username = usernID 
 
   const { data: usersData, loading: usersLoading, error: usersError } = useFetch('/api/receptionist/users');
-  
 
-  
+  // console.log(sessionPrintData, "sessionPrintData /.");
+  // console.log(selectedRow, "selectedRow /.");
+
+
 
   const columns = [
     {
@@ -104,16 +112,16 @@ const UserSessionPage = () => {
   ];
 
   const handleRowSelect = (record, isSelected) => {
-    console.log("handleRowSelect chala he ");
-    console.log(record, "record .........");   // <-- pura row data yahan milega
-    console.log(isSelected, "checked ya unchecked .........");
+    // console.log(record, "record .........");   // <-- pura row data yahan milega
+    // console.log(isSelected, "checked ya unchecked .........");
+    setSelectedRow(isSelected ? record : null)
   };
 
   const onOverAllSelectChange = (newSelectedRowKeys, selectedRows) => {
-    console.log("onOverAllSelectChange chala he ");
+    // console.log("onOverAllSelectChange chala he ");
     setSelectedRowKeys(newSelectedRowKeys);
-    console.log(newSelectedRowKeys, "newSelectedRowKeys ..............");
-    console.log(selectedRows, "selectedRows (poora data array) .........");
+    // console.log(newSelectedRowKeys, "newSelectedRowKeys ..............");
+    // console.log(selectedRows, "selectedRows (poora data array) .........");
   };
 
   const handleSessionClosed = async () => {
@@ -141,13 +149,27 @@ const UserSessionPage = () => {
 
   };
 
-  const handlePrint = () => {
-    setPrintLoading(true);
-    setTimeout(() => {
-      setPrintLoading(false);
-      window.print();
-    }, 500);
-  };
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Session_${loginUserData?.username || 'Report'}`,
+    onBeforePrint: async () => {
+      if (!selectedRow?.SESSIONID) {
+        return toast.warning("Select the session first");
+      }
+
+      setSessionPrintLoading(true);
+      try {
+        const res = await axiosInstance.get(`/api/management/userSession/printData/${selectedRow.SESSIONID}`);
+        console.log(res, "res of session report");
+        setSessionPrintData(res?.data);
+      } catch (error) {
+        toast.error(error?.response?.data?.message || "Failed to fetch print data");
+        throw error;
+      } finally {
+        setSessionPrintLoading(false);
+      }
+    },
+  });
 
   const rowSelection = {
     selectedRowKeys,
@@ -219,8 +241,8 @@ const UserSessionPage = () => {
               loading={closeLoading}
               onClick={handleSessionClosed}
               className={`shadow-md shadow-red-500/30 ${openSessionId
-                  ? '!bg-red-500 hover:!bg-red-600'
-                  : ' !text-gray-800 bg-red-100! !shadow-none border-red-500!'
+                ? '!bg-red-500 hover:!bg-red-600'
+                : ' !text-gray-800 bg-red-100! !shadow-none border-red-500!'
                 }`}
               disabled={!openSessionId}
             >
@@ -229,9 +251,10 @@ const UserSessionPage = () => {
 
             <Button
               icon={<PrinterOutlined />}
-              loading={printLoading}
+              loading={sessionPrintLoading}
               onClick={handlePrint}
               className="!border-gray-300"
+              disabled={!selectedRow}
             >
               Print
             </Button>
@@ -265,8 +288,18 @@ const UserSessionPage = () => {
         />
       </Card>
 
-
-
+      {/* Hidden Print Section */}
+      <div style={{ position: 'absolute', top: '-10000px', left: '-10000px' }}>
+        <div ref={printRef}>
+          <ReportsLayout
+            reportData={selectedRow}
+            Title="Daily Closing Summary"
+            type="sessionClosing"
+          >
+            <UserSessionSummeryPrint data={sessionPrintData?.data} />
+          </ReportsLayout>
+        </div>
+      </div>
 
     </div>
   );

@@ -10,7 +10,7 @@ import mmcLogo from "../assets/MMC logo.png";
 
 const { Title, Text } = Typography;
 
-const ReportsLayout = ({ children, currentPatientData , Title : reportTitle }) => {
+const ReportsLayout = ({ children, reportData, Title: reportTitle, type }) => {
 
     const currentDate = moment().format("DD-MMMM-YYYY");
 
@@ -49,75 +49,111 @@ const ReportsLayout = ({ children, currentPatientData , Title : reportTitle }) =
                             </Text>
                         </div>
                         <Text className="text-[8px] sm:text-[10px] text-gray-400">
-                           Report : {reportTitle}
+                            Report : {reportTitle}
                         </Text>
                     </div>
+
                 </div>
             </div>
 
-            {/* ============ PATIENT INFO BAR ============ */}
-            <div className="bg-gray-50 p-3 sm:p-4 border-b border-gray-200">
+            {/* ============ After Header ============ */}
+            {
+                type == "medicalPrescription" ?
 
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                    <div className="bg-gray-50 p-3 sm:p-4 border-b border-gray-200">
 
-                    {/* Patient Info - Grid for better mobile view */}
-                    <div className="w-full">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                            {/* Left Column */}
-                            <div className="space-y-1.5">
-                                <div className="flex items-baseline gap-2">
-                                    <Text className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap font-medium">
-                                        Patient Name :
-                                    </Text>
-                                    <Text className="text-sm sm:text-base font-semibold text-gray-800 truncate">
-                                        {currentPatientData?.PATIENTTITLE || ''} {currentPatientData?.PATIENTNAME || 'N/A'}
-                                    </Text>
-                                </div>
-                                <div className="flex items-baseline gap-2">
-                                    <Text className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap font-medium">
-                                        MR No :
-                                    </Text>
-                                    <Text className="text-sm sm:text-base font-medium text-gray-700">
-                                        {currentPatientData?.MRNO || 'N/A'}
-                                    </Text>
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+
+                            {/* Patient Info - Grid for better mobile view */}
+                            <div className="w-full">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                                    {/* Left Column */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-baseline gap-2">
+                                            <Text className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap font-medium">
+                                                Patient Name :
+                                            </Text>
+                                            <Text className="text-sm sm:text-base font-semibold text-gray-800 truncate">
+                                                {reportData?.PATIENTTITLE || ''} {reportData?.PATIENTNAME || 'N/A'}
+                                            </Text>
+                                        </div>
+                                        <div className="flex items-baseline gap-2">
+                                            <Text className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap font-medium">
+                                                MR No :
+                                            </Text>
+                                            <Text className="text-sm sm:text-base font-medium text-gray-700">
+                                                {reportData?.MRNO || 'N/A'}
+                                            </Text>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Column */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-baseline gap-2">
+                                            <Text className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap font-medium">
+                                                Age / Gender :
+                                            </Text>
+                                            <Text className="text-sm sm:text-base font-medium text-gray-700">
+                                                {reportData?.AGE || 'N/A'} {reportData?.AGEUNIT || ''} / {reportData?.GENDER || 'N/A'}
+                                            </Text>
+                                        </div>
+                                        <div className="flex items-baseline gap-2">
+                                            <Text className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap font-medium">
+                                                Receipt No :
+                                            </Text>
+                                            <Text className="text-sm sm:text-base font-medium text-gray-700">
+                                                {reportData?.RECEIPTNO || 'N/A'}
+                                            </Text>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Right Column */}
-                            <div className="space-y-1.5">
-                                <div className="flex items-baseline gap-2">
-                                    <Text className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap font-medium">
-                                        Age / Gender :
-                                    </Text>
-                                    <Text className="text-sm sm:text-base font-medium text-gray-700">
-                                        {currentPatientData?.AGE || 'N/A'} {currentPatientData?.AGEUNIT || ''} / {currentPatientData?.GENDER || 'N/A'}
-                                    </Text>
-                                </div>
-                                <div className="flex items-baseline gap-2">
-                                    <Text className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap font-medium">
-                                        Receipt No :
-                                    </Text>
-                                    <Text className="text-sm sm:text-base font-medium text-gray-700">
-                                        {currentPatientData?.RECEIPTNO || 'N/A'}
-                                    </Text>
-                                </div>
+                            {/* Consultant */}
+                            <div className="w-full md:w-auto text-left md:text-right border-t md:border-t-0 pt-1.5 md:pt-0">
+                                <Text className="text-[8px] sm:text-[10px] text-gray-400 block">Consultant</Text>
+                                <Text className="text-[10px] sm:text-sm font-medium text-gray-700 block">
+                                    Dr. {reportData?.DOCTOR_NAME || 'N/A'}
+                                </Text>
+                                <Text className="text-[8px] sm:text-[10px] text-gray-600 block truncate max-w-[200px]">
+                                    {reportData?.FACULTY || ''}
+                                </Text>
                             </div>
+
                         </div>
                     </div>
 
-                    {/* Consultant */}
-                    <div className="w-full md:w-auto text-left md:text-right border-t md:border-t-0 pt-1.5 md:pt-0">
-                        <Text className="text-[8px] sm:text-[10px] text-gray-400 block">Consultant</Text>
-                        <Text className="text-[10px] sm:text-sm font-medium text-gray-700 block">
-                            Dr. {currentPatientData?.DOCTOR_NAME || 'N/A'}
-                        </Text>
-                        <Text className="text-[8px] sm:text-[10px] text-gray-600 block truncate max-w-[200px]">
-                            {currentPatientData?.FACULTY || ''}
-                        </Text>
-                    </div>
+                    : type == "sessionClosing" ?
 
-                </div>
-            </div>
+                        <div className="bg-gray-50 p-3 sm:p-4 border-b border-gray-200">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
+
+                                <section className=''>
+                                    <div className='flex'>
+                                        <Text className="text-[10px] sm:text-xs text-gray-400 block">User : <span className="text-sm sm:text-base font-semibold text-gray-800"> {reportData?.USERID} </span> </Text>
+                                    </div>
+                                    <Text className="block text-[10px] sm:text-xs text-gray-600">
+                                        SessionID : {reportData?.SESSIONID || 'N/A'}
+                                    </Text>
+                                </section>
+
+                                <div className="text-left sm:text-right space-y-0.5">
+                                    <Text className="block text-[10px] sm:text-xs text-gray-600">
+                                        Session Start : {moment(reportData?.SESSIONDATE).format("DD-MMM-YYYY") || 'N/A'}
+                                    </Text>
+                                    <Text className="block text-[10px] sm:text-xs text-gray-600">
+                                        Session End : {moment(reportData?.TODATE).format("DD-MMM-YYYY") || 'N/A'}
+                                    </Text>
+                                </div>
+
+                            </div>
+                        </div>
+                        :
+                        <div>
+                            other
+                        </div>
+
+            }
 
             {/* ============ BODY ============ */}
             <div className="p-3 sm:p-4 md:p-6 bg-white min-h-[150px]">
@@ -180,7 +216,7 @@ export default ReportsLayout;
 
 // const { Title, Text, Paragraph } = Typography;
 
-// const ReportsLayout = ({ children, currentPatientData }) => {
+// const ReportsLayout = ({ children, reportData }) => {
 
 //     const currentDate = moment().format("DD-MMMM-YYYY");
 
@@ -247,17 +283,17 @@ export default ReportsLayout;
 
 //                             <div>
 //                                 <Text className="text-xs text-gray-400">Patient Name :</Text>
-//                                 <Text className="block font-medium text-gray-700">{currentPatientData?.PATIENTNAME}</Text>
+//                                 <Text className="block font-medium text-gray-700">{reportData?.PATIENTNAME}</Text>
 //                             </div>
 //                             <Divider type="vertical" className="h-8" />
 //                             <div>
 //                                 <Text className="text-xs text-gray-400">MR No :</Text>
-//                                 <Text className="block font-medium text-gray-700">{currentPatientData?.MRNO}</Text>
+//                                 <Text className="block font-medium text-gray-700">{reportData?.MRNO}</Text>
 //                             </div>
 //                             <Divider type="vertical" className="h-8" />
 //                             <div>
 //                                 <Text className="text-xs text-gray-400">Age / Gender :</Text>
-//                                 <Text className="block font-medium text-gray-700">{currentPatientData?.AGE} {currentPatientData?.AGEUNIT} / {currentPatientData?.GENDER}</Text>
+//                                 <Text className="block font-medium text-gray-700">{reportData?.AGE} {reportData?.AGEUNIT} / {reportData?.GENDER}</Text>
 //                             </div>
 //                             <Divider type="vertical" className="h-8" />
 //                             {/* <div>
@@ -267,14 +303,14 @@ export default ReportsLayout;
 //                         </div>
 
 //                         <div className='w-full text-sm'>
-//                             Reciept No : {currentPatientData?.RECEIPTNO}
+//                             Reciept No : {reportData?.RECEIPTNO}
 //                         </div>
 //                     </div>
 
 //                     <div className='text-end'>
 //                         <Text className="text-xs text-gray-400">Consultant</Text>
-//                         <Text className="block font-medium text-gray-700">Dr. {currentPatientData?.DOCTOR_NAME}</Text>
-//                         <Text className="block text-gray-600">{currentPatientData?.FACULTY}</Text>
+//                         <Text className="block font-medium text-gray-700">Dr. {reportData?.DOCTOR_NAME}</Text>
+//                         <Text className="block text-gray-600">{reportData?.FACULTY}</Text>
 //                     </div>
 
 //                 </div>

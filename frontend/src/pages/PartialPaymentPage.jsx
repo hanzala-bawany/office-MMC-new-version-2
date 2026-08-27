@@ -366,13 +366,13 @@ const PartialPaymentPage = () => {
           <div className="flex flex-wrap gap-2">
             <Button onClick={handleNew}>New</Button>
 
-            <Button type="primary" htmlType="submit" loading={saveEditLoading}>
+            <Button type="primary" htmlType="submit" loading={saveEditLoading} disabled={selectedRow && loginUserData?.role != "Admin"}>
               {selectedRow ? "Update" : "Save"}
             </Button>
 
             <Button>Print</Button>
 
-            <Button disabled={!selectedRow} danger onClick={handleDelete} loading={deleteLoading}>
+            <Button disabled={!selectedRow || loginUserData?.role != "Admin"} danger onClick={handleDelete} loading={deleteLoading}>
               Delete
             </Button>
           </div>
