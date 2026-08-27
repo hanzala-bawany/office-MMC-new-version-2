@@ -47,7 +47,7 @@ const PrescriptionReport = () => {
 
         try {
             const res = await axios.get(`${base_URL}/api/opd/patient-full-details/${patientData?.RECEIPTNO}`,);
-            console.log(res, "res of get DocotrDetail by id");
+            // console.log(res, "res of get DocotrDetail by id");
             setCurrentPatientData(res?.data?.data);
         }
         catch (err) {
